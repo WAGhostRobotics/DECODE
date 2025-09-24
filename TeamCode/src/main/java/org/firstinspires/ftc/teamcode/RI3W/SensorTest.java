@@ -8,8 +8,8 @@ public class SensorTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        revDistanceSensor ds = new revDistanceSensor(hardwareMap);
-        revColorSensor cs = new revColorSensor(hardwareMap);
+        RevDistanceSensor ds = new RevDistanceSensor(hardwareMap);
+        RevColorSensor cs = new RevColorSensor(hardwareMap);
         //revColorSensor.DetectedColor detectedColor;
 
         waitForStart();
