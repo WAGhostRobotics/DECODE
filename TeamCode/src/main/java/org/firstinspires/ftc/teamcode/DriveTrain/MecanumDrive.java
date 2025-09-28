@@ -47,10 +47,10 @@ public class MecanumDrive implements Drivetrain {
         backLeft = hardwareMap.get(DcMotorEx.class, "lb");
         backRight = hardwareMap.get(DcMotorEx.class, "rb");
 
-        backLeft.setDirection(DcMotorEx.Direction.REVERSE);
-        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-//        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
-//frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+//        backLeft.setDirection(DcMotorEx.Direction.REVERSE);
+//        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         frontRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);

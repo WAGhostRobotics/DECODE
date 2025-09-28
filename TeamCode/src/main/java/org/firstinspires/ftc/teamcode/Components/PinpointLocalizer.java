@@ -8,7 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 public class PinpointLocalizer {
     GoBildaPinpointDriver pinpoint;
-    private final double xOffset = -80;
+    private final double xOffset = -122;
     private final double yOffset = 0;
 
     public PinpointLocalizer(HardwareMap hardwareMap) {

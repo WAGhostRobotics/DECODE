@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.teamcode.Components.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.DriveTrain.MecanumDrive;
+import org.firstinspires.ftc.teamcode.RI3W.George;
 
 @Config
 public class MotionPlannerEdit {
@@ -27,8 +28,8 @@ public class MotionPlannerEdit {
 
     //    private PIDController translationalControlEnd = new PIDController(0.022,0.001,0.03);
 //    public static PIDController translationalControlEnd = new PIDController(0.025,0.02,0.1);
-    public static PIDController translationalControlEndX = new PIDController(0.02,0.0015, 0); // 0.02 p 0.0015 i
-    public static PIDController translationalControlEndY = new PIDController(0.035, 0.0002, 0);  // i term modified but might revert
+    public static PIDController translationalControlEndX = new PIDController(0.04,0.003, 0); // 0.02 p 0.0015 i
+    public static PIDController translationalControlEndY = new PIDController(0.069, 0.0065, 0);  // i term modified but might revert
     public static PIDController headingControlEnd = new PIDController(0.015, 0.0003, 0); // hope
 
     public boolean started;
@@ -64,8 +65,8 @@ public class MotionPlannerEdit {
     double radius;
     public final static double THE_HOLY_CONSTANT = 0.0006; //0.001
 
-    public static double kStatic_X = 0.135; //.19
-    public static double kStatic_Y = 0.24; //.19
+    public static double kStatic_X = 0.15; //.19
+    public static double kStatic_Y = 0.34   ; //.19
     public static double kStatic_Turn = 0.11; //.19
     double ac;
 
@@ -346,7 +347,7 @@ public class MotionPlannerEdit {
 
 
 //                drive.driveMax(magnitude, theta, driveTurn, movementPower, voltage);
-                drive.driveMax(magnitude, theta, driveTurn, movementPower);
+                George.drivetrain.driveMax(magnitude, theta, driveTurn, 0.8);
             }
 
         }else{
@@ -370,7 +371,7 @@ public class MotionPlannerEdit {
 
     public void updateACValues(){
         currentX = localizer.getEncoderY();
-        currentY = -localizer.getEncoderX();
+        currentY = localizer.getEncoderX();
 
         if((currentX-lastx) == 0){
             y1 = Double.NaN;

@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
-import org.firstinspires.ftc.teamcode.AutoUtil.MergedBezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlannerEdit;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikes;
@@ -18,11 +17,11 @@ import org.firstinspires.ftc.teamcode.CommandSystem.Wait;
 import org.firstinspires.ftc.teamcode.RI3W.George;
 
 @Autonomous
-public class RI3W extends LinearOpMode {
+public class RI3WRed extends LinearOpMode {
     Bezier shootPath, spike1Path, spike2Path, spike1ToShoot, spike2ToShoot;
     public static int multiplier=1;
-    public static Point shootingPos = new Point(-31.7, -7.33);
-    public static Point spike1 = new Point(-60.4, -10.5);
+    public static Point shootingPos = new Point(-16.8, 1.6);
+    public static Point spike1 = new Point(-41.5, -6.75);
     MotionPlannerEdit follower;
 
 
@@ -32,26 +31,21 @@ public class RI3W extends LinearOpMode {
         spike1 = new Point(spike1.getX(), multiplier*spike1.getY());
         George.init(hardwareMap);
         follower = new MotionPlannerEdit(George.drivetrain, George.localizer, hardwareMap);
-        shootPath = new Bezier(53*multiplier,
+        shootPath = new Bezier(-51,
                 new Point(0, 0),
                 shootingPos
         );
 
 
-        spike1Path = new Bezier(90*multiplier,
+        spike1Path = new Bezier(-90,
                 shootingPos,
+                new Point(-38, 6),
                 spike1
         );
 
-        spike1ToShoot = new MergedBezier(
-                new Bezier(
-                        spike1,
-                        new Point(spike1.getX(), 10.5)
-                ),
-                new Bezier(53,
-                        new Point(spike1.getX(), 10.5),
-                        shootingPos
-                        )
+        spike1ToShoot = new Bezier(-51,
+                spike1,
+                shootingPos
         );
 
         SequentialCommand scheduler = new SequentialCommand(
