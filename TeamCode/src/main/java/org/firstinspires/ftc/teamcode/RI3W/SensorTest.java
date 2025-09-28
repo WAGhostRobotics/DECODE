@@ -9,7 +9,8 @@ public class SensorTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         RevDistanceSensor ds = new RevDistanceSensor(hardwareMap);
-        RevColorSensor cs = new RevColorSensor(hardwareMap);
+        Intake intake = new Intake(hardwareMap, gamepad1);
+//        RevColorSensor cs = new RevColorSensor(hardwareMap);
         //revColorSensor.DetectedColor detectedColor;
 
         waitForStart();
@@ -17,6 +18,13 @@ public class SensorTest extends LinearOpMode {
 
         while(opModeIsActive()){
             telemetry.addData("Distance is: ", ds.getDistance());
+            telemetry.update();
+
+            if (ds.getDistance() > 6){
+                intake.control();
+            } else{
+                intake.zeroPower();
+            }
             //detectedColor = cs.getDetectedColor(telemetry);
             //telemetry.addData("color detected: ", detectedColor);// check if this works at the end
         }
