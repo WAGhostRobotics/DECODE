@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.AutoUtil;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
 
+import org.firstinspires.ftc.teamcode.OldStuff.MotionPlannerOld;
 
 
 public class Bezier implements Path {
@@ -19,7 +20,7 @@ public class Bezier implements Path {
     private Point[] curveDerivatives;
     private double[] curveHeadings;
 
-    static double tIncrement = MotionPlannerEdit.tIncrement;
+    static double tIncrement = MotionPlannerOld.tIncrement;
 
 
     public Bezier(double heading, Point... waypoints) {

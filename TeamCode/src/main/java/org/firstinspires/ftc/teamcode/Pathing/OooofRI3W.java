@@ -3,21 +3,19 @@ package org.firstinspires.ftc.teamcode.Pathing;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.MergedBezier;
-import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlannerEdit;
+import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
-import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikes;
 import org.firstinspires.ftc.teamcode.CommandBase.JankyIntakeSpike;
-import org.firstinspires.ftc.teamcode.CommandSystem.FollowTrajectory;
+import org.firstinspires.ftc.teamcode.CommandBase.FollowTrajectory;
 import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.SequentialCommand;
-import org.firstinspires.ftc.teamcode.CommandSystem.Wait;
+import org.firstinspires.ftc.teamcode.CommandBase.Wait;
 import org.firstinspires.ftc.teamcode.RI3W.George;
 
 @Autonomous
@@ -30,7 +28,7 @@ public class OooofRI3W extends LinearOpMode {
     public static Point spike2 = new Point(-84.4, -10.8);
     public static Point spike3 = new Point(-107.7, -10.95);
 
-    MotionPlannerEdit follower;
+    MotionPlanner follower;
 
 
     @Override
@@ -38,7 +36,7 @@ public class OooofRI3W extends LinearOpMode {
         shootingPos = new Point(shootingPos.getX(), multiplier* shootingPos.getY());
         spike1 = new Point(spike1.getX(), multiplier*spike1.getY());
         George.init(hardwareMap);
-        follower = new MotionPlannerEdit(George.drivetrain, George.localizer, hardwareMap);
+        follower = new MotionPlanner(George.drivetrain, George.localizer, hardwareMap);
         follower.setMovementPower(0.9);
         shootPath = new Bezier(48*multiplier,
                 new Point(0, 0),

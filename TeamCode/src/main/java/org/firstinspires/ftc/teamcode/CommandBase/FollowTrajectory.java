@@ -1,15 +1,15 @@
-package org.firstinspires.ftc.teamcode.CommandSystem;
+package org.firstinspires.ftc.teamcode.CommandBase;
 
 
-import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
-import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlannerEdit;
+import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.AutoUtil.Path;
+import org.firstinspires.ftc.teamcode.CommandSystem.Command;
 
 public class FollowTrajectory extends Command {
-    MotionPlannerEdit mp;
+    MotionPlanner mp;
     Path traj;
 
-    public FollowTrajectory(MotionPlannerEdit mp, Path traj) {
+    public FollowTrajectory(MotionPlanner mp, Path traj) {
         this.mp = mp;
         this.traj = traj;
     }
@@ -17,7 +17,7 @@ public class FollowTrajectory extends Command {
     @Override
     public void init() {
         mp.resume();
-        mp.startTrajectory(traj);
+        mp.startFollowingPath(traj);
     }
 
     @Override

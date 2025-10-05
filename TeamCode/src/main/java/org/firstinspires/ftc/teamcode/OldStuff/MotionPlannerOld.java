@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.AutoUtil;
+package org.firstinspires.ftc.teamcode.OldStuff;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
 
@@ -7,13 +7,14 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.teamcode.AutoUtil.Path;
+import org.firstinspires.ftc.teamcode.AutoUtil.Point;
 import org.firstinspires.ftc.teamcode.Components.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.DriveTrain.MecanumDrive;
 import org.firstinspires.ftc.teamcode.RI3W.George;
 
 @Config
-public class MotionPlannerEdit {
+public class MotionPlannerOld {
 
     private Path spline;
     private double targetHeading;
@@ -99,7 +100,7 @@ public class MotionPlannerEdit {
 
     double voltage = 0;
 
-    public MotionPlannerEdit(MecanumDrive drive, PinpointLocalizer localizer, HardwareMap hwMap){
+    public MotionPlannerOld(MecanumDrive drive, PinpointLocalizer localizer, HardwareMap hwMap){
         translationalControlEndY.setIntegrationBounds(-1000000, 1000000);
         translationalControlEndX.setIntegrationBounds(-1000000, 1000000);
         headingControlEnd.setIntegrationBounds(-1000000, 1000000);
@@ -157,24 +158,13 @@ public class MotionPlannerEdit {
         return "Index: " + index +
                 "\n Targetheading: " + targetHeading +
                 "\n Derivative: " + derivative.getX() + ", " + derivative.getY() + " " +
-                "\n Derivative: " + Math.hypot(derivative.getX(), derivative.getY()) + " " +
                 "\nCorrection: " + correction +
                 "\ny1: " + y1 +
                 "\ny2: " + y2 +
                 "\nCurrentX: " + currentX +
                 "\nCurrentY: " + currentY +
-//                "\n Heading Error: " + (targetHeading-currentHeading) +
-//                "\n Approx Length: " + (spline.approximateLength()) +
-//                "\n Phase: " + end +
-//                "\n Stop " + (distanceLeft < estimatedStopping) +
-//                "\n Distance left: " + distanceLeft +
-//                "\n Distance left (x): " + (spline.getEndPoint().getX()-x) +
-//                "\n Distance left (y): " + (spline.getEndPoint().getY()-y) +
                 "\n Perpendicular error: " + (perpendicularError) +
-//                "\n Heading: " + (heading - currentHeading) +
-//                "\n Estimated Stopping " + estimatedStopping +
                 "\n End " + end +
-//                "\n " + drive.getTelemetry() +
                 "\n Reached X: " + reachedXTarget() +
                 "\n Reached Y: " + reachedYTarget() +
                 "\n Reached Heading: " + reachedHeadingTarget() +
@@ -187,16 +177,13 @@ public class MotionPlannerEdit {
                 "\n TargetY: " + spline.getEndPoint().getY() +
                 "\n X_error: " + x_error +
                 "\n Y_error: " + y_error +
-//                "\n Translational Error: " + permissible_translational_error +
                 "\n xPower: " + x_power +
                 "\n yPower: " + y_power +
-//                "\n theta: " + y_power +
                 "\n Theta: " + theta +
                 "\n Magnitude: " + magnitude +
                 "\n DriveTurn: " + driveTurn +
                 "\nToUpdate: " + toUpdate +
                 "\nStarted: " + started;
-//                "\nPID Terms X: " + Arrays.toString(translationalControlEndX.getCoefficients());
     }
 
     public double getPerpendicularError(){
@@ -220,7 +207,6 @@ public class MotionPlannerEdit {
 
         if (!toUpdate)
             return;
-        //        localizer.update();
         updateACValues();
 
         if ((Double.isNaN(x_power) || Double.isNaN(y_power)) || Double.isNaN(magnitude) ||
