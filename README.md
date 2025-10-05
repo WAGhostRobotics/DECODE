@@ -15,6 +15,7 @@ First we setup the limelight object and switch the pipeline to the one that trac
     This pipelines need to be setup and tuned using the web interface by connecting limelight to laptop
 
 Next, we pull some data from the limelight: Tx, Ty, Ta, and most importantly Estimated Pose
+
 Tx is the x error of the April Tag (Error is calculated based on center of april tag compared to the center of the camera frame-- this can be changed in the limelight settings but why bother)
 Ty is the y error of the April Tag (Calculated similarly as Tx)
 Ta is the are of the April Tag (This is computed as percentage of the frame that is covered by the april tag-- if the tag covered like half the frame Ta would ~50%)
