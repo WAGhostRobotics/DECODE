@@ -20,8 +20,7 @@ public class ShooterTest extends LinearOpMode {
     public static double intakePower = 0;
     public static double targetVelocity = 0;
     public static double increment = 0.001;         // Change this in dashboard if you want to control speed with dpads
-    public PIDController pidController;
-    public static double P = 0.01, I=0, D = 0;
+    public static double P = 0.13, I=0.001, D = 0;
     public static double servoPos = 0;
 
     public double currentVelocity, error;
@@ -30,8 +29,6 @@ public class ShooterTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         Servo s1 = hardwareMap.get(Servo.class, "s1");
         George.init(hardwareMap);
-        pidController = new PIDController(P, I, D);
-        pidController.setIntegrationBounds(-10000000, 10000000);
 
         waitForStart();
         while (opModeIsActive()) {
@@ -44,7 +41,7 @@ public class ShooterTest extends LinearOpMode {
 
             George.drivetrain.drive(magnitude, theta, driveTurn, 0.8);
 
-            pidController.setPID(P, I, D);
+            George.shooter.setPID(P, I, D);
             George.shooter.setIntake(intakePower);
 
 //            if (gamepad1.dpad_up) {
@@ -68,15 +65,12 @@ public class ShooterTest extends LinearOpMode {
             George.localizer.update();
 
 
-            telemetry.addData("Wheel Power: ", power);
             telemetry.addData("Intake Power: ", intakePower);
             telemetry.addData("X: ", George.localizer.getPosX());
             telemetry.addData("Y: ", George.localizer.getPosY());
             telemetry.addData("Heading: ", George.localizer.getHeading());
-            telemetry.addData("theta: ", theta);
-            telemetry.addData("magnitude: ", magnitude);
-            telemetry.addData("JoyStick X: ", x);
-            telemetry.addData("JoyStick Y: ", y);
+            telemetry.addData("ShooterCurrent: ", George.shooter.currentVelocity);
+            telemetry.addData("ShooterTarget: ", George.shooter.targetVelocity);
 
 
             telemetry.update();

@@ -12,7 +12,7 @@ public class Shooter {
     public static DcMotorEx intake;
     public static DcMotorEx wheel1;
     public static DcMotorEx wheel2;
-    public static double P = 0.01, I=0, D = 0;
+    public static double P = 0.13, I=0.001, D = 0;
     double currentVelocity, targetVelocity, error, power;
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
@@ -58,4 +58,11 @@ public class Shooter {
         targetVelocity = velocity;
     }
 
+    public void setPID(double p, double i, double d) {
+        pidController.setPID(p, i, d);
+    }
+
+    public void resetPID() {
+        pidController.reset();
+    }
 }

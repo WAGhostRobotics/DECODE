@@ -20,6 +20,9 @@ public class PinpointLocalizer {
 
     }
 
+    public void resetHeading() {
+        pinpoint.resetPosAndIMU();
+    }
     public double getPosX() {
         return pinpoint.getPosX();
     }
