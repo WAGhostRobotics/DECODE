@@ -17,10 +17,13 @@ First we setup the limelight object and switch the pipeline to the one that trac
 Next, we pull some data from the limelight: Tx, Ty, Ta, and most importantly Estimated Pose
 
 Tx is the x error of the April Tag (Error is calculated based on center of april tag compared to the center of the camera frame-- this can be changed in the limelight settings but why bother)
+
 Ty is the y error of the April Tag (Calculated similarly as Tx)
+
 Ta is the are of the April Tag (This is computed as percentage of the frame that is covered by the april tag-- if the tag covered like half the frame Ta would ~50%)
 
 BotPose is only available when you turn on 3D tracking in the web interface. 
+
 Once you do this, the limelight will automatically estimate the position of the robot in meters relative to the CENTER OF THE FIELD
 
 Once you have these coordinates, you can translate them to be relative to the goal, relative to starting position (basically however you want)
