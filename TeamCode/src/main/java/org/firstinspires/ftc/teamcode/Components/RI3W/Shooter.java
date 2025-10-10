@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.RI3W;
+package org.firstinspires.ftc.teamcode.Components.RI3W;
 
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -12,7 +12,7 @@ public class Shooter {
     public static DcMotorEx intake;
     public static DcMotorEx wheel1;
     public static DcMotorEx wheel2;
-    public static double P = 0.13, I=0.001, D = 0;
+    public static double P = 0.07, I=0.002, D = 0;
     double currentVelocity, targetVelocity, error, power;
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
@@ -56,6 +56,10 @@ public class Shooter {
 
     public void setTargetVelocity(double velocity) {
         targetVelocity = velocity;
+    }
+
+    public double getTargetVelocity() {
+        return targetVelocity;
     }
 
     public void setPID(double p, double i, double d) {

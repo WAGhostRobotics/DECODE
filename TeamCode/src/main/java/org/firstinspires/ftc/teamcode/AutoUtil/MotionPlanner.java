@@ -6,8 +6,8 @@ import static org.firstinspires.ftc.teamcode.AutoUtil.Bezier.tIncrement;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.Components.PinpointLocalizer;
-import org.firstinspires.ftc.teamcode.DriveTrain.Drivetrain;
+import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
+import org.firstinspires.ftc.teamcode.Components.DriveTrain.Drivetrain;
 
 public class MotionPlanner {
     private Path spline;                    // Path to be followed (Can be Bezier, Merged or anything else)
@@ -16,11 +16,11 @@ public class MotionPlanner {
     private double xError, yError, headingError;
     private double xPower, yPower, magnitude, theta, driveTurn;
     private final PIDController translationalControlX = new PIDController(0.04,0.003, 0);
-    private final PIDController translationalControlY =  new PIDController(0.069, 0.0065, 0);
-    private final PIDController headingControl = new PIDController(0.015, 0.0003, 0);
-    private final double kStaticX = 0.18;                 // Minimum power before robot moves in X direction
-    private final double kStaticY = 0.3;
-    private final double kStaticTurn = 0.2;
+    private final PIDController translationalControlY =  new PIDController(0.04, 0.006, 0);
+    private final PIDController headingControl = new PIDController(0.012, 0.0003, 0);
+    private double kStaticX = 0.15;                 // Minimum power before robot moves in X direction
+    private double kStaticY = 0.24;
+    private double kStaticTurn = 0.12;
     private final double permissibleTranslationalError = 0.5, permissibleHeadingError = 1;          // Translational in inches, Heading in degrees
     private final double speedThresholdDistance = 15;       // 15 in before the end point, the robot will stop going full speed and start slowing down
     private double speedThresholdPoint;                     // Up until this "point" in the spline, robot goes full speed. Then slows down at the end
@@ -224,6 +224,16 @@ public class MotionPlanner {
 
     public void setXPID(double p, double i, double d) {
         translationalControlX.setPID(p, i, d);
+    }
+
+    public void setXKStatic(double kStaticX) {
+        this.kStaticX = kStaticX;
+    }
+    public void setYKStatic(double kStaticY) {
+        this.kStaticY = kStaticY;
+    }
+    public void setKStaticTurn(double kStaticTurn) {
+        this.kStaticTurn = kStaticTurn;
     }
 
     public void setYPID(double p, double i, double d) {

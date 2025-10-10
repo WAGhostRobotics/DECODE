@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.DriveTrain;
+package org.firstinspires.ftc.teamcode.Components.DriveTrain;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
 
@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-import org.firstinspires.ftc.teamcode.DriveTrain.Drivetrain;
 
 @Config
 public class MecanumDrive implements Drivetrain {

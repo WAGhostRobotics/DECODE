@@ -1,17 +1,11 @@
-package org.firstinspires.ftc.teamcode.RI3W;
+package org.firstinspires.ftc.teamcode.TestingTeleOp.RI3W;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.Components.PinpointLocalizer;
-import org.firstinspires.ftc.teamcode.DriveTrain.MecanumDrive;
+import org.firstinspires.ftc.teamcode.RI3W.George;
 
 @TeleOp
 @Config
@@ -69,8 +63,8 @@ public class ShooterTest extends LinearOpMode {
             telemetry.addData("X: ", George.localizer.getPosX());
             telemetry.addData("Y: ", George.localizer.getPosY());
             telemetry.addData("Heading: ", George.localizer.getHeading());
-            telemetry.addData("ShooterCurrent: ", George.shooter.currentVelocity);
-            telemetry.addData("ShooterTarget: ", George.shooter.targetVelocity);
+            telemetry.addData("ShooterCurrent: ", George.shooter.getCurrentVelocity());
+            telemetry.addData("ShooterTarget: ", George.shooter.getTargetVelocity());
 
 
             telemetry.update();

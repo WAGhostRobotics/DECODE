@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.AutoUtil.Path;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
-import org.firstinspires.ftc.teamcode.Components.PinpointLocalizer;
-import org.firstinspires.ftc.teamcode.DriveTrain.MecanumDrive;
+import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
+import org.firstinspires.ftc.teamcode.Components.DriveTrain.MecanumDrive;
 import org.firstinspires.ftc.teamcode.RI3W.George;
 
 @Config

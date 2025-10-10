@@ -1,9 +1,9 @@
-package org.firstinspires.ftc.teamcode.Components;
+package org.firstinspires.ftc.teamcode.Components.Localizer;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 public class PinpointLocalizer {
@@ -48,6 +48,11 @@ public class PinpointLocalizer {
     }
 
     public void setPose(Pose2D pose) {
+        pinpoint.setPosition(pose);
+    }
+
+    public void setHeadingDegrees(double heading) {
+        Pose2D pose = new Pose2D(DistanceUnit.INCH, getPosX(), getPosY(), AngleUnit.DEGREES, heading);
         pinpoint.setPosition(pose);
     }
 }

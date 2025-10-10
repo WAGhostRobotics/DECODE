@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Pathing;
+package org.firstinspires.ftc.teamcode.Pathing.RI3W;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
 import org.firstinspires.ftc.teamcode.OldStuff.MotionPlannerOld;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
-import org.firstinspires.ftc.teamcode.CommandBase.JankyIntakeSpike;
+import org.firstinspires.ftc.teamcode.CommandBase.RI3W.JankyIntakeSpike;
 import org.firstinspires.ftc.teamcode.OldStuff.FollowTrajectoryOld;
 import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;

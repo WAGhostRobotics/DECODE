@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
-import org.firstinspires.ftc.teamcode.Components.PinpointLocalizer;
-import org.firstinspires.ftc.teamcode.DriveTrain.MecanumDrive;
+import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
+import org.firstinspires.ftc.teamcode.Components.DriveTrain.MecanumDrive;
 
 @Autonomous
 public class NewMPTest extends LinearOpMode {
