@@ -37,11 +37,12 @@ public class Camera {
     // All limelight values are initially in meters. Need to convert to inches
     private final double meterToInches = 39.37;
     private double aprilX, aprilY, aprilXInches, aprilYInches, aprilHeading;
-    private double localizerX, localizerY, localizerHeading;
+    private double localizerX, localizerY, localizerHeading, lastLocalizerX, lastLocalizerY, estimatedX, estimatedY;
     private double distance, distanceInches;
     private double calculatedShooterVelocity;
 
     private double targetHeading, headingError, driveTurn;
+    private final double permissibleError = 0.5;
     PIDController headingControl = new PIDController(0.01, 0.000, 0);
     private final double kStaticTurn = 0.05;
 
@@ -64,7 +65,7 @@ public class Camera {
 
     // Translational constant from the april Tag to the actual backboard
     private final double xGoalTranslation = 10;
-    private final double yGoalTranslation = 13.5;
+    private double yGoalTranslation = 13.5;
 
     public Camera(HardwareMap hardwareMap, boolean blueAlliance) {
         headingControl.setIntegrationBounds(-10000000, 10000000);
@@ -76,6 +77,7 @@ public class Camera {
         else {
             limelight3A.pipelineSwitch(1);              // Red april tag Pipeline
             yTranslation *= -1;                               // Flipped bc red is other side
+            yGoalTranslation *= -1;
         }
 
     }
@@ -83,8 +85,9 @@ public class Camera {
         this(hardwareMap, true);               // Just calls the constructor (defaults to blue alliance)
     }
 
-    public void trackAprilTag() {
+    public void trackAprilTag(double robotHeading) {
         getLocalizerValues();
+        limelight3A.updateRobotOrientation(robotHeading);
         LLResult llResult = limelight3A.getLatestResult();
         if (llResult != null && llResult.isValid()) {       // If April tag is visible
             aprilVisible = true;                    // Just for telemetry purposes
@@ -97,12 +100,14 @@ public class Camera {
 
             aprilXInches = aprilX * meterToInches;
             aprilYInches = aprilY * meterToInches;
+            lastLocalizerX = aprilXInches;
+            lastLocalizerY = aprilYInches;
 
             distance = Math.hypot(aprilX, aprilY)*Math.cos(Math.toRadians(limelightAngle));
             distanceInches = distance * meterToInches;
 
             // Always relocalize when April Tag is in sight
-            George.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, aprilHeading));
+            George.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, normalizeDegrees(aprilHeading+90)));
 
 
             // Heading Control to keep Robot locked to the goal
@@ -112,22 +117,24 @@ public class Camera {
             double aprilXInchesGoal = aprilXInches + xGoalTranslation;
             double aprilYInchesGoal = Math.signum(aprilYInches)*yGoalTranslation + aprilYInches;
 
-            // Subtracting 180 bc targetHeading and aprilHeading need to be in the same quadrant
-            // (basically so the robot doesn't face the opposite direction)
-            targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(aprilYInchesGoal, aprilXInchesGoal)))-180;
-            headingError = targetHeading - aprilHeading;
+            targetHeading = -normalizeDegrees(Math.toDegrees(Math.atan2(aprilXInchesGoal, aprilYInchesGoal)));
+            headingError = targetHeading - localizerHeading;
         }
         else {
             aprilVisible = false;
-            distance = Math.hypot(localizerX/meterToInches, localizerY/meterToInches);
+            estimatedX = lastLocalizerX - (lastLocalizerY - localizerY);
+            estimatedY = lastLocalizerY + (lastLocalizerX - localizerX);
+            distance = Math.hypot(estimatedX/meterToInches, estimatedY/meterToInches);
+            estimatedX += (xGoalTranslation);
+            estimatedY += (yGoalTranslation);
+
             distanceInches = distance * meterToInches;
-            double angledLocalizerY = localizerY / Math.cos(Math.toRadians(limelightAngle));
-            double angledLocalizerX = localizerX / Math.cos(Math.toRadians(limelightAngle));
+            double angledLocalizerX = estimatedX / Math.cos(Math.toRadians(limelightAngle));
+            double angledLocalizerY = estimatedY / Math.cos(Math.toRadians(limelightAngle));
 
-            double aprilXInchesGoal = angledLocalizerX + xGoalTranslation;
-            double aprilYInchesGoal = Math.signum(angledLocalizerY)*yGoalTranslation + angledLocalizerY;
 
-            targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(aprilYInchesGoal, aprilXInchesGoal)))-180;
+
+            targetHeading = -normalizeDegrees(Math.toDegrees(Math.atan2(angledLocalizerX, angledLocalizerY)));
             headingError = targetHeading - localizerHeading;
         }
 
@@ -135,6 +142,10 @@ public class Camera {
         driveTurn = headingControl.calculate(0, headingError);
         driveTurn = Math.signum(driveTurn) * kStaticTurn + driveTurn;
         driveTurn = Range.clip(driveTurn, -1, 1);
+        if (Math.abs(headingError)<permissibleError) {
+            resetHeadingControl();
+            driveTurn = 0;
+        }
     }
 
     public String getTelemetry() {
@@ -147,19 +158,19 @@ public class Camera {
                     "April Y (In): " + aprilYInches + "\n" +
                     "April Heading: " + aprilHeading + "\n";
         }
-        else {
-            returnString = returnString + "Localizer X: " + localizerX + "\n" +
-                    "Localizer Y: " + localizerY + "\n" +
-                    "Localizer Heading: " + localizerHeading + "\n";
-        }
 
 
-        returnString = returnString + "Distance: " + distance + "\n" +
-                "Distance (In) " + distanceInches + "\n" +
-                "Target Shooter Velocity: " + calculatedShooterVelocity + "\n" +
-                "Target Heading: " + targetHeading + "\n" +
-                "Heading Error: " + headingError + "\n" +
-                "DriveTurn: " + driveTurn + "\n";
+        returnString = returnString + "Localizer X: " + localizerX + "\n" +
+                        "Localizer Y: " + localizerY + "\n" +
+                        "Estimated X: " + estimatedX + "\n" +
+                        "Estimated Y: " + estimatedY + "\n" +
+                        "Localizer Heading: " + localizerHeading + "\n" +
+                        "Distance: " + distance + "\n" +
+                        "Distance (In) " + distanceInches + "\n" +
+                        "Target Shooter Velocity: " + calculatedShooterVelocity + "\n" +
+                        "Target Heading: " + targetHeading + "\n" +
+                        "Heading Error: " + headingError + "\n" +
+                        "DriveTurn: " + driveTurn + "\n";
 
         return returnString;
     }
@@ -202,5 +213,9 @@ public class Camera {
 
     public double getAprilHeading() {
         return aprilHeading;
+    }
+
+    public void resetHeadingControl() {
+        headingControl.reset();
     }
 }

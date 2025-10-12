@@ -9,13 +9,14 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class Shooter {
-    public static DcMotorEx intake;
-    public static DcMotorEx wheel1;
-    public static DcMotorEx wheel2;
-    public static double P = 0.07, I=0.002, D = 0;
+    private DcMotorEx intake;
+    private DcMotorEx wheel1;
+    private DcMotorEx wheel2;
+    private double P = 0.07, I=0.0035, D = 0;
     double currentVelocity, targetVelocity, error, power;
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
+    public static double intakeShootPower = 1;
 
     private PIDController pidController;
 
@@ -39,6 +40,10 @@ public class Shooter {
         intake.setPower(0);
     }
 
+    public boolean reachedVelocity() {
+        return Math.abs(currentVelocity-targetVelocity)<6;
+    }
+
     public double getCurrentVelocity() {
         currentVelocity = wheel1.getVelocity(AngleUnit.RADIANS) * 48; // mm
         return currentVelocity;
@@ -52,6 +57,13 @@ public class Shooter {
 
         wheel1.setPower(power);
         wheel2.setPower(power);
+    }
+
+    public void shoot() {
+        if (reachedVelocity())
+            intake.setPower(intakeShootPower);
+        else
+            intake.setPower(0);
     }
 
     public void setTargetVelocity(double velocity) {
@@ -68,5 +80,11 @@ public class Shooter {
 
     public void resetPID() {
         pidController.reset();
+    }
+
+    public String getTelemetry() {
+        return "Target V: " + targetVelocity +
+                "\nCurrent V: " + currentVelocity +
+                "\nPower: " + power;
     }
 }

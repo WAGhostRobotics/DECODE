@@ -5,13 +5,14 @@ import static org.firstinspires.ftc.teamcode.AutoUtil.Bezier.tIncrement;
 
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Components.DriveTrain.Drivetrain;
 
 public class MotionPlanner {
     private Path spline;                    // Path to be followed (Can be Bezier, Merged or anything else)
-    private double currentHeading, currentX, currentY, currentVelocity;
+    private double currentHeading, currentX, currentY, lastX, lastY, currentVelocity;
     private double targetHeading, targetX, targetY;
     private double xError, yError, headingError;
     private double xPower, yPower, magnitude, theta, driveTurn;
@@ -34,8 +35,13 @@ public class MotionPlanner {
     private boolean isEndOfSpline;
     private boolean toUpdate = true;                // Needed to pause motion planner at times
 
+    private ElapsedTime timer;
+    private double seconds;
+    private double distance;
+
 
     public MotionPlanner(Drivetrain drivetrain, PinpointLocalizer localizer, HardwareMap hwMap) {
+        timer = new ElapsedTime();
         translationalControlX.setIntegrationBounds(-10000000, 10000000);
         translationalControlY.setIntegrationBounds(-10000000, 10000000);
         headingControl.setIntegrationBounds(-10000000, 10000000);
@@ -56,14 +62,32 @@ public class MotionPlanner {
     }
 
     private void reset() {
+        timer.reset();
+        lastX = 0;
+        lastY = 0;
+        currentX = 0;
+        currentY = 0;
         translationalControlY.reset();
         translationalControlX.reset();
         headingControl.reset();
     }
     private void updateRobotValues() {
         currentHeading = localizer.getHeading();            // In degrees
+
         currentX = localizer.getPosX();
         currentY = localizer.getPosY();
+
+        if (isEndOfSpline) {
+            distance = Math.hypot((currentX - lastX), (currentY - lastY));
+            lastX = currentX;
+            lastY = currentY;
+            seconds = timer.seconds();
+            currentVelocity = distance / seconds;
+        }
+        else {
+            currentVelocity = 0;
+        }
+        timer.reset();
         voltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
 
     }
@@ -186,7 +210,7 @@ public class MotionPlanner {
 
             }
         }
-        else{
+        else {
             if(reachedX()){
                 translationalControlX.reset();
             }
@@ -214,12 +238,16 @@ public class MotionPlanner {
         return Math.abs(yError) < permissibleTranslationalError && isEndOfSpline;
     }
 
+    private boolean stopped() {
+        return Math.abs(currentVelocity) <= 5;
+    }
+
     private boolean reachedHeading() {
         return Math.abs(headingError) < permissibleHeadingError && isEndOfSpline;
     }
 
     public boolean isFinished() {
-        return reachedX() && reachedY() && reachedHeading();
+        return reachedX() && reachedY() && reachedHeading() && stopped();
     }
 
     public void setXPID(double p, double i, double d) {
@@ -261,6 +289,7 @@ public class MotionPlanner {
 
     public String getTelemetry() {
         return "Updating: " + toUpdate +
+                "\nisFinished: " + isFinished() +
                 "\nX Error: " + xError +
                 "\nY Error: " + yError +
                 "\nX Power: " + xPower +
@@ -269,7 +298,11 @@ public class MotionPlanner {
                 "\nTarget X: " + targetX +
                 "\nCurrent Y: " + currentY +
                 "\nTarget Y: " + targetY +
-                "\nIndex: " + index;
+                "\nIndex: " + index +
+                "\nEnd Part: " + isEndOfSpline +
+                "\nVelocity: " + currentVelocity +
+                "\nDistance: " + distance +
+                "\nSeconds: " + seconds;
     }
 
 }
