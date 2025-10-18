@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Components.DriveTrain.Drivetrain;
+import org.firstinspires.ftc.teamcode.Components.RI3W.Constants;
 
 public class MotionPlanner {
     private Path spline;                    // Path to be followed (Can be Bezier, Merged or anything else)
@@ -16,12 +17,12 @@ public class MotionPlanner {
     private double targetHeading, targetX, targetY;
     private double xError, yError, headingError;
     private double xPower, yPower, magnitude, theta, driveTurn;
-    private final PIDController translationalControlX = new PIDController(0.04,0.003, 0);
-    private final PIDController translationalControlY =  new PIDController(0.04, 0.006, 0);
-    private final PIDController headingControl = new PIDController(0.012, 0.0003, 0);
-    private double kStaticX = 0.15;                 // Minimum power before robot moves in X direction
-    private double kStaticY = 0.24;
-    private double kStaticTurn = 0.12;
+    private final PIDController translationalControlX = new PIDController(Constants.translationalXP,Constants.translationalXI, Constants.translationalXD);
+    private final PIDController translationalControlY =  new PIDController(Constants.translationalYP, Constants.translationalYI, Constants.translationalYD);
+    private final PIDController headingControl = new PIDController(Constants.headingP, Constants.headingI, Constants.headingD);
+    private double kStaticX = Constants.kStaticX;                 // Minimum power before robot moves in X direction
+    private double kStaticY = Constants.kStaticY;
+    private double kStaticTurn = Constants.kStaticTurn;
     private final double permissibleTranslationalError = 0.5, permissibleHeadingError = 1;          // Translational in inches, Heading in degrees
     private final double speedThresholdDistance = 15;       // 15 in before the end point, the robot will stop going full speed and start slowing down
     private double speedThresholdPoint;                     // Up until this "point" in the spline, robot goes full speed. Then slows down at the end
@@ -101,9 +102,20 @@ public class MotionPlanner {
         }
     }
 
+    private void checkForNaN() {
+        if (Double.isNaN(xPower) || Double.isNaN(yPower) || Double.isNaN(magnitude) ||
+                Double.isNaN(theta) || Double.isNaN(driveTurn)) {
+            translationalControlX.reset();
+            translationalControlY.reset();
+            headingControl.reset();
+        }
+    }
+
 
     public void update() {                  // This actually moves the robot
         updateRobotValues();                // Get current position and heading
+
+        checkForNaN();
 
         if (!toUpdate) {
             return;

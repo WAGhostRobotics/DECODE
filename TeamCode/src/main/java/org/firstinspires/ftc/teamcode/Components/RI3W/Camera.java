@@ -7,6 +7,7 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -20,7 +21,7 @@ import org.firstinspires.ftc.teamcode.RI3W.George;
  *     - IF APRIL TAG VISIBLE
  *     - Use limelight pose estimation to find distance from the goal
  *     - Determine target velocity of flywheel using an experimentally determined relationship (Desmos link: https://www.desmos.com/calculator/ffcaewmxtr)
- *     - Always relocalize the robot when April Tag is visible (Set the x and y coordinates and heading)
+ *     - Always relocalize the robot when April Tag is visible (Set the x and y coordinates)
  *     - Use april Tag x and y estimates to find a target Heading
  *     - Heading control PID to lock the robot chassis on the goal
  *     - IF APRIL TAG NOT VISIBLE
@@ -43,8 +44,8 @@ public class Camera {
 
     private double targetHeading, headingError, driveTurn;
     private final double permissibleError = 0.5;
-    PIDController headingControl = new PIDController(0.01, 0.000, 0);
-    private final double kStaticTurn = 0.05;
+    PIDController headingControl = new PIDController(0.0175, 0.000, 0);
+    private final double kStaticTurn = 0.06;
 
 
 
@@ -52,7 +53,7 @@ public class Camera {
     private final double limelightAngle = 18;       // Limelight is mounted at 18 degree angle
 
     // Experimental slope for the line of best fit (relationship between distance and required flywheel velocity)
-    private final double experimentalSlope = 0.948498;
+    private final double experimentalSlope = 0.882431;
 
     // xTranslation and yTranslation are offsets
     // When limelight sees april tag and estimates pose, the origin is the center of the field
@@ -60,38 +61,40 @@ public class Camera {
     // So we add these x and y translational offsets to whatever the limelight returns
     // x Translation is the same for red and blue
     // y Translation is positive for blue negative for red
-    private final double xTranslation = 1.482;
-    private double yTranslation = 1.413;
+    private final double xTranslation = 1.1;
+    private double yTranslation = 1.57;
 
     // Translational constant from the april Tag to the actual backboard
-    private final double xGoalTranslation = 10;
-    private double yGoalTranslation = 13.5;
+
+    ElapsedTime timer = new ElapsedTime();
+    private final int timerThreshold = 3;           // In seconds
 
     public Camera(HardwareMap hardwareMap, boolean blueAlliance) {
         headingControl.setIntegrationBounds(-10000000, 10000000);
         limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
+        timer.reset();
         limelight3A.start();
-        if (blueAlliance) {
-            limelight3A.pipelineSwitch(0);              // Blue april tag Pipeline
-        }
-        else {
-            limelight3A.pipelineSwitch(1);              // Red april tag Pipeline
-            yTranslation *= -1;                               // Flipped bc red is other side
-            yGoalTranslation *= -1;
-        }
+//        if (blueAlliance) {
+//            limelight3A.pipelineSwitch(0);              // Blue april tag Pipeline
+//            yTranslation *= -1;                               // Flipped bc red is other side
+//            yGoalTranslation *= -1;
+//        }
+//        else {
+//            limelight3A.pipelineSwitch(1);              // Red april tag Pipeline
+//
+//        }
 
     }
     public Camera(HardwareMap hardwareMap) {
         this(hardwareMap, true);               // Just calls the constructor (defaults to blue alliance)
     }
-
-    public void trackAprilTag(double robotHeading) {
+    public void trackAprilTag(double heading, boolean tracking) {
         getLocalizerValues();
-        limelight3A.updateRobotOrientation(robotHeading);
+        limelight3A.updateRobotOrientation(heading);
         LLResult llResult = limelight3A.getLatestResult();
         if (llResult != null && llResult.isValid()) {       // If April tag is visible
             aprilVisible = true;                    // Just for telemetry purposes
-            Pose3D botPose = llResult.getBotpose();
+            Pose3D botPose = llResult.getBotpose_MT2();
             aprilHeading = botPose.getOrientation().getYaw(DEGREES);
 
             // Get the x and y (Then apply translation to figure out where robot is relative to the goal)
@@ -100,42 +103,34 @@ public class Camera {
 
             aprilXInches = aprilX * meterToInches;
             aprilYInches = aprilY * meterToInches;
-            lastLocalizerX = aprilXInches;
-            lastLocalizerY = aprilYInches;
 
             distance = Math.hypot(aprilX, aprilY)*Math.cos(Math.toRadians(limelightAngle));
             distanceInches = distance * meterToInches;
 
-            // Always relocalize when April Tag is in sight
-            George.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, normalizeDegrees(aprilHeading+90)));
+            // Always relocalize when April Tag is in sight (Timer added to chill the loop speeds and pinpoint death)
+            if (timer.seconds()>timerThreshold && tracking) {
+                George.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, heading));
+                timer.reset();
+            }
 
 
             // Heading Control to keep Robot locked to the goal
-
-            // This is a bit weird. But we want to aim at the goal backboard, not at the april tag.
-            // Adding an offset from the april tag to the goal helps the robot aim better
-            double aprilXInchesGoal = aprilXInches + xGoalTranslation;
-            double aprilYInchesGoal = Math.signum(aprilYInches)*yGoalTranslation + aprilYInches;
-
-            targetHeading = -normalizeDegrees(Math.toDegrees(Math.atan2(aprilXInchesGoal, aprilYInchesGoal)));
-            headingError = targetHeading - localizerHeading;
+            targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(aprilYInches, aprilXInches)))-180;
+            headingError = normalizeDegrees(targetHeading - localizerHeading);
         }
         else {
             aprilVisible = false;
-            estimatedX = lastLocalizerX - (lastLocalizerY - localizerY);
-            estimatedY = lastLocalizerY + (lastLocalizerX - localizerX);
+
+            estimatedX = localizerX;
+            estimatedY = localizerY;
             distance = Math.hypot(estimatedX/meterToInches, estimatedY/meterToInches);
-            estimatedX += (xGoalTranslation);
-            estimatedY += (yGoalTranslation);
 
             distanceInches = distance * meterToInches;
-            double angledLocalizerX = estimatedX / Math.cos(Math.toRadians(limelightAngle));
-            double angledLocalizerY = estimatedY / Math.cos(Math.toRadians(limelightAngle));
 
 
 
-            targetHeading = -normalizeDegrees(Math.toDegrees(Math.atan2(angledLocalizerX, angledLocalizerY)));
-            headingError = targetHeading - localizerHeading;
+            targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(estimatedY, estimatedX))-180);
+            headingError = normalizeDegrees(targetHeading - localizerHeading);
         }
 
         calculatedShooterVelocity = calculateShooterTargetVelocity(distance);
@@ -188,7 +183,7 @@ public class Camera {
         // Caveats:
         // If robot is closer than a certain distance, shoot at an experimentally measured minimum velocity
 
-        if (rawX < 1.5) {
+        if (rawX < 1.4) {
             return 128;
         }
         double x = distanceFunction(rawX, theta);
@@ -217,5 +212,22 @@ public class Camera {
 
     public void resetHeadingControl() {
         headingControl.reset();
+    }
+
+    public double getTargetHeading() {
+        return targetHeading;
+    }
+
+
+    public void getNewHeading() {
+        getLocalizerValues();
+        LLResult llResult = limelight3A.getLatestResult();
+        if (llResult != null && llResult.isValid()) {       // If April tag is visible
+            aprilVisible = true;                    // Just for telemetry purposes
+            Pose3D botPose = llResult.getBotpose();
+            aprilHeading = botPose.getOrientation().getYaw(DEGREES)-180;
+            George.localizer.setPose(new Pose2D(DistanceUnit.INCH, localizerX, localizerY, DEGREES, normalizeDegrees(aprilHeading-90)));
+
+        }
     }
 }

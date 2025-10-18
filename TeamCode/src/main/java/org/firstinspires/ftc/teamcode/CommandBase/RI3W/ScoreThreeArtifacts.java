@@ -17,12 +17,12 @@ public class ScoreThreeArtifacts extends SequentialCommand {
                         new FollowTrajectory(follower, path),
                         new RunCommand(()-> George.shooter.setTargetVelocity(flywheelVelocity))
                 ),
-                new RunCommand(()->George.shooter.setIntake(1)),
-                new Wait(1000),
+                new RunCommand(()->George.shooter.shoot()),
+                new Wait(750),
                 new RunCommand(()->George.shooter.setIntake(-0.35)),
-                new Wait(500),
-                new RunCommand(()->George.shooter.setIntake(1)),
-                new Wait(800)
+                new Wait(400),
+                new RunCommand(()->George.shooter.shoot()),
+                new Wait(600)
         );
     }
 }

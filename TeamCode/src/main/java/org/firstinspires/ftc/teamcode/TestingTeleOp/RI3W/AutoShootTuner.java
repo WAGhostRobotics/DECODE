@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 
 @Config
 @TeleOp
-public class AutoShoot extends LinearOpMode {
-    private static final Logger log = LoggerFactory.getLogger(AutoShoot.class);
+public class AutoShootTuner extends LinearOpMode {
+    private static final Logger log = LoggerFactory.getLogger(AutoShootTuner.class);
     public static boolean tuning = false;
     private final double theta = 55;
     private final double experimentalSlope = 0.948498;
@@ -77,7 +77,7 @@ public class AutoShoot extends LinearOpMode {
         while (opModeIsActive()) {
             George.localizer.update();
             getLocalizerValues();
-//            limelight3A.updateRobotOrientation(George.localizer.getHeading());
+            limelight3A.updateRobotOrientation(George.localizer.getHeading());
             double x = -gamepad1.left_stick_y;
             double y = -gamepad1.left_stick_x;
             double magnitude = Math.hypot(x, y);
@@ -91,7 +91,7 @@ public class AutoShoot extends LinearOpMode {
                 LLResult llResult = limelight3A.getLatestResult();
                 if (llResult != null && llResult.isValid()) {
                     gamepad1.setLedColor(0, 255, 0, 1000);
-                    Pose3D botPose = llResult.getBotpose();
+                    Pose3D botPose = llResult.getBotpose_MT2();
                     double aprilHeading = botPose.getOrientation().getYaw(DEGREES);
                     aprilX = (botPose.getPosition().x + xTranslation);
                     aprilY = (botPose.getPosition().y + yTranslation);

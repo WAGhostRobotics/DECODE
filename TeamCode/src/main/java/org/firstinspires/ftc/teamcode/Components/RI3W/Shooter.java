@@ -17,6 +17,7 @@ public class Shooter {
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
     public static double intakeShootPower = 1;
+    private final int standByVelocity = 100;
 
     private PIDController pidController;
 
@@ -41,7 +42,7 @@ public class Shooter {
     }
 
     public boolean reachedVelocity() {
-        return Math.abs(currentVelocity-targetVelocity)<6;
+        return Math.abs(error)<3;
     }
 
     public double getCurrentVelocity() {
@@ -53,10 +54,16 @@ public class Shooter {
         error = targetVelocity - currentVelocity;
         power = pidController.calculate(0, error);
         power = Range.clip(power, -1, 1);
-
-
         wheel1.setPower(power);
         wheel2.setPower(power);
+    }
+
+    public void standBy() {
+        setTargetVelocity(standByVelocity);
+    }
+
+    public void stop() {
+        setTargetVelocity(0);
     }
 
     public void shoot() {
@@ -85,6 +92,7 @@ public class Shooter {
     public String getTelemetry() {
         return "Target V: " + targetVelocity +
                 "\nCurrent V: " + currentVelocity +
+                "\nShooter Error: " + error +
                 "\nPower: " + power;
     }
 }

@@ -29,7 +29,7 @@ public class Blue12Ball extends LinearOpMode {
     public static Point spike2 = new Point(-84.7, -10.9);
     public static Point spike3 = new Point(-107.7, -11);
 
-    public static Point openGate = new Point(-77.6987, 13.9);
+    public static Point openGate = new Point(-80, 13.9);
 
     MotionPlanner follower;
 
@@ -50,10 +50,10 @@ public class Blue12Ball extends LinearOpMode {
                 90,
                 new Bezier(
                         new Point(spike2.getX(), spike2.getY()+10),
-                        new Point(openGate.getX(), spike2.getY()+5)
+                        new Point(openGate.getX(), spike2.getY()+6.5)
                 ),
                 new Bezier(
-                        new Point(openGate.getX(), spike2.getY()+5),
+                        new Point(openGate.getX(), spike2.getY()+6.5),
                         openGate
                 )
         );
@@ -87,12 +87,13 @@ public class Blue12Ball extends LinearOpMode {
 
 
         spike2ToShoot = new MergedBezier(
+                49,
                 new Bezier(
                         openGate,
-                        new Point(spike2.getX()-1, -3)
+                        new Point(spike2.getX()-1, 3)
                 ),
-                new Bezier(49,
-                        new Point(spike2.getX()-1, -5),
+                new Bezier(
+                        new Point(spike2.getX()-1, -1),
                         shootingPos
                 )
         );
@@ -103,7 +104,7 @@ public class Blue12Ball extends LinearOpMode {
                         new Point(spike3.getX(), -12)
                 ),
                 new Bezier(
-                        24,
+                        23,
                         new Point(spike3.getX(), -12),
                         farShootingPos
                 )
@@ -122,11 +123,11 @@ public class Blue12Ball extends LinearOpMode {
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike2Path),
                         new RunCommand(()->George.shooter.setTargetVelocity(0)),
-                        new RunCommand(()->George.shooter.setIntake(0.8))
+                        new RunCommand(()->George.shooter.setIntake(1))
                 ),
 
                 new RunCommand(()->follower.pause()),
-                new JankyIntakeSpike(0.5, 0.725, 1),
+                new JankyIntakeSpike(0.45, 0.7, 1),
                 new RunCommand(()->follower.resume()),
                 new FollowTrajectory(follower, openGatePath),
                 new Wait(500),
@@ -137,10 +138,10 @@ public class Blue12Ball extends LinearOpMode {
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike1Path),
                         new RunCommand(()->George.shooter.setTargetVelocity(0)),
-                        new RunCommand(()->George.shooter.setIntake(0.8))
+                        new RunCommand(()->George.shooter.setIntake(1))
                 ),
                 new RunCommand(()->follower.pause()),
-                new JankyIntakeSpike(0.5, 0.6, 1),
+                new JankyIntakeSpike(0.45, 0.7, 1),
                 new RunCommand(()->follower.resume()),
 
                 new ScoreThreeArtifacts(follower, spike1ToShoot, 125),
@@ -149,14 +150,14 @@ public class Blue12Ball extends LinearOpMode {
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike3Path),
                         new RunCommand(()->George.shooter.setTargetVelocity(0)),
-                        new RunCommand(()->George.shooter.setIntake(0.8))
+                        new RunCommand(()->George.shooter.setIntake(1))
                 ),
 
                 new RunCommand(()->follower.pause()),
-                new JankyIntakeSpike(0.5, 0.65, 1),
+                new JankyIntakeSpike(0.45, 0.7, 1),
                 new RunCommand(()->follower.resume()),
 
-                new ScoreThreeArtifacts(follower, spike3ToShoot, 170),
+                new ScoreThreeArtifacts(follower, spike3ToShoot, 169),
 
                 new FollowTrajectory(follower, rotate90)
 
