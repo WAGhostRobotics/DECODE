@@ -164,7 +164,7 @@ public class AutoTeleOp extends LinearOpMode {
         }
         else {
             locked = false;
-            George.drivetrain.drive(magnitude, theta, driveTurn, Constants.movementPower);
+            George.drivetrain.drive(magnitude, theta, driveTurn, 0.95);
         }
     }
 }

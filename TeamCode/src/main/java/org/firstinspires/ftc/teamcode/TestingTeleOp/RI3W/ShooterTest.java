@@ -7,8 +7,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.RI3W.George;
 
-@TeleOp
 @Config
+@TeleOp
 public class ShooterTest extends LinearOpMode {
     public static double power = 0.8;                 // Change this in dashboard at runtime
     public static double intakePower = 0;
@@ -57,14 +57,15 @@ public class ShooterTest extends LinearOpMode {
             George.shooter.setIntake(intakePower);
 
             George.localizer.update();
+            currentVelocity = George.shooter.getCurrentVelocity();
+            error = targetVelocity - currentVelocity;
 
 
             telemetry.addData("Intake Power: ", intakePower);
             telemetry.addData("X: ", George.localizer.getPosX());
             telemetry.addData("Y: ", George.localizer.getPosY());
             telemetry.addData("Heading: ", George.localizer.getHeading());
-            telemetry.addData("ShooterCurrent: ", George.shooter.getCurrentVelocity());
-            telemetry.addData("ShooterTarget: ", George.shooter.getTargetVelocity());
+            telemetry.addData("Power: ", George.shooter.getTelemetry());
 
 
             telemetry.update();

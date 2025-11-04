@@ -12,7 +12,7 @@ public class Shooter {
     private DcMotorEx intake;
     private DcMotorEx wheel1;
     private DcMotorEx wheel2;
-    private double P = 0.07, I=0.0035, D = 0;
+    private double P = 0.125, I=0.00275, D = 0;
     double currentVelocity, targetVelocity, error, power;
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
