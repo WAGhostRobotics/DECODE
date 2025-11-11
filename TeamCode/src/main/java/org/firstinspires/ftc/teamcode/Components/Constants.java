@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Components.RI3W;
+package org.firstinspires.ftc.teamcode.Components;
 
 public class Constants {
     public static double translationalXP = 0.04;

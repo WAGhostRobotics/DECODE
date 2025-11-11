@@ -9,13 +9,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
 import org.firstinspires.ftc.teamcode.OldStuff.MotionPlannerOld;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
-import org.firstinspires.ftc.teamcode.CommandBase.RI3W.JankyIntakeSpike;
+import org.firstinspires.ftc.teamcode.CommandBase.JankyIntakeSpike;
 import org.firstinspires.ftc.teamcode.OldStuff.FollowTrajectoryOld;
 import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.SequentialCommand;
 import org.firstinspires.ftc.teamcode.CommandBase.Wait;
-import org.firstinspires.ftc.teamcode.RI3W.George;
+import org.firstinspires.ftc.teamcode.Core.Bob;
 
 @Autonomous
 public class OooofRI3WRed extends LinearOpMode {
@@ -31,8 +31,8 @@ public class OooofRI3WRed extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         shootingPos = new Point(shootingPos.getX(), multiplier* shootingPos.getY());
         spike1 = new Point(spike1.getX(), multiplier*spike1.getY());
-        George.init(hardwareMap);
-        follower = new MotionPlannerOld(George.drivetrain, George.localizer, hardwareMap);
+        Bob.init(hardwareMap);
+        follower = new MotionPlannerOld(Bob.drivetrain, Bob.localizer, hardwareMap);
         shootPath = new Bezier(-55.5,
                 new Point(0, 0),
                 shootingPos
@@ -62,53 +62,53 @@ public class OooofRI3WRed extends LinearOpMode {
         );
 
         SequentialCommand scheduler = new SequentialCommand(
-                new RunCommand(()->George.localizer.setPose(new Pose2D(DistanceUnit.INCH, -0.618, -7.25, AngleUnit.DEGREES, 0))),
+                new RunCommand(()-> Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, -0.618, -7.25, AngleUnit.DEGREES, 0))),
                 new ParallelCommand(
                         new FollowTrajectoryOld(follower, shootPath),
-                        new RunCommand(()->George.shooter.setTargetVelocity(186))
+                        new RunCommand(()-> Bob.shooter.setTargetVelocity(186))
                 ),
                 new Wait(500),
-                new RunCommand(()->George.shooter.setIntake(1)),
+                new RunCommand(()-> Bob.shooter.setIntake(1)),
                 new Wait(2000),
-                new RunCommand(()->George.shooter.setIntake(-0.2)),
+                new RunCommand(()-> Bob.shooter.setIntake(-0.2)),
                 new Wait(700),
-                new RunCommand(()->George.shooter.setIntake(1)),
+                new RunCommand(()-> Bob.shooter.setIntake(1)),
                 new Wait(1000),
                 new ParallelCommand(
                         new FollowTrajectoryOld(follower, spike1Path),
-                        new RunCommand(()->George.shooter.setTargetVelocity(0)),
-                        new RunCommand(()->George.shooter.setIntake(0.8))
+                        new RunCommand(()-> Bob.shooter.setTargetVelocity(0)),
+                        new RunCommand(()-> Bob.shooter.setIntake(0.8))
                 ),
                 new RunCommand(()->follower.pause()),
                 new JankyIntakeSpike(0.65, 0.6, 0.75),
                 new RunCommand(()->follower.resume()),
                 new ParallelCommand(
                         new FollowTrajectoryOld(follower, spike1ToShoot),
-                        new RunCommand(()->George.shooter.setTargetVelocity(186))
+                        new RunCommand(()-> Bob.shooter.setTargetVelocity(186))
                 ),
-                new RunCommand(()->George.shooter.setIntake(1)),
+                new RunCommand(()-> Bob.shooter.setIntake(1)),
                 new Wait(2000),
-                new RunCommand(()->George.shooter.setIntake(-0.2)),
+                new RunCommand(()-> Bob.shooter.setIntake(-0.2)),
                 new Wait(700),
-                new RunCommand(()->George.shooter.setIntake(1)),
+                new RunCommand(()-> Bob.shooter.setIntake(1)),
                 new Wait(1000),
                 new ParallelCommand(
                         new FollowTrajectoryOld(follower, spike2Path),
-                        new RunCommand(()->George.shooter.setTargetVelocity(0)),
-                        new RunCommand(()->George.shooter.setIntake(0.8))
+                        new RunCommand(()-> Bob.shooter.setTargetVelocity(0)),
+                        new RunCommand(()-> Bob.shooter.setIntake(0.8))
                 ),
                 new RunCommand(()->follower.pause()),
                 new JankyIntakeSpike(0.65, 0.6, 0.75),
                 new RunCommand(()->follower.resume()),
                 new ParallelCommand(
                         new FollowTrajectoryOld(follower, spike2ToShoot),
-                        new RunCommand(()->George.shooter.setTargetVelocity(186))
+                        new RunCommand(()-> Bob.shooter.setTargetVelocity(186))
                 ),
-                new RunCommand(()->George.shooter.setIntake(1)),
+                new RunCommand(()-> Bob.shooter.setIntake(1)),
                 new Wait(2000),
-                new RunCommand(()->George.shooter.setIntake(-0.2)),
+                new RunCommand(()-> Bob.shooter.setIntake(-0.2)),
                 new Wait(700),
-                new RunCommand(()->George.shooter.setIntake(1)),
+                new RunCommand(()-> Bob.shooter.setIntake(1)),
                 new Wait(1000)
         );
 
@@ -116,8 +116,8 @@ public class OooofRI3WRed extends LinearOpMode {
         scheduler.init();
         while (opModeIsActive()) {
             scheduler.update();
-            George.localizer.update();
-            George.shooter.updateShooter();
+            Bob.localizer.update();
+            Bob.shooter.updateShooter();
             follower.update();
             telemetry.addData("", follower.getTelemetry());
             telemetry.update();

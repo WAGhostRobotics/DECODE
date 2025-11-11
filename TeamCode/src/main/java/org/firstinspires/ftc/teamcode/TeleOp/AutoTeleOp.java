@@ -13,8 +13,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.Components.RI3W.Constants;
-import org.firstinspires.ftc.teamcode.RI3W.George;
+import org.firstinspires.ftc.teamcode.Components.Shooter;
+import org.firstinspires.ftc.teamcode.Core.Bob;
 
 @TeleOp
 @Config
@@ -24,7 +24,7 @@ public class AutoTeleOp extends LinearOpMode {
     boolean locked = true;
     boolean isFieldOriented = true;
     double magnitude, lastMagnitude, x, y, heading, theta, driveTurn;
-    public static double shooterVelocity;
+    public static double shooterVelocity, turretAngle, hoodPos;
 
     Pose2D targetPose, currentPose;
     boolean justStopped = false;
@@ -36,15 +36,15 @@ public class AutoTeleOp extends LinearOpMode {
         ToggleButtonReader fieldOriented = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.Y);
         ToggleButtonReader resetHeading = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
         ToggleButtonReader reloacalize = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.B);
-        George.init(hardwareMap);
+        Bob.init(hardwareMap);
 
         while (opModeInInit()) {
-            George.limelight.getNewHeading();
+            Bob.limelight.getNewHeading();
         }
 
         waitForStart();
         while (opModeIsActive()) {
-            George.localizer.update();
+            Bob.localizer.update();
             setLocalizerValues();
             double x = -gamepad1.left_stick_y;
             double y = -gamepad1.left_stick_x;
@@ -53,34 +53,34 @@ public class AutoTeleOp extends LinearOpMode {
             driveTurn = -gamepad1.right_stick_x;
 
             if (isFieldOriented) {
-                theta = normalizeDegrees(theta - George.localizer.getHeading());
+                theta = normalizeDegrees(theta - Bob.localizer.getHeading());
             }
 
 
             checkJustStopped();
-            George.limelight.trackAprilTag(heading, !locked);
+            Bob.limelight.trackAprilTag(heading, Bob.shooter.getTurretAngle(), !locked);
 
             if (shooterOn) {
-                shooterVelocity = George.limelight.getShooterVelocity();
-                George.shooter.setTargetVelocity(shooterVelocity);
-                if (George.shooter.reachedVelocity()) {
+                shooterVelocity = Bob.limelight.getShooterVelocity();
+                turretAngle = Bob.limelight.getTurretAngle();
+                hoodPos = Bob.limelight.getHoodPos();
+                Bob.shooter.setTargetVelocity(shooterVelocity);
+                Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle));
+                Bob.shooter.updateTurret();
+                Bob.shooter.setHood(hoodPos);
+                if (Bob.shooter.reachedVelocity()) {
                     gamepad1.setLedColor(0, 255, 0, 100);
                 }
                 else {
                     gamepad1.setLedColor(255, 0, 0, 100);
                 }
-                driveTurn = George.limelight.getDriveTurn();
+                turretAngle = Bob.limelight.getTurretAngle();
             }
             else {
-                George.shooter.resetPID();
+                Bob.shooter.resetPID();
 //                George.shooter.standBy();
-                George.shooter.stop();
+                Bob.shooter.stop();
                 gamepad1.setLedColor(0, 0, 255, 100);
-            }
-
-            if (Double.isNaN(driveTurn)) {
-                driveTurn = 0;
-                George.limelight.resetHeadingControl();
             }
 
 
@@ -93,20 +93,20 @@ public class AutoTeleOp extends LinearOpMode {
             }
 
             if (resetHeading.wasJustReleased()) {
-                George.localizer.resetHeading();
+                Bob.localizer.resetHeading();
             }
 
             if (gamepad1.right_trigger>0) {
                 if (shooterOn)
-                    George.shooter.shoot();
+                    Bob.shooter.shoot();
                 else
-                    George.shooter.setIntake(1);
+                    Bob.shooter.setIntake(1);
             }
             else if (gamepad1.left_trigger > 0) {
-                George.shooter.setIntake(-0.55);
+                Bob.shooter.setIntake(-0.55);
             }
             else {
-                George.shooter.setIntake(0);
+                Bob.shooter.setIntake(0);
             }
             shooterButton.readValue();
             fieldOriented.readValue();
@@ -114,9 +114,10 @@ public class AutoTeleOp extends LinearOpMode {
             reloacalize.readValue();
 
             driveAndHold();
-            George.shooter.updateShooter();
+            Bob.shooter.updateShooter();
+
 //            telemetry.addData("", George.limelight.getTelemetry());
-            telemetry.addData("\nShooter: ", George.shooter.getTelemetry());
+            telemetry.addData("\nShooter: ", Bob.shooter.getTelemetry());
 //            telemetry.addData("Magnitude: ", magnitude);
 //            telemetry.addData("JustStopped: ", justStopped);
 //            telemetry.addData("Timer: ", timer.seconds());
@@ -144,9 +145,9 @@ public class AutoTeleOp extends LinearOpMode {
     }
 
     private void setLocalizerValues() {
-        x = George.localizer.getPosX();
-        y = George.localizer.getPosY();
-        heading = George.localizer.getHeading();
+        x = Bob.localizer.getPosX();
+        y = Bob.localizer.getPosY();
+        heading = Bob.localizer.getHeading();
     }
 
     private void driveAndHold() {
@@ -154,17 +155,17 @@ public class AutoTeleOp extends LinearOpMode {
             currentPose = new Pose2D(DistanceUnit.INCH, x, y, DEGREES, heading);
             if (timer.seconds()>0.3) {
                 locked = true;
-                George.drivetrain.holdChassis(currentPose, targetPose, driveTurn);
+                Bob.drivetrain.holdChassis(currentPose, targetPose, 0);
             }
             else {
                 locked = false;
                 targetPose = currentPose;
-                George.drivetrain.drive(0,0,driveTurn, 0);
+                Bob.drivetrain.drive(0,0, driveTurn, 0);
             }
         }
         else {
             locked = false;
-            George.drivetrain.drive(magnitude, theta, driveTurn, 0.95);
+            Bob.drivetrain.drive(magnitude, theta, driveTurn, 0.95);
         }
     }
 }

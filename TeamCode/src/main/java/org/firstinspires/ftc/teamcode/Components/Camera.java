@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Components.RI3W;
+package org.firstinspires.ftc.teamcode.Components;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.RI3W.George;
+import org.firstinspires.ftc.teamcode.Core.Bob;
 
 /**
  * This file includes code to automatically shoot at goal
@@ -42,14 +42,13 @@ public class Camera {
     private double distance, distanceInches;
     private double calculatedShooterVelocity;
 
-    private double targetHeading, headingError, driveTurn;
+    private double targetHeading, headingError, turretAngle, hoodPos;
     private final double permissibleError = 0.5;
-    PIDController headingControl = new PIDController(0.0175, 0.000, 0);
-    private final double kStaticTurn = 0.06;
 
 
 
     private final double theta = 55;    // Shooting angle is fixed at 55 degrees
+    private final double goalHeight = 1.2;
     private final double limelightAngle = 18;       // Limelight is mounted at 18 degree angle
 
     // Experimental slope for the line of best fit (relationship between distance and required flywheel velocity)
@@ -70,7 +69,6 @@ public class Camera {
     private final int timerThreshold = 3;           // In seconds
 
     public Camera(HardwareMap hardwareMap, boolean blueAlliance) {
-        headingControl.setIntegrationBounds(-10000000, 10000000);
         limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
         timer.reset();
         limelight3A.start();
@@ -88,9 +86,10 @@ public class Camera {
     public Camera(HardwareMap hardwareMap) {
         this(hardwareMap, true);               // Just calls the constructor (defaults to blue alliance)
     }
-    public void trackAprilTag(double heading, boolean tracking) {
+    public void trackAprilTag(double heading, double turretHeading, boolean tracking) {
         getLocalizerValues();
-        limelight3A.updateRobotOrientation(heading);
+        double netAngle = heading + turretHeading;
+        limelight3A.updateRobotOrientation(netAngle);
         LLResult llResult = limelight3A.getLatestResult();
         if (llResult != null && llResult.isValid()) {       // If April tag is visible
             aprilVisible = true;                    // Just for telemetry purposes
@@ -104,19 +103,19 @@ public class Camera {
             aprilXInches = aprilX * meterToInches;
             aprilYInches = aprilY * meterToInches;
 
-            distance = Math.hypot(aprilX, aprilY)*Math.cos(Math.toRadians(limelightAngle));
+            distance = Math.hypot(aprilX, aprilY);
             distanceInches = distance * meterToInches;
 
             // Always relocalize when April Tag is in sight (Timer added to chill the loop speeds and pinpoint death)
             if (timer.seconds()>timerThreshold && tracking) {
-                George.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, heading));
+                Bob.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
                 timer.reset();
             }
 
 
             // Heading Control to keep Robot locked to the goal
             targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(aprilYInches, aprilXInches)))-180;
-            headingError = normalizeDegrees(targetHeading - localizerHeading);
+
         }
         else {
             aprilVisible = false;
@@ -126,21 +125,12 @@ public class Camera {
             distance = Math.hypot(estimatedX/meterToInches, estimatedY/meterToInches);
 
             distanceInches = distance * meterToInches;
-
-
-
             targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(estimatedY, estimatedX))-180);
-            headingError = normalizeDegrees(targetHeading - localizerHeading);
         }
-
+        hoodPos = Math.toDegrees(Math.atan(goalHeight/distance));
+        turretAngle = targetHeading - heading;
+        turretAngle = normalizeTurretAngle(targetHeading - localizerHeading);
         calculatedShooterVelocity = calculateShooterTargetVelocity(distance);
-        driveTurn = headingControl.calculate(0, headingError);
-        driveTurn = Math.signum(driveTurn) * kStaticTurn + driveTurn;
-        driveTurn = Range.clip(driveTurn, -1, 1);
-        if (Math.abs(headingError)<permissibleError) {
-            resetHeadingControl();
-            driveTurn = 0;
-        }
     }
 
     public String getTelemetry() {
@@ -165,7 +155,7 @@ public class Camera {
                         "Target Shooter Velocity: " + calculatedShooterVelocity + "\n" +
                         "Target Heading: " + targetHeading + "\n" +
                         "Heading Error: " + headingError + "\n" +
-                        "DriveTurn: " + driveTurn + "\n";
+                        "TurretAngle: " + turretAngle + "\n";
 
         return returnString;
     }
@@ -193,25 +183,25 @@ public class Camera {
     }
 
     private void getLocalizerValues() {
-        localizerHeading = George.localizer.getHeading();
-        localizerY = George.localizer.getPosY();
-        localizerX = George.localizer.getPosX();
+        localizerHeading = Bob.localizer.getHeading();
+        localizerY = Bob.localizer.getPosY();
+        localizerX = Bob.localizer.getPosX();
     }
 
     public double getShooterVelocity() {
         return calculatedShooterVelocity;
     }
 
-    public double getDriveTurn() {
-        return driveTurn;
+    public double getTurretAngle() {
+        return turretAngle;
+    }
+
+    public double getHoodPos() {
+        return hoodPos;
     }
 
     public double getAprilHeading() {
         return aprilHeading;
-    }
-
-    public void resetHeadingControl() {
-        headingControl.reset();
     }
 
     public double getTargetHeading() {
@@ -226,8 +216,17 @@ public class Camera {
             aprilVisible = true;                    // Just for telemetry purposes
             Pose3D botPose = llResult.getBotpose();
             aprilHeading = botPose.getOrientation().getYaw(DEGREES)-180;
-            George.localizer.setPose(new Pose2D(DistanceUnit.INCH, localizerX, localizerY, DEGREES, normalizeDegrees(aprilHeading-90)));
+            Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, localizerX, localizerY, DEGREES, normalizeDegrees(aprilHeading-90)));
 
         }
+    }
+
+    public double normalizeTurretAngle(double degrees) {
+        degrees = normalizeDegrees(degrees);
+        if (degrees > 225)
+            degrees = 225;
+        else if (degrees < -45)
+            degrees = -45;
+        return degrees;
     }
 }

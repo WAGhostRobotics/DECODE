@@ -7,7 +7,7 @@ import com.arcrobotics.ftclib.gamepad.ToggleButtonReader;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.RI3W.George;
+import org.firstinspires.ftc.teamcode.Core.Bob;
 
 @TeleOp
 @Config
@@ -28,14 +28,14 @@ public class Tuner extends LinearOpMode {
         path = new Bezier(0,
                 new Point(targetX, targetY)
         );
-        George.init(hardwareMap);
-        MotionPlanner follower = new MotionPlanner(George.drivetrain, George.localizer, hardwareMap);
+        Bob.init(hardwareMap);
+        MotionPlanner follower = new MotionPlanner(Bob.drivetrain, Bob.localizer, hardwareMap);
         follower.setMovementPower(0.9);
         follower.startFollowingPath(path);
         waitForStart();
         while (opModeIsActive()) {
-            double x = George.localizer.getPosX();
-            double y = George.localizer.getPosY();
+            double x = Bob.localizer.getPosX();
+            double y = Bob.localizer.getPosY();
             path = new Bezier(
                     heading,
                     new Point(x, y),
@@ -52,7 +52,7 @@ public class Tuner extends LinearOpMode {
             }
             startPath.readValue();
             follower.update();
-            George.localizer.update();
+            Bob.localizer.update();
             telemetry.addData("", follower.getTelemetry());
             telemetry.update();
         }

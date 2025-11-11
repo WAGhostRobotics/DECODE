@@ -1,9 +1,9 @@
-package org.firstinspires.ftc.teamcode.CommandBase.RI3W;
+package org.firstinspires.ftc.teamcode.CommandBase;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.RI3W.George;
+import org.firstinspires.ftc.teamcode.Core.Bob;
 
 public class CollectSpikes extends Command {
     ElapsedTime timer;
@@ -17,22 +17,22 @@ public class CollectSpikes extends Command {
 
     @Override
     public void init() {
-        George.shooter.setIntake(intakePower);
+        Bob.shooter.setIntake(intakePower);
         timer.reset();
-        George.drivetrain.drive(1, 0, 0, movementPower);
+        Bob.drivetrain.drive(1, 0, 0, movementPower);
     }
 
     @Override
     public void update() {
         if (timer.seconds() >= seconds) {
-            George.drivetrain.drive(0,0,0,0);
+            Bob.drivetrain.drive(0,0,0,0);
         }
     }
 
     @Override
     public boolean isFinished() {
         if (timer.seconds() >= seconds) {
-            George.drivetrain.drive(0, 0, 0, 0);
+            Bob.drivetrain.drive(0, 0, 0, 0);
             return true;
         }
         return false;
@@ -40,6 +40,6 @@ public class CollectSpikes extends Command {
 
     @Override
     public void stop() {
-        George.drivetrain.drive(0,0,0,0);
+        Bob.drivetrain.drive(0,0,0,0);
     }
 }

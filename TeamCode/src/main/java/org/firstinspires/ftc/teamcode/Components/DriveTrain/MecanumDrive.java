@@ -13,9 +13,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
-import org.firstinspires.ftc.teamcode.Components.RI3W.Constants;
-import org.firstinspires.ftc.teamcode.RI3W.George;
+import org.firstinspires.ftc.teamcode.Components.Constants;
 
 @Config
 public class MecanumDrive implements Drivetrain {
@@ -58,9 +56,9 @@ public class MecanumDrive implements Drivetrain {
         backLeft = hardwareMap.get(DcMotorEx.class, "lb");
         backRight = hardwareMap.get(DcMotorEx.class, "rb");
 
-//        backLeft.setDirection(DcMotorEx.Direction.REVERSE);
-//        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorEx.Direction.REVERSE);
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+//        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);

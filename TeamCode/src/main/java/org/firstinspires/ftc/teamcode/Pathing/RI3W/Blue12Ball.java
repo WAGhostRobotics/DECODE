@@ -10,14 +10,14 @@ import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.MergedBezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
-import org.firstinspires.ftc.teamcode.CommandBase.RI3W.JankyIntakeSpike;
+import org.firstinspires.ftc.teamcode.CommandBase.JankyIntakeSpike;
 import org.firstinspires.ftc.teamcode.CommandBase.FollowTrajectory;
-import org.firstinspires.ftc.teamcode.CommandBase.RI3W.ScoreThreeArtifacts;
+import org.firstinspires.ftc.teamcode.CommandBase.ScoreThreeArtifacts;
 import org.firstinspires.ftc.teamcode.CommandBase.Wait;
 import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.SequentialCommand;
-import org.firstinspires.ftc.teamcode.RI3W.George;
+import org.firstinspires.ftc.teamcode.Core.Bob;
 
 @Autonomous
 public class Blue12Ball extends LinearOpMode {
@@ -25,9 +25,9 @@ public class Blue12Ball extends LinearOpMode {
     public static int multiplier=1;
     public static Point shootingPos = new Point(-40, -14.6);
     public static Point farShootingPos = new Point(-125.7, -20.28);
-    public static Point spike1 = new Point(-60.5, -10.9);
-    public static Point spike2 = new Point(-84.7, -10.9);
-    public static Point spike3 = new Point(-107.7, -11);
+    public static Point spike1 = new Point(-46.5, -1.9);
+    public static Point spike2 = new Point(-68.7, -1.9);
+    public static Point spike3 = new Point(-93.7, -1.9);
 
     public static Point openGate = new Point(-80, 13.9);
 
@@ -38,8 +38,8 @@ public class Blue12Ball extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         shootingPos = new Point(shootingPos.getX(), multiplier* shootingPos.getY());
         spike1 = new Point(spike1.getX(), multiplier*spike1.getY());
-        George.init(hardwareMap);
-        follower = new MotionPlanner(George.drivetrain, George.localizer, hardwareMap);
+        Bob.init(hardwareMap);
+        follower = new MotionPlanner(Bob.drivetrain, Bob.localizer, hardwareMap);
         follower.setMovementPower(0.9);
         shootPath = new Bezier(49*multiplier,
                 new Point(0, 0),
@@ -77,10 +77,10 @@ public class Blue12Ball extends LinearOpMode {
         spike1ToShoot = new MergedBezier(
                 new Bezier(
                         spike1,
-                        new Point(spike1.getX(), 10.5)
+                        new Point(spike1.getX(), -3)
                 ),
                 new Bezier(49,
-                        new Point(spike1.getX(), 10.5),
+                        new Point(spike1.getX(), -3),
                         shootingPos
                 )
         );
@@ -89,75 +89,80 @@ public class Blue12Ball extends LinearOpMode {
         spike2ToShoot = new MergedBezier(
                 49,
                 new Bezier(
-                        openGate,
-                        new Point(spike2.getX()-1, 3)
+                        49,
+                        spike2,
+                        new Point(spike2.getX()-1, -3)
                 ),
                 new Bezier(
+                        49,
                         new Point(spike2.getX()-1, -1),
                         shootingPos
                 )
         );
 
         spike3ToShoot = new MergedBezier(
+                49,
                 new Bezier(
                         spike3,
-                        new Point(spike3.getX(), -12)
+                        new Point(spike3.getX(), -3)
                 ),
-                new Bezier(
-                        23,
-                        new Point(spike3.getX(), -12),
-                        farShootingPos
+                new Bezier(49,
+                        new Point(spike3.getX(), -3),
+                        shootingPos
                 )
         );
 
         rotate90 = new Bezier(
                 90,
-                farShootingPos
+                new Point(spike2.getX()+11, spike2.getY()+6)
         );
 
         SequentialCommand scheduler = new SequentialCommand(
-                new RunCommand(()->George.localizer.setPose(new Pose2D(DistanceUnit.INCH, -0.618, 7.25, AngleUnit.DEGREES, 0))),
+                new RunCommand(()-> Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, -0.618, 7.25, AngleUnit.DEGREES, 0))),
 
-                new ScoreThreeArtifacts(follower, shootPath, 125),
-
-                new ParallelCommand(
-                        new FollowTrajectory(follower, spike2Path),
-                        new RunCommand(()->George.shooter.setTargetVelocity(0)),
-                        new RunCommand(()->George.shooter.setIntake(1))
-                ),
-
-                new RunCommand(()->follower.pause()),
-                new JankyIntakeSpike(0.45, 0.7, 1),
-                new RunCommand(()->follower.resume()),
-                new FollowTrajectory(follower, openGatePath),
-                new Wait(500),
-
-                new ScoreThreeArtifacts(follower, spike2ToShoot, 125),
-
+                new ScoreThreeArtifacts(follower, shootPath, 100, 0, 0.2),
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike1Path),
-                        new RunCommand(()->George.shooter.setTargetVelocity(0)),
-                        new RunCommand(()->George.shooter.setIntake(1))
+                        new RunCommand(()-> Bob.shooter.setTargetVelocity(0))
+//                        new RunCommand(()-> Bob.shooter.setIntake(1))
                 ),
+//                new Wait(100000), // 4, 10
                 new RunCommand(()->follower.pause()),
-                new JankyIntakeSpike(0.45, 0.7, 1),
+                new JankyIntakeSpike(0.4, 1, 1),
+                new RunCommand(()->follower.resume()),
+//                new FollowTrajectory(follower, openGatePath),
+//                new Wait(500),
+
+                new ScoreThreeArtifacts(follower, spike1ToShoot, 100, 0, 0.2),
+
+
+                new ParallelCommand(
+                        new FollowTrajectory(follower, spike2Path),
+                        new RunCommand(()-> Bob.shooter.setTargetVelocity(0)),
+                        new RunCommand(()-> Bob.shooter.setIntake(1))
+                ),
+//                new Wait(100000),
+
+                new RunCommand(()->follower.pause()),
+                new JankyIntakeSpike(0.4, 1, 1),
                 new RunCommand(()->follower.resume()),
 
-                new ScoreThreeArtifacts(follower, spike1ToShoot, 125),
+                new ScoreThreeArtifacts(follower, spike2ToShoot, 100, 0, 0.2),
 
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike3Path),
-                        new RunCommand(()->George.shooter.setTargetVelocity(0)),
-                        new RunCommand(()->George.shooter.setIntake(1))
+                        new RunCommand(()-> Bob.shooter.setTargetVelocity(0)),
+                        new RunCommand(()-> Bob.shooter.setIntake(1))
                 ),
 
+//                new Wait(100000),
                 new RunCommand(()->follower.pause()),
-                new JankyIntakeSpike(0.45, 0.7, 1),
+                new JankyIntakeSpike(0.4, 1, 1),
                 new RunCommand(()->follower.resume()),
 
-                new ScoreThreeArtifacts(follower, spike3ToShoot, 169),
+                new ScoreThreeArtifacts(follower, spike3ToShoot, 100, 0, 0.2),
 
                 new FollowTrajectory(follower, rotate90)
 
@@ -167,8 +172,9 @@ public class Blue12Ball extends LinearOpMode {
         scheduler.init();
         while (opModeIsActive()) {
             scheduler.update();
-            George.localizer.update();
-            George.shooter.updateShooter();
+            Bob.localizer.update();
+            Bob.shooter.updateShooter();
+            Bob.shooter.updateTurret();
             follower.update();
             telemetry.addData("", follower.getTelemetry());
             telemetry.update();

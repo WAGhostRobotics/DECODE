@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.TestingTeleOp.RI3W;
+package org.firstinspires.ftc.teamcode.TestingTeleOp;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
@@ -17,7 +17,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.RI3W.George;
+import org.firstinspires.ftc.teamcode.Core.Bob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,8 +33,8 @@ public class AutoShootTuner extends LinearOpMode {
     public static double intakePower;
 
     double localizerX, localizerY, localizerHeading;
-    public static double xTranslation = 1.482;
-    public static double yTranslation = 1.413; // Y is only for Blue. Red would be negative
+    public static double xTranslation = 1.1;
+    public static double yTranslation = 1.57; // Y is only for Blue. Red would be negative
     public static double P = 0.0008, I = 0.000, D = 0;
     public static double kStaticTurn = 0.05;
     PIDController headingControl;
@@ -58,9 +58,10 @@ public class AutoShootTuner extends LinearOpMode {
         double aprilXInches, aprilYInches;
         limelight3A.start();
         limelight3A.pipelineSwitch(0);
-        George.init(hardwareMap);
+        Bob.init(hardwareMap);
 
         while (opModeInInit()) {
+
             LLResult llResult = limelight3A.getLatestResult();
             if (llResult != null && llResult.isValid()) {
                 Pose3D botPose = llResult.getBotpose();
@@ -69,22 +70,22 @@ public class AutoShootTuner extends LinearOpMode {
                 aprilY = (botPose.getPosition().y + yTranslation);
                 aprilXInches = aprilX * 39.37;
                 aprilYInches = aprilY * 39.37;
-                George.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, aprilHeading));
+                Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, aprilHeading));
             }
         }
 
         waitForStart();
         while (opModeIsActive()) {
-            George.localizer.update();
+            Bob.localizer.update();
             getLocalizerValues();
-            limelight3A.updateRobotOrientation(George.localizer.getHeading());
+            limelight3A.updateRobotOrientation(Bob.localizer.getHeading());
             double x = -gamepad1.left_stick_y;
             double y = -gamepad1.left_stick_x;
             double magnitude = Math.hypot(x, y);
             double tx = 0;
             double theta = Math.toDegrees(Math.atan2(y, x));
             if (isFieldOriented) {
-                theta = normalizeDegrees(theta - George.localizer.getHeading());
+                theta = normalizeDegrees(theta - Bob.localizer.getHeading());
             }
             headingControl.setPID(P, I, D);
             if (shooterOn) {
@@ -102,7 +103,7 @@ public class AutoShootTuner extends LinearOpMode {
                     distance = Math.hypot(aprilX, aprilY)*Math.cos(Math.toRadians(18));
                     shooterVelocity = computeVelocity(distance);
                     if (reloacalize.wasJustReleased()) {
-                        George.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, aprilHeading));
+                        Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, aprilHeading));
                     }
 
 //                    tx = -llResult.getTx() + 1.7;     // offset bc limelight not in middle
@@ -129,13 +130,13 @@ public class AutoShootTuner extends LinearOpMode {
                 driveTurn = Math.signum(driveTurn) * kStaticTurn + driveTurn;
                 driveTurn = Range.clip(driveTurn, -1, 1);
                 if (!tuning)
-                    George.shooter.setTargetVelocity(shooterVelocity);
+                    Bob.shooter.setTargetVelocity(shooterVelocity);
                 else
-                    George.shooter.setTargetVelocity(tuneVelocity);
+                    Bob.shooter.setTargetVelocity(tuneVelocity);
             }
             else {
-                George.shooter.resetPID();
-                George.shooter.setTargetVelocity(0);
+                Bob.shooter.resetPID();
+                Bob.shooter.setTargetVelocity(0);
                 driveTurn = -gamepad1.right_stick_x;
             }
 
@@ -152,29 +153,29 @@ public class AutoShootTuner extends LinearOpMode {
             }
 
             if (resetHeading.wasJustReleased()) {
-                George.localizer.resetHeading();
+                Bob.localizer.resetHeading();
             }
 
             if (gamepad1.right_trigger>0) {
-                George.shooter.setIntake(1);
+                Bob.shooter.setIntake(1);
             }
             else if (gamepad1.left_trigger > 0) {
-                George.shooter.setIntake(-0.55);
+                Bob.shooter.setIntake(-0.55);
             }
             shooterButton.readValue();
             fieldOriented.readValue();
             resetHeading.readValue();
             reloacalize.readValue();
-            George.drivetrain.drive(magnitude, theta, driveTurn, 0.875);
-            George.shooter.updateShooter();
-            George.shooter.setIntake(intakePower);
+            Bob.drivetrain.drive(magnitude, theta, driveTurn, 0.875);
+            Bob.shooter.updateShooter();
+            Bob.shooter.setIntake(intakePower);
             telemetry.addData("Loc X: ", localizerX);
             telemetry.addData("Loc Y: ", localizerY);
             telemetry.addData("ShooterVelocity: ", shooterVelocity);
             telemetry.addData("Distance Estimate: ", distanceEstimate);
             telemetry.addData("Distance: ", distance);
             // FIX THESE REDUNDANT LOCALIZER CALLS!!!!!!!!!!!!!!!!
-            telemetry.addData("Heading: ", George.localizer.getHeading());
+            telemetry.addData("Heading: ", Bob.localizer.getHeading());
             telemetry.addData("Target Heading: ", targetHeading);
             telemetry.addData("Target Heading Estimate: ", targetHeadingEstimate);
             telemetry.addData("Tx: ", tx);
@@ -204,8 +205,8 @@ public class AutoShootTuner extends LinearOpMode {
     }
 
     private void getLocalizerValues() {
-        localizerHeading = George.localizer.getHeading();
-        localizerY = George.localizer.getPosY();
-        localizerX = George.localizer.getPosX();
+        localizerHeading = Bob.localizer.getHeading();
+        localizerY = Bob.localizer.getPosY();
+        localizerX = Bob.localizer.getPosX();
     }
 }

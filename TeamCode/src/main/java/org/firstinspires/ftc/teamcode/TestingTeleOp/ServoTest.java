@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.TestingTeleOp.RI3W;
+package org.firstinspires.ftc.teamcode.TestingTeleOp;
 
 import com.arcrobotics.ftclib.gamepad.ButtonReader;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
@@ -13,11 +13,8 @@ public class ServoTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        Servo servo = hardwareMap.get(Servo.class, "ball stopper");
-        ButtonReader A = new ButtonReader(
-                new GamepadEx(gamepad1), GamepadKeys.Button.A);
-        ButtonReader B = new ButtonReader(
-                new GamepadEx(gamepad1), GamepadKeys.Button.B);
+        Servo servo = hardwareMap.get(Servo.class, "popper");
+
 
         servo.setPosition(0);
 
@@ -25,9 +22,9 @@ public class ServoTest extends LinearOpMode {
 
         while(opModeIsActive()) {
 
-            if(A.wasJustReleased()){
+            if(gamepad1.a){
                 servo.setPosition(servo.getPosition() + 0.001);
-            } else if(B.wasJustReleased()){
+            } else if(gamepad1.b){
                 servo.setPosition(servo.getPosition() - 0.001);
             }
 

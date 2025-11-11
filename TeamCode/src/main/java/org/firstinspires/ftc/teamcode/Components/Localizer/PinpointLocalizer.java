@@ -14,7 +14,7 @@ public class PinpointLocalizer {
     public PinpointLocalizer(HardwareMap hardwareMap) {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
         pinpoint.setOffsets(xOffset, yOffset);
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.resetPosAndIMU();
 
@@ -49,6 +49,10 @@ public class PinpointLocalizer {
 
     public void setPose(Pose2D pose) {
         pinpoint.setPosition(pose);
+    }
+
+    public void setPositionOnly(Pose2D pose) {
+        pinpoint.setPositionOnly(pose);
     }
 
     public void setHeadingDegrees(double heading) {

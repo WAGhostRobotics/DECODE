@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Components.DriveTrain.Drivetrain;
-import org.firstinspires.ftc.teamcode.Components.RI3W.Constants;
+import org.firstinspires.ftc.teamcode.Components.Constants;
 
 public class MotionPlanner {
     private Path spline;                    // Path to be followed (Can be Bezier, Merged or anything else)
