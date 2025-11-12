@@ -34,7 +34,6 @@ public class HuskyColorRec extends LinearOpMode {
                 }
             }
 
-            // Report positions on telemetry
             if (xGreen != -1 && yGreen != -1) {
                 telemetry.addData("Green Ball", "x = %d y = %d", xGreen, yGreen);
             } else {
