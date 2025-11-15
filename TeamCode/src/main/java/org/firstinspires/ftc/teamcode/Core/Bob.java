@@ -27,7 +27,33 @@ public class Bob {
         localizer = new PinpointLocalizer(hardwareMap);
         movementPower = 0.8;
         intake = new Intake(hardwareMap);
-//        limelight = new Camera(hardwareMap);
+        limelight = new Camera(hardwareMap);
+
+    }
+
+    public static void init(HardwareMap hardwareMap, boolean blueAlliance) {
+
+        shooter = new Shooter();
+        shooter.init(hardwareMap);
+        Bob.hardwareMap = hardwareMap;
+        drivetrain = new MecanumDrive(hardwareMap);
+        localizer = new PinpointLocalizer(hardwareMap);
+        movementPower = 0.8;
+        intake = new Intake(hardwareMap);
+        limelight = new Camera(hardwareMap, blueAlliance);
+
+    }
+
+    public static void init(HardwareMap hardwareMap, boolean blueAlliance, boolean teleop) {
+
+        shooter = new Shooter();
+        shooter.init(hardwareMap, teleop);
+        Bob.hardwareMap = hardwareMap;
+        drivetrain = new MecanumDrive(hardwareMap);
+        localizer = new PinpointLocalizer(hardwareMap);
+        movementPower = 0.8;
+        intake = new Intake(hardwareMap, teleop);
+        limelight = new Camera(hardwareMap, blueAlliance);
 
     }
 

@@ -63,7 +63,7 @@ public class AutoTeleOp extends LinearOpMode {
             if (shooterOn) {
                 shooterVelocity = Bob.limelight.getShooterVelocity();
                 turretAngle = Bob.limelight.getTurretAngle();
-                hoodPos = Bob.limelight.getHoodPos();
+                hoodPos = Bob.limelight.getHoodAngle();
                 Bob.shooter.setTargetVelocity(shooterVelocity);
                 Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle));
                 Bob.shooter.updateTurret();

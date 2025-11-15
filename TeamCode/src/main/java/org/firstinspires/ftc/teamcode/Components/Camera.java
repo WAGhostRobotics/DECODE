@@ -2,13 +2,13 @@ package org.firstinspires.ftc.teamcode.Components;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
+import static org.firstinspires.ftc.teamcode.Components.Intake.SlotState.G;
+import static org.firstinspires.ftc.teamcode.Components.Intake.SlotState.P;
 
-import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
@@ -42,13 +42,13 @@ public class Camera {
     private double distance, distanceInches;
     private double calculatedShooterVelocity;
 
-    private double targetHeading, headingError, turretAngle, hoodPos;
+    private double targetHeading, headingError, turretAngle, hoodAngle;
     private final double permissibleError = 0.5;
 
 
 
     private final double theta = 55;    // Shooting angle is fixed at 55 degrees
-    private final double goalHeight = 1.2;
+    private final double goalHeight = 1.7;
     private final double limelightAngle = 18;       // Limelight is mounted at 18 degree angle
 
     // Experimental slope for the line of best fit (relationship between distance and required flywheel velocity)
@@ -60,18 +60,22 @@ public class Camera {
     // So we add these x and y translational offsets to whatever the limelight returns
     // x Translation is the same for red and blue
     // y Translation is positive for blue negative for red
-    private final double xTranslation = 1.1;
+    private double xTranslation = 1.1;
     private double yTranslation = 1.57;
 
     // Translational constant from the april Tag to the actual backboard
 
     ElapsedTime timer = new ElapsedTime();
     private final int timerThreshold = 3;           // In seconds
+    private int motifID = 0;
+    private Intake.SlotState[] motif;
+    boolean blueAlliance = true;
 
     public Camera(HardwareMap hardwareMap, boolean blueAlliance) {
         limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
         timer.reset();
         limelight3A.start();
+        this.blueAlliance = blueAlliance;
 //        if (blueAlliance) {
 //            limelight3A.pipelineSwitch(0);              // Blue april tag Pipeline
 //            yTranslation *= -1;                               // Flipped bc red is other side
@@ -107,7 +111,7 @@ public class Camera {
             distanceInches = distance * meterToInches;
 
             // Always relocalize when April Tag is in sight (Timer added to chill the loop speeds and pinpoint death)
-            if (timer.seconds()>timerThreshold && tracking) {
+            if (timer.seconds()>timerThreshold) {
                 Bob.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
                 timer.reset();
             }
@@ -127,9 +131,9 @@ public class Camera {
             distanceInches = distance * meterToInches;
             targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(estimatedY, estimatedX))-180);
         }
-        hoodPos = Math.toDegrees(Math.atan(goalHeight/distance));
+        hoodAngle = (Math.max(Math.min(Math.toDegrees(Math.atan(goalHeight/distance)), 63), 27));
         turretAngle = targetHeading - heading;
-        turretAngle = normalizeTurretAngle(targetHeading - localizerHeading);
+        turretAngle = normalizeTurretAngle(turretAngle);
         calculatedShooterVelocity = calculateShooterTargetVelocity(distance);
     }
 
@@ -196,8 +200,8 @@ public class Camera {
         return turretAngle;
     }
 
-    public double getHoodPos() {
-        return hoodPos;
+    public double getHoodAngle() {
+        return hoodAngle;
     }
 
     public double getAprilHeading() {
@@ -222,11 +226,38 @@ public class Camera {
     }
 
     public double normalizeTurretAngle(double degrees) {
-        degrees = normalizeDegrees(degrees);
-        if (degrees > 225)
-            degrees = 225;
-        else if (degrees < -45)
-            degrees = -45;
-        return degrees;
+            return ((degrees + 90) % 360 ) - 90;
+    }
+
+
+    public void switchToMotifPipeline() {
+        limelight3A.pipelineSwitch(2);
+    }
+
+    public void switchToGoalPipeline() {
+        if (!blueAlliance) {
+            limelight3A.pipelineSwitch(1);              // Blue april tag Pipeline
+            xTranslation *= -1;                               // Flipped bc red is other side
+        }
+        else {
+            limelight3A.pipelineSwitch(0);              // Red april tag Pipeline
+        }
+    }
+    public Intake.SlotState[] getMotif() {
+        LLResult llResult = limelight3A.getLatestResult();
+        if (llResult != null && llResult.isValid()) {       // If April tag is visible
+            motifID = llResult.getFiducialResults().get(0).getFiducialId();
+            if (motifID == 21) {
+                motif = new Intake.SlotState[]{G, P, P};
+            }
+            else if (motifID == 22) {
+                motif = new Intake.SlotState[]{P, G, P};
+            }
+            else if (motifID == 23) {
+                motif = new Intake.SlotState[]{P, P, G};
+            }
+        }
+        return motif;
+
     }
 }

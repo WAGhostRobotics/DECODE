@@ -17,13 +17,14 @@ public class CollectSpikes extends Command {
 
     @Override
     public void init() {
-        Bob.shooter.setIntake(intakePower);
+        Bob.intake.rollerIn();
         timer.reset();
         Bob.drivetrain.drive(1, 0, 0, movementPower);
     }
 
     @Override
     public void update() {
+        Bob.intake.autoIntake();
         if (timer.seconds() >= seconds) {
             Bob.drivetrain.drive(0,0,0,0);
         }

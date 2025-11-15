@@ -3,14 +3,12 @@ package org.firstinspires.ftc.teamcode.CommandBase;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
-import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
 import org.firstinspires.ftc.teamcode.Core.Bob;
 
-public class Shoot extends Command {
+public class DetectMotif extends Command {
     ElapsedTime timer;
     double seconds;
-    public Shoot(double seconds) {
+    public DetectMotif(double seconds) {
         timer = new ElapsedTime();
         this.seconds = seconds;
     }
@@ -22,24 +20,16 @@ public class Shoot extends Command {
 
     @Override
     public void update() {
-        if (timer.seconds() <= seconds) {
-            Bob.shooter.rapidShoot();
-        }
+        Bob.intake.setMotif(Bob.limelight.getMotif());
     }
 
     @Override
     public boolean isFinished() {
-        if (timer.seconds() >= seconds) {
-            return true;
-        }
-        return false;
+        return timer.seconds() >= seconds;
     }
 
     @Override
     public void stop() {
 
     }
-
-
-
 }

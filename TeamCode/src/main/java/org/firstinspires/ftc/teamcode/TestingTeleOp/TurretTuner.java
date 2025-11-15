@@ -15,26 +15,28 @@ import org.firstinspires.ftc.teamcode.Core.Bob;
 @TeleOp
 @Config
 public class TurretTuner extends LinearOpMode {
-    PIDController turretController = new PIDController(0, 0, 0);
-    public static double P=0.00008, I=0.00009, D;
+    public static double P=0.0002, I=0.00007, D;
     public static int permissible = 50;
     public static int targetPosition = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Shooter shooter = new Shooter();
-        shooter.init(hardwareMap);
+        Bob.init(hardwareMap);
+        Bob.limelight.switchToGoalPipeline();
         waitForStart();
         while (opModeIsActive()) {
+            Bob.localizer.update();
+            Bob.limelight.trackAprilTag(Bob.localizer.getHeading(), Bob.shooter.getTurretAngle(), true);
+            Bob.shooter.setTurretPID(P, I, D);
             if (gamepad1.a) {
                 targetPosition += 10;
             }
             else if (gamepad1.b) {
                 targetPosition -= 10;
             }
-            shooter.setTurretTargetPos(targetPosition);
-            shooter.updateTurret();
-            telemetry.addData("Turret: ", shooter.getTurretTelemetry());
+            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
+            Bob.shooter.updateTurret();
+            telemetry.addData("Turret: ", Bob.shooter.getTurretTelemetry());
 //            telemetry.addData("error: ", error);
             telemetry.update();
         }

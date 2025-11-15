@@ -7,17 +7,18 @@ import com.arcrobotics.ftclib.gamepad.ToggleButtonReader;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.Components.Constants;
 import org.firstinspires.ftc.teamcode.Core.Bob;
 
 @TeleOp
 @Config
 public class Tuner extends LinearOpMode {
-    public static double xP=0.04, xI=0.003, xD=0;
-    public static double yP=0.04, yI=0.006, yD=0;
-    public static double hP=0.012, hI=0.0003, hD;
-    public static double kStaticX = 0.15;
-    public static double kStaticY = 0.24;
-    public static double kStaticTurn = 0.12;
+    public static double xP= Constants.translationalXP, xI=Constants.translationalXI, xD=Constants.translationalXD;
+    public static double yP=Constants.translationalYP, yI=Constants.translationalYI, yD=Constants.translationalYD;
+    public static double hP=Constants.headingP, hI=Constants.headingI, hD=Constants.headingD;
+    public static double kStaticX = Constants.kStaticX;
+    public static double kStaticY = Constants.kStaticY;
+    public static double kStaticTurn = Constants.kStaticTurn;
     public static double targetX = 0;
     public static double targetY = 0;
     public static double heading = 0;
@@ -30,7 +31,7 @@ public class Tuner extends LinearOpMode {
         );
         Bob.init(hardwareMap);
         MotionPlanner follower = new MotionPlanner(Bob.drivetrain, Bob.localizer, hardwareMap);
-        follower.setMovementPower(0.9);
+        follower.setMovementPower(0.96);
         follower.startFollowingPath(path);
         waitForStart();
         while (opModeIsActive()) {
@@ -41,13 +42,16 @@ public class Tuner extends LinearOpMode {
                     new Point(x, y),
                     new Point(targetX, targetY)
             );
+
+            follower.setXPID(xP, xI, xD);
+            follower.setYPID(yP, yI, yD);
+            follower.setHeadingPID(hP, hI, hD);
+            follower.setXKStatic(kStaticX);
+            follower.setYKStatic(kStaticY);
+            follower.setKStaticTurn(kStaticTurn);
+
             if (startPath.wasJustReleased()) {
-                follower.setXPID(xP, xI, xD);
-                follower.setYPID(yP, yI, yD);
-                follower.setHeadingPID(hP, hI, hD);
-                follower.setXKStatic(kStaticX);
-                follower.setYKStatic(kStaticY);
-                follower.setKStaticTurn(kStaticTurn);
+
                 follower.startFollowingPath(path);
             }
             startPath.readValue();

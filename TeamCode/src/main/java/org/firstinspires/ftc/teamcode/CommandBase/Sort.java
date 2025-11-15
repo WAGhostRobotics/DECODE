@@ -3,28 +3,21 @@ package org.firstinspires.ftc.teamcode.CommandBase;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
-import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
 import org.firstinspires.ftc.teamcode.Core.Bob;
 
-public class Shoot extends Command {
+public class Sort extends Command {
+
     ElapsedTime timer;
     double seconds;
-    public Shoot(double seconds) {
-        timer = new ElapsedTime();
-        this.seconds = seconds;
-    }
 
     @Override
     public void init() {
-        timer.reset();
+
     }
 
     @Override
     public void update() {
-        if (timer.seconds() <= seconds) {
-            Bob.shooter.rapidShoot();
-        }
+        Bob.intake.sort();
     }
 
     @Override
@@ -39,7 +32,5 @@ public class Shoot extends Command {
     public void stop() {
 
     }
-
-
 
 }

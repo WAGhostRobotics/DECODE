@@ -23,7 +23,7 @@ public class MotionPlanner {
     private double kStaticX = Constants.kStaticX;                 // Minimum power before robot moves in X direction
     private double kStaticY = Constants.kStaticY;
     private double kStaticTurn = Constants.kStaticTurn;
-    private final double permissibleTranslationalError = 0.5, permissibleHeadingError = 1;          // Translational in inches, Heading in degrees
+    private final double permissibleTranslationalError = 1.25, permissibleHeadingError = 1;          // Translational in inches, Heading in degrees
     private final double speedThresholdDistance = 15;       // 15 in before the end point, the robot will stop going full speed and start slowing down
     private double speedThresholdPoint;                     // Up until this "point" in the spline, robot goes full speed. Then slows down at the end
     private int index;                                      // Index of the Bezier that robot currently at

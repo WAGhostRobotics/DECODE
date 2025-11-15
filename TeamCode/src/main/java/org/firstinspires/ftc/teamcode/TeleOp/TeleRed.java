@@ -1,14 +1,11 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
-
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.gamepad.ToggleButtonReader;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -18,13 +15,12 @@ import org.firstinspires.ftc.teamcode.Core.Bob;
 
 @TeleOp
 @Config
-public class Tele extends LinearOpMode {
+public class TeleRed extends LinearOpMode {
 
     double heading, turretAngle;
-    ElapsedTime timer = new ElapsedTime();
     public static double intakePower = 0;
     public static double targetVelocity = 0;
-    public static double hoodPos = 0.385;
+    public static double hoodPos = 0;
 
     boolean shooterOn = false;
 
@@ -36,70 +32,51 @@ public class Tele extends LinearOpMode {
         ToggleButtonReader shooterButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.A);
         ToggleButtonReader farShooterButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.B);
         ToggleButtonReader shooterOff = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
-        ToggleButtonReader rightBumper = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.RIGHT_BUMPER);
 
-        Bob.init(hardwareMap, true, true);
+        Bob.init(hardwareMap, false, true);
         Bob.limelight.switchToGoalPipeline();
 
         waitForStart();
-        Bob.intake.holdAtZero();
-
         while (opModeIsActive()) {
             double x = -gamepad1.left_stick_y;
             double y = -gamepad1.left_stick_x;
             double driveTurn = -gamepad1.right_stick_x;
             double magnitude = Math.hypot(x, y);
             double theta = Math.toDegrees(Math.atan2(y, x));
+            Bob.drivetrain.drive(magnitude, theta, driveTurn, 0.8);
             Bob.localizer.update();
             heading = Bob.localizer.getHeading();
-            theta = normalizeDegrees(theta - heading);
-            Bob.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
-
             turretAngle = Bob.shooter.getTurretAngle();
+            Bob.limelight.trackAprilTag(heading, turretAngle, true);
 
 
-
-            rightBumper.readValue();
             if (gamepad1.right_bumper) {
-                if (rightBumper.wasJustPressed()) {
-                    timer.reset();
-                }
                 Bob.intake.rollerIn();
-                Bob.shooter.popUp();
-                if (timer.seconds()>0.5) {
-                    Bob.shooter.rapidShoot();
-                }
+                Bob.shooter.rapidShoot();
             }
             else if (gamepad1.right_trigger>0.1) {
                 Bob.intake.rollerIn();
                 Bob.intake.autoIntake();
             }
-            else if (gamepad1.left_trigger>0.1) {
-                Bob.intake.rollerOut();
-            }
             else {
+                Bob.intake.holdAtZero();
                 Bob.intake.rollerStop();
             }
 
 
             if (shooterButton.wasJustReleased()) {
                 shooterOn = true;
-                targetVelocity = 200;
-                hoodPos = 0.385;
+                targetVelocity = 110;
+                hoodPos = 0.2;
 
             }
             else if (farShooterButton.wasJustReleased()) {
                 shooterOn = true;
-                hoodPos = 0.2;
-                targetVelocity = 256;
+                hoodPos = 0.05;
+                targetVelocity = 140;
 
             }
             else if (shooterOff.wasJustReleased()) {
-                Bob.shooter.stop();
-                Bob.intake.setBallsEatenToZero();
-                Bob.intake.reset();
-                Bob.intake.holdAtZero();
-                Bob.shooter.setTurretTargetPos(0);
                 shooterOn = false;
                 targetVelocity = 0;
             }
@@ -107,11 +84,10 @@ public class Tele extends LinearOpMode {
 
 
             if (shooterOn) {
-                Bob.limelight.trackAprilTag(heading, turretAngle, true);
                 Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
-            }
+                Bob.shooter.updateTurret();
 
-            Bob.shooter.updateTurret();
+            }
             Bob.shooter.setTargetVelocity(targetVelocity);
             Bob.shooter.setHood(hoodPos);
             Bob.shooter.updateShooter();
@@ -121,9 +97,14 @@ public class Tele extends LinearOpMode {
             shooterOff.readValue();
             farShooterButton.readValue();
             telemetry.addData("Intake Power: ", intakePower);
+            telemetry.addData("X: ", Bob.localizer.getPosX());
+            telemetry.addData("Y: ", Bob.localizer.getPosY());
+            telemetry.addData("Heading: ", Bob.localizer.getHeading());
+            telemetry.addData("theta: ", theta);
+            telemetry.addData("magnitude: ", magnitude);
+            telemetry.addData("JoyStick X: ", x);
+            telemetry.addData("JoyStick Y: ", y);
             telemetry.addData("Shooter: ", Bob.shooter.getTelemetry());
-            telemetry.addData("Turret: ", Bob.shooter.getTurretTelemetry());
-            telemetry.addData("Intake: ", Bob.intake.getTelemetry());
             telemetry.update();
 
         }

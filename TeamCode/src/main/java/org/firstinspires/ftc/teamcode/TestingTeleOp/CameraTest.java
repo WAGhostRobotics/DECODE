@@ -156,12 +156,7 @@ public class CameraTest extends LinearOpMode {
     }
 
     private double normalizeTurretAngle(double degrees) {
-        degrees = normalizeDegrees(degrees);
-        if (degrees > 225)
-            degrees = 225;
-        else if (degrees < -45)
-            degrees = -45;
-        return degrees;
+        return ((degrees + 90) % 360 ) - 90;
     }
 
 
@@ -170,6 +165,6 @@ public class CameraTest extends LinearOpMode {
     }
 
     private double hoodAngleToPos(double angle) {
-        return -angle/54.0 + 52.0/54.0;
+        return ((angle-27.0)/36.0)*0.7;
     }
 }
