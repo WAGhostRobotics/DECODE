@@ -20,7 +20,7 @@ public class DetectMotif extends Command {
 
     @Override
     public void update() {
-        Bob.intake.setMotif(Bob.limelight.getMotif());
+//        Bob.intake.setMotif(Bob.limelight.getMotif());
     }
 
     @Override

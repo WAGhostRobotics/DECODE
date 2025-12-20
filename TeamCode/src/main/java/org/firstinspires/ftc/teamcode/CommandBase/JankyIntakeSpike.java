@@ -10,12 +10,9 @@ public class JankyIntakeSpike extends SequentialCommand {
         super(
                 new ParallelCommand(
                         new RunCommand(()-> Bob.intake.rollerIn()),
-                        new RunCommand(()-> Bob.shooter.setTargetVelocity(0)),
-                        new RunCommand(()-> Bob.intake.setBallsEatenToZero())
+                        new RunCommand(()-> Bob.shooter.setTargetVelocity(0))
                 ),
-                new CollectSpikes(movementPower, seconds, intakePower),
-                new RunCommand(()-> Bob.shooter.setTargetVelocity(0))
-
+                new CollectSpikes(movementPower, seconds, intakePower)
         );
     }
 }

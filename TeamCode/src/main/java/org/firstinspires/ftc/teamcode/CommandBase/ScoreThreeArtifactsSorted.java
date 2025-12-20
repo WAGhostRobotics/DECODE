@@ -12,7 +12,7 @@ public class ScoreThreeArtifactsSorted extends SequentialCommand {
         super(
                 new ParallelCommand(
                         new FollowTrajectory(follower, path),
-                        new RunCommand(()->Bob.intake.sort()),
+//                        new RunCommand(()->Bob.intake.sort()),
                         new RunCommand(()-> Bob.shooter.setTargetVelocity(flywheelVelocity)),
                         new RunCommand(()-> Bob.intake.rollerOut()),
                         new RunCommand(()-> Bob.shooter.setTurretTargetPos(turretPos)),

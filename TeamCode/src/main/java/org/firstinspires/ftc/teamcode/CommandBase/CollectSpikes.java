@@ -24,7 +24,6 @@ public class CollectSpikes extends Command {
 
     @Override
     public void update() {
-        Bob.intake.autoIntake();
         if (timer.seconds() >= seconds) {
             Bob.drivetrain.drive(0,0,0,0);
         }

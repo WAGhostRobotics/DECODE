@@ -132,7 +132,7 @@ public class Red9Ball extends LinearOpMode {
 
 
                 new ParallelCommand(
-                        new RunCommand(()->Bob.intake.holdAtZero()),
+//                        new RunCommand(()->Bob.intake.holdAtZero()),
                         new FollowTrajectory(follower, spike1Path),
                         new RunCommand(()-> Bob.shooter.setTargetVelocity(0)),
                         new RunCommand(()-> Bob.shooter.setIntake(1))
@@ -150,8 +150,8 @@ public class Red9Ball extends LinearOpMode {
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike2Path),
                         new RunCommand(()-> Bob.shooter.setTargetVelocity(0)),
-                        new RunCommand(()-> Bob.shooter.setIntake(1)),
-                        new RunCommand(()->Bob.intake.holdAtZero())
+                        new RunCommand(()-> Bob.shooter.setIntake(1))
+//                        new RunCommand(()->Bob.intake.holdAtZero())
 
                 ),
 //                new Wait(100000),
@@ -173,7 +173,7 @@ public class Red9Ball extends LinearOpMode {
             Bob.localizer.update();
             Bob.shooter.updateShooter();
             Bob.shooter.updateTurret();
-            Bob.intake.updateSpindexer();
+//            Bob.intake.updateSpindexer();
             follower.update();
 //            telemetry.addData("", follower.getTelemetry());
             Bob.shooter.getTurretAngle();

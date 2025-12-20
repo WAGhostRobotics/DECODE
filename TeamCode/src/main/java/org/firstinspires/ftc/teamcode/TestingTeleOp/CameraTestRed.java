@@ -23,7 +23,7 @@ import org.firstinspires.ftc.teamcode.Core.Bob;
 
 @TeleOp
 @Config
-public class CameraTest extends LinearOpMode {
+public class CameraTestRed extends LinearOpMode {
     public static int targetVelocity = 0;
     double rawX = 0, rawY = 0;
     @Override
@@ -32,7 +32,8 @@ public class CameraTest extends LinearOpMode {
         ToggleButtonReader farShooterButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.B);
         ToggleButtonReader shooterOff = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
         Limelight3A limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
-        Bob.init(hardwareMap, true, false);
+        Bob.init(hardwareMap, false, false);
+        Bob.limelight.switchToGoalPipeline();
         limelight3A.start();
 
         double heading = 0;

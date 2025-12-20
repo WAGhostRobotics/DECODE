@@ -15,11 +15,9 @@ import org.firstinspires.ftc.teamcode.Core.Bob;
 public class Shooter {
 
     Servo popper, rightHood, leftHood;
-    CRServo s1;
-    CRServo s2;
-    DcMotorEx encoder;
+    DcMotorEx turret;
     public enum PopperPos {
-        POP(0.7075), RETRACT(0.82);
+        POP(0.596), RETRACT(0.6439);
         private final double pos;
         PopperPos(double val) {this.pos = val;}
         public double getPosition() {
@@ -28,7 +26,7 @@ public class Shooter {
     }
     DcMotorEx wheel1;
     DcMotorEx wheel2;
-    double P = 0.05, I=0.0035, D = 0;
+    double P = 0.125, I=0.00275, D = 0;
     double currentVelocity, targetVelocity, error, power;
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
@@ -41,47 +39,40 @@ public class Shooter {
     double turretPower;
 
     public void init(HardwareMap hardwareMap) {
-        s1 = hardwareMap.get(CRServo.class, "turr1");
-        s2 = hardwareMap.get(CRServo.class, "turr2");
-        s1.setDirection(DcMotorSimple.Direction.REVERSE);
-        s2.setDirection(DcMotorSimple.Direction.REVERSE);
         pidController = new PIDController(P, I, D);
         pidController.setIntegrationBounds(-10000000, 10000000);
-        turretController = new PIDController(0.000175, 0.0000001, 0);
+        turretController = new PIDController(0.003, 0.0005, 0);
         turretController.setIntegrationBounds(-10000000, 10000000);
 
-
+        turret = hardwareMap.get(DcMotorEx.class, "turret");
         wheel1 = hardwareMap.get(DcMotorEx.class, "wheel1");
         wheel2 = hardwareMap.get(DcMotorEx.class, "wheel2");
         popper = hardwareMap.get(Servo.class, "popper");
         wheel1.setDirection(DcMotorSimple.Direction.REVERSE);
-        encoder = hardwareMap.get(DcMotorEx.class, "rb");
-        encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightHood = hardwareMap.get(Servo.class, "rightHood");
         leftHood = hardwareMap.get(Servo.class, "leftHood");
+        turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
         targetVelocity = 0;
     }
 
     public void init(HardwareMap hardwareMap, boolean teleop) {
-        s1 = hardwareMap.get(CRServo.class, "turr1");
-        s2 = hardwareMap.get(CRServo.class, "turr2");
-        s1.setDirection(DcMotorSimple.Direction.REVERSE);
-        s2.setDirection(DcMotorSimple.Direction.REVERSE);
         pidController = new PIDController(P, I, D);
         pidController.setIntegrationBounds(-10000000, 10000000);
-        turretController = new PIDController(0.0001, 0.00007, 0);
+        turretController = new PIDController(0.003, 0.0005, 0);
         turretController.setIntegrationBounds(-10000000, 10000000);
 
 
+        turret = hardwareMap.get(DcMotorEx.class, "turret");
         wheel1 = hardwareMap.get(DcMotorEx.class, "wheel1");
         wheel2 = hardwareMap.get(DcMotorEx.class, "wheel2");
         popper = hardwareMap.get(Servo.class, "popper");
         wheel1.setDirection(DcMotorSimple.Direction.REVERSE);
-        encoder = hardwareMap.get(DcMotorEx.class, "rb");
         if (!teleop)
-            encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightHood = hardwareMap.get(Servo.class, "rightHood");
         leftHood = hardwareMap.get(Servo.class, "leftHood");
+        turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         targetVelocity = 0;
     }
 
@@ -114,38 +105,23 @@ public class Shooter {
 
     public void stop() {
         popper.setPosition(PopperPos.RETRACT.getPosition());
-        Bob.intake.stopSpindexer();
+        Bob.intake.rollerStop();
     }
 
     public void shoot() {
+        popper.setPosition(PopperPos.POP.getPosition());
         if (reachedVelocity()) {
-            popper.setPosition(PopperPos.POP.getPosition());
-            Bob.intake.updateSpindexer();
+            Bob.intake.rollerIn();
         }
         else {
-            popper.setPosition(PopperPos.RETRACT.getPosition());
+            Bob.intake.rollerStop();
         }
     }
 
-    public int realShoot() {
-        if (!Bob.intake.isFinished()) {
-            popper.setPosition(PopperPos.RETRACT.getPosition());
-        }
-        else {
-            popper.setPosition(PopperPos.POP.getPosition());
-        }
-        int ballsShot = Bob.intake.spindexerShoot();
-        Bob.intake.rollerIn();
-        return ballsShot;
-
-    }
-
-    public void rapidShoot() {
+    public void autoShoot() {
         popper.setPosition(PopperPos.POP.getPosition());
         Bob.intake.rollerIn();
-        Bob.intake.rotateCW();
     }
-
     public void popDown() {
         popper.setPosition(PopperPos.RETRACT.getPosition());
     }
@@ -191,31 +167,29 @@ public class Shooter {
     }
 
     public void setTurretTargetPos(int position) {
+        position = Range.clip(position, -680, 800);
         turretTargetPos = position;
     }
 
     public void updateTurret() {
         turretError = turretTargetPos - currentPosition;
-        if (Math.abs(turretError)<150) {
+        if (Math.abs(turretError)<10) {
             turretPower = 0;
             turretController.reset();
             return;
         }
         turretPower = turretController.calculate(0, turretError);
-
         turretPower = Range.clip(turretPower, -1, 1);
-
-        s1.setPower(turretPower);
-        s2.setPower(-turretPower);
+        turret.setPower(turretPower);
     }
 
     public double getTurretAngle() {
-        currentPosition = -encoder.getCurrentPosition();        // Take this out eventually (kills loop speeds)
-        return ((double)-currentPosition/8301.0) * 90;
+        currentPosition = turret.getCurrentPosition();        // Take this out eventually (kills loop speeds)
+        return ((double)-currentPosition/434) * 90;
     }
 
     public static int angleToPosition(double angle) {
-        return (int)((angle/90.0)*(-8200.0));
+        return (int)((angle/90.0)*(-434));
     }
 
     public void setHood(double pos) {

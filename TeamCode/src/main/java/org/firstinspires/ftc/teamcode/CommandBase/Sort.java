@@ -17,7 +17,7 @@ public class Sort extends Command {
 
     @Override
     public void update() {
-        Bob.intake.sort();
+//        Bob.intake.sort();
     }
 
     @Override

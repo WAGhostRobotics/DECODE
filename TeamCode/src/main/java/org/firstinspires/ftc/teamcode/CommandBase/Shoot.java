@@ -23,13 +23,14 @@ public class Shoot extends Command {
     @Override
     public void update() {
         if (timer.seconds() <= seconds) {
-            Bob.shooter.rapidShoot();
+            Bob.shooter.autoShoot();
         }
     }
 
     @Override
     public boolean isFinished() {
         if (timer.seconds() >= seconds) {
+            Bob.shooter.stop();
             return true;
         }
         return false;

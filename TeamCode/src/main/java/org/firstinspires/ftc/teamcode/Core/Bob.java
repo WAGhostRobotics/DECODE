@@ -7,6 +7,7 @@ import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Components.Camera;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Components.DriveTrain.MecanumDrive;
+import org.firstinspires.ftc.teamcode.Components.SimpleIntake;
 
 public class Bob {
     public static HardwareMap hardwareMap;
@@ -16,7 +17,7 @@ public class Bob {
     public static PinpointLocalizer localizer;
 
     public static Shooter shooter;
-    public static Intake intake;
+    public static SimpleIntake intake;
 
     public static void init(HardwareMap hardwareMap) {
 
@@ -26,7 +27,7 @@ public class Bob {
         drivetrain = new MecanumDrive(hardwareMap);
         localizer = new PinpointLocalizer(hardwareMap);
         movementPower = 0.8;
-        intake = new Intake(hardwareMap);
+        intake = new SimpleIntake(hardwareMap);
         limelight = new Camera(hardwareMap);
 
     }
@@ -39,7 +40,7 @@ public class Bob {
         drivetrain = new MecanumDrive(hardwareMap);
         localizer = new PinpointLocalizer(hardwareMap);
         movementPower = 0.8;
-        intake = new Intake(hardwareMap);
+        intake = new SimpleIntake(hardwareMap);
         limelight = new Camera(hardwareMap, blueAlliance);
 
     }
@@ -52,7 +53,7 @@ public class Bob {
         drivetrain = new MecanumDrive(hardwareMap);
         localizer = new PinpointLocalizer(hardwareMap);
         movementPower = 0.8;
-        intake = new Intake(hardwareMap, teleop);
+        intake = new SimpleIntake(hardwareMap);
         limelight = new Camera(hardwareMap, blueAlliance);
 
     }

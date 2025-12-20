@@ -219,14 +219,14 @@ public class MotionPlannerOld {
         currentHeading = normalizeDegrees(localizer.getHeading());
 //        currentHeading = 0;
 
-        while (index <= estimatedStopping && distance(spline.getCurvePoints()[index + 1], new Point(x, y)) <
-                distance(spline.getCurvePoints()[index], new Point(x, y))) {
+        while (index <= estimatedStopping && distance(spline.getCurvePoints(index), new Point(x, y)) <
+                distance(spline.getCurvePoints(index), new Point(x, y))) {
             index++;
         }
 
-        target = spline.getCurvePoints()[index];
-        targetHeading = spline.getCurveHeadings()[index];
-        derivative = spline.getCurveDerivatives()[index];
+        target = spline.getCurvePoints(index);
+        targetHeading = spline.getCurveHeadings(index);
+        derivative = spline.getCurveDerivatives(index);
         if(!isFinished()){
             started = true;
 

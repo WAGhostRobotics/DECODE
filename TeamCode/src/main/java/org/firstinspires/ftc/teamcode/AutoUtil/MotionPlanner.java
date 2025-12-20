@@ -17,7 +17,7 @@ public class MotionPlanner {
     private double targetHeading, targetX, targetY;
     private double xError, yError, headingError;
     private double xPower, yPower, magnitude, theta, driveTurn;
-    private final PIDController translationalControlX = new PIDController(Constants.translationalXP,Constants.translationalXI, Constants.translationalXD);
+    private final TweakedPID translationalControlX = new TweakedPID(Constants.translationalXP,Constants.translationalXI, Constants.translationalXD);
     private final PIDController translationalControlY =  new PIDController(Constants.translationalYP, Constants.translationalYI, Constants.translationalYD);
     private final PIDController headingControl = new PIDController(Constants.headingP, Constants.headingI, Constants.headingD);
     private double kStaticX = Constants.kStaticX;                 // Minimum power before robot moves in X direction
@@ -89,8 +89,6 @@ public class MotionPlanner {
             currentVelocity = 0;
         }
         timer.reset();
-        voltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
-
     }
     public void getHeadingError(){
         headingError = targetHeading - currentHeading;
@@ -123,14 +121,14 @@ public class MotionPlanner {
 
         // The loop below increments index until we reach the point closest to the robot's current (x, y)
         // We want to PID to the next point on the spline that is closest to us
-        while (index <= speedThresholdPoint && distance(spline.getCurvePoints()[index + 1], new Point(currentX, currentY)) <
-                distance(spline.getCurvePoints()[index], new Point(currentX, currentY))) {
+        while (index <= speedThresholdPoint && distance(spline.getCurvePoints(index+1), currentX, currentY) <
+                distance(spline.getCurvePoints(index), currentX, currentY)) {
             index++;
         }
 
-        targetX = spline.getCurvePoints()[index].getX();
-        targetY = spline.getCurvePoints()[index].getY();
-        targetHeading = spline.getCurveHeadings()[index];
+        targetX = spline.getCurvePoints(index).getX();
+        targetY = spline.getCurvePoints(index).getY();
+        targetHeading = spline.getCurveHeadings(index);
 
         xError = targetX - currentX;
         yError = targetY - currentY;
@@ -145,7 +143,7 @@ public class MotionPlanner {
                 isEndOfSpline = true;
                 targetX = spline.getEndPoint().getX();          // If at the end, we PID straight to the end point
                 targetY = spline.getEndPoint().getY();
-                targetHeading = spline.getCurveHeadings()[spline.getCurveHeadings().length-1];
+                targetHeading = spline.getFinalHeading();
 
                 xError = targetX - currentX;
                 yError = targetY - currentY;
@@ -171,7 +169,7 @@ public class MotionPlanner {
 
             else {          // Speed mode (Mostly driven by direction of path) PID only comes into play when robot is off track
                 magnitude = 1;
-                Point derivative = spline.getCurveDerivatives()[index];
+                Point derivative = spline.getCurveDerivatives(index);
                 double vy = derivative.getY();      // Y Magnitude
                 double vx = derivative.getX();      // X Magnitude
                 double perpendicularError;
@@ -217,7 +215,7 @@ public class MotionPlanner {
                 theta = Math.toDegrees(Math.atan2(y_rotated, x_rotated));
                 getHeadingError();
                 driveTurn = headingControl.calculate(0, headingError);
-                drivetrain.driveMax(magnitude, theta, driveTurn, movementPower, voltage);
+                drivetrain.driveMax(magnitude, theta, driveTurn, movementPower);
 
 
             }
@@ -241,7 +239,16 @@ public class MotionPlanner {
     }
 
 
+    private boolean reachedFinalX() {
+        double error = spline.getEndPoint().getX() - currentX;
+        return Math.abs(error)<permissibleTranslationalError;
+    }
 
+
+    private boolean reachedFinalY() {
+        double error = spline.getEndPoint().getY() - currentY;
+        return Math.abs(error)<permissibleTranslationalError;
+    }
     private boolean reachedX() {
         return Math.abs(xError) < permissibleTranslationalError && isEndOfSpline;
     }
@@ -259,7 +266,7 @@ public class MotionPlanner {
     }
 
     public boolean isFinished() {
-        return reachedX() && reachedY() && reachedHeading() && stopped();
+        return isEndOfSpline && reachedFinalX() && reachedFinalY() && reachedHeading() && stopped();
     }
 
     public void setXPID(double p, double i, double d) {
@@ -288,6 +295,10 @@ public class MotionPlanner {
     }
     private double distance(Point p1, Point p2){                // Dist b/w two points (pythagorean)
         return Math.hypot(p1.getX()-p2.getX(), p1.getY()-p2.getY());
+    }
+
+    private double distance(Point p1, double x, double y) {
+        return Math.hypot(p1.getX()-x, p1.getY()-y);
     }
 
     public void pause() {

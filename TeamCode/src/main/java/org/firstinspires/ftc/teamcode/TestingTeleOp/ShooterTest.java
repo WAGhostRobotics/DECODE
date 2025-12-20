@@ -24,48 +24,42 @@ public class ShooterTest extends LinearOpMode {
     public static double hoodPos = 0;
 
     public double currentVelocity, error;
-    Servo rightHood, leftHood;
-    DcMotorEx intake;
-    CRServo s1, s2;
-    RevColorSensorV3 colorSensor;
+
 
 
     @Override
     public void runOpMode() throws InterruptedException {
-        rightHood = hardwareMap.get(Servo.class, "rightHood");
-        leftHood = hardwareMap.get(Servo.class, "leftHood");
-        intake = hardwareMap.get(DcMotorEx.class, "intake");
-        s1 = hardwareMap.get(CRServo.class, "s1");
-        s2 = hardwareMap.get(CRServo.class, "s2");
-        colorSensor = hardwareMap.get(RevColorSensorV3.class, "colorSensor");
-
-
-        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        Bob.init(hardwareMap);
+        Bob.init(hardwareMap, true, false);
+        Bob.limelight.switchToGoalPipeline();
 
         waitForStart();
         while (opModeIsActive()) {
+            Bob.localizer.update();
+            Bob.limelight.trackAprilTag(Bob.localizer.getHeading(), Bob.shooter.getTurretAngle(), true);
+            if (Bob.limelight.isVisible()) {
+                Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
+//                Bob.shooter.setTurretTargetPos(targetPosition);
+            }
+            Bob.shooter.updateTurret();
             if (gamepad1.right_trigger>0.1) {
-                intake.setPower(intakePower);
-
+                Bob.intake.rollerIn();
+            }
+            else if (gamepad1.left_trigger>0.1) {
+                Bob.intake.rollerOut();
+            }
+            else if (gamepad1.right_bumper) {
+                Bob.shooter.shoot();
             }
             else {
-                s1.setPower(0);
-                s2.setPower(0);
+                Bob.intake.rollerStop();
+                Bob.shooter.stop();
             }
 
-            if (gamepad1.right_bumper) {
-                intake.setPower(intakePower);
-            }
-            Bob.shooter.shoot();
-
-            leftHood.setPosition(hoodPos);
-            rightHood.setPosition(1-hoodPos);
+            Bob.shooter.setHood(hoodPos);
             Bob.shooter.setPID(P, I, D);
             Bob.shooter.setTargetVelocity(targetVelocity);
-            Bob.intake.updateSpindexer();
             Bob.shooter.updateShooter();
+
             telemetry.addData("Power: ", Bob.shooter.getTelemetry());
             telemetry.addData("Heading: ", Bob.localizer.getHeading());
             telemetry.addData("HoodPos: ", hoodPos);
@@ -77,12 +71,7 @@ public class ShooterTest extends LinearOpMode {
 
     }
     private void rollerIn() {
-        if (colorSensor.getDistance(DistanceUnit.CM)<5) {
 
-        }
-        intake.setPower(intakePower);
-        s1.setPower(spinPower);
-        s2.setPower(spinPower);
     }
 
 

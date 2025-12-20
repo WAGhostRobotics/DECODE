@@ -59,9 +59,10 @@ public class Bezier implements Path {
         }
     }
 
-    public Point[] getCurvePoints(){return curvePoints;}
-    public Point[] getCurveDerivatives(){return curveDerivatives;}
-    public double[] getCurveHeadings(){return curveHeadings;}
+    public Point getCurvePoints(int i){return curvePoints[i];}
+    public Point getCurveDerivatives(int i){return curveDerivatives[i];}
+    public double getCurveHeadings(int i){return curveHeadings[i];}
+    public double getFinalHeading() {return curveHeadings[curveHeadings.length-1];}
 
 
 

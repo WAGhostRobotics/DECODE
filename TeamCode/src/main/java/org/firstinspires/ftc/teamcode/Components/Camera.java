@@ -42,7 +42,7 @@ public class Camera {
     private double distance, distanceInches;
     private double calculatedShooterVelocity;
 
-    private double targetHeading, headingError, turretAngle, hoodAngle;
+    private double targetHeading, headingError, turretAngle = 0, hoodAngle;
     private final double permissibleError = 0.5;
 
 
@@ -60,7 +60,7 @@ public class Camera {
     // So we add these x and y translational offsets to whatever the limelight returns
     // x Translation is the same for red and blue
     // y Translation is positive for blue negative for red
-    private double xTranslation = 1.1;
+    private double xTranslation = 1.01;
     private double yTranslation = 1.57;
 
     // Translational constant from the april Tag to the actual backboard
@@ -70,8 +70,10 @@ public class Camera {
     private int motifID = 0;
     private Intake.SlotState[] motif;
     boolean blueAlliance = true;
+    boolean initialized;
 
     public Camera(HardwareMap hardwareMap, boolean blueAlliance) {
+        initialized = false;
         limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
         timer.reset();
         limelight3A.start();
@@ -101,7 +103,14 @@ public class Camera {
             aprilHeading = botPose.getOrientation().getYaw(DEGREES);
 
             // Get the x and y (Then apply translation to figure out where robot is relative to the goal)
-            aprilX = (botPose.getPosition().x + xTranslation);
+            if (!blueAlliance) {
+                aprilX = -botPose.getPosition().x;
+            }
+            else {
+                aprilX = botPose.getPosition().x;
+            }
+
+            aprilX += xTranslation;
             aprilY = (botPose.getPosition().y + yTranslation);
 
             aprilXInches = aprilX * meterToInches;
@@ -111,7 +120,8 @@ public class Camera {
             distanceInches = distance * meterToInches;
 
             // Always relocalize when April Tag is in sight (Timer added to chill the loop speeds and pinpoint death)
-            if (timer.seconds()>timerThreshold) {
+            if (!initialized  || timer.seconds()>timerThreshold) {
+                initialized = true;
                 Bob.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
                 timer.reset();
             }
@@ -121,7 +131,8 @@ public class Camera {
             targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(aprilYInches, aprilXInches)))-180;
 
         }
-        else {
+        else if (initialized) {
+
             aprilVisible = false;
 
             estimatedX = localizerX;
@@ -131,14 +142,18 @@ public class Camera {
             distanceInches = distance * meterToInches;
             targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(estimatedY, estimatedX))-180);
         }
-        hoodAngle = (Math.max(Math.min(Math.toDegrees(Math.atan(goalHeight/distance)), 63), 27));
-        turretAngle = targetHeading - heading;
-        turretAngle = normalizeTurretAngle(turretAngle);
-        calculatedShooterVelocity = calculateShooterTargetVelocity(distance);
+
+        if (initialized) {
+            hoodAngle = (Math.max(Math.min(Math.toDegrees(Math.atan(goalHeight / distance)), 63), 27));
+            turretAngle = targetHeading - heading;
+            turretAngle = normalizeTurretAngle(turretAngle);
+            calculatedShooterVelocity = calculateShooterTargetVelocity(distance);
+        }
     }
 
     public String getTelemetry() {
-        String returnString = "Is Visible? " + aprilVisible + "\n";
+        String returnString = "Is Visible? " + aprilVisible + "\n" +
+                                "Initialized: " + initialized + "\n";
 
         if (aprilVisible) {
             returnString = returnString + "April X: " + aprilX + "\n" +
@@ -237,11 +252,16 @@ public class Camera {
     public void switchToGoalPipeline() {
         if (!blueAlliance) {
             limelight3A.pipelineSwitch(1);              // Blue april tag Pipeline
-            xTranslation *= -1;                               // Flipped bc red is other side
+            xTranslation *= -1;
         }
         else {
             limelight3A.pipelineSwitch(0);              // Red april tag Pipeline
+
         }
+    }
+
+    public void switchPipeline() {
+
     }
     public Intake.SlotState[] getMotif() {
         LLResult llResult = limelight3A.getLatestResult();
@@ -259,5 +279,13 @@ public class Camera {
         }
         return motif;
 
+    }
+
+    public boolean isVisible() {
+        return aprilVisible;
+    }
+
+    public boolean isInitialized() {
+        return initialized;
     }
 }

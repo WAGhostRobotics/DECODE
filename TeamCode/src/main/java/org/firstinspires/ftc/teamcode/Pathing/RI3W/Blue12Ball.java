@@ -1,15 +1,21 @@
 package org.firstinspires.ftc.teamcode.Pathing.RI3W;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
+import org.firstinspires.ftc.teamcode.AutoUtil.LoopRateTracker;
 import org.firstinspires.ftc.teamcode.AutoUtil.MergedBezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
+import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikes;
+import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesV3;
 import org.firstinspires.ftc.teamcode.CommandBase.JankyIntakeSpike;
 import org.firstinspires.ftc.teamcode.CommandBase.FollowTrajectory;
 import org.firstinspires.ftc.teamcode.CommandBase.ScoreThreeArtifacts;
@@ -22,176 +28,187 @@ import org.firstinspires.ftc.teamcode.Core.Bob;
 
 @Autonomous
 public class Blue12Ball extends LinearOpMode {
-    Bezier shootPath, spike1Path, spike2Path, openGatePath, spike3Path, spike3ToShoot, spike1ToShoot, spike2ToShoot, rotate90;
+    ElapsedTime timer;
+    LoopRateTracker loopRateTracker = new LoopRateTracker();
+    Bezier shootPath, spike1Path, spike2Path, openGatePath, spike3Path, spike3ToShoot, spike1ToShoot, spike2ToShoot, rotate90, spike2intake, spike3intake;
     public static int multiplier=1;
-    public static Point shootingPos = new Point(-39, -13.6);
+    public static Point shootingPos = new Point(-18.7, 44.6);
     public static Point farShootingPos = new Point(-125.7, -20.28);
-    public static Point spike1 = new Point(-47.5, 0);
-    public static Point spike2 = new Point(-68.7, 0);
-    public static Point spike3 = new Point(-93.7, 0);
+    public static Point spike1 = new Point(-9.3, 47.03);
+    public static Point spike2 = new Point(-12.3, 73.13);
+    public static Point spike3 = new Point(-12.3, 95.4);
+    public static Point spike2take = new Point(17.7, 73.13);
+    public static Point spike3take = new Point(17.7,95.4);
 
-    public static Point openGate = new Point(-80, 13.9);
+    public static Point openGate = new Point(16, 56.5);
 
     MotionPlanner follower;
 
 
     @Override
     public void runOpMode() throws InterruptedException {
+        timer = new ElapsedTime();
         shootingPos = new Point(shootingPos.getX(), multiplier* shootingPos.getY());
         spike1 = new Point(spike1.getX(), multiplier*spike1.getY());
-        Bob.init(hardwareMap);
+        Bob.init(hardwareMap, true, false);
         follower = new MotionPlanner(Bob.drivetrain, Bob.localizer, hardwareMap);
         follower.setMovementPower(0.9);
-        shootPath = new Bezier(90*multiplier,
+        shootPath = new Bezier(0,
                 new Point(0, 0),
                 shootingPos
         );
 
         openGatePath = new MergedBezier(
-                90,
+                0,
                 new Bezier(
-                        new Point(spike2.getX(), spike2.getY()+10),
-                        new Point(openGate.getX(), spike2.getY()+6.5)
+                        new Point(spike1.getX()+23, spike1.getY()),
+                        new Point(openGate.getX()-10, openGate.getY())
                 ),
                 new Bezier(
-                        new Point(openGate.getX(), spike2.getY()+6.5),
+                        new Point(openGate.getX()-10, openGate.getY()),
                         openGate
                 )
         );
 
 
-        spike1Path = new Bezier(90*multiplier,
-                shootingPos,
-                new Point(spike1.getX(), spike1.getY()-6),
-                spike1
-        );
-
-        spike2Path = new Bezier(90,
-                shootingPos,
-                new Point(spike2.getX(), spike2.getY()-6),
-                spike2
-        );
-
-        spike3Path = new Bezier(90,
-                shootingPos,
-                new Point(spike3.getX(), spike3.getY()-6),
-                spike3
-        );
-
-        spike1ToShoot = new MergedBezier(
+        spike1Path = new MergedBezier(10,
                 new Bezier(
-                        spike1,
-                        new Point(spike1.getX(), -3)
+                        shootingPos,
+                        new Point(spike1.getX(), spike1.getY()+1)
                 ),
-                new Bezier(90,
-                        new Point(spike1.getX(), -3),
-                        shootingPos
+                new Bezier(
+                        new Point(spike1.getX(), spike1.getY()+1),
+                        new Point(spike1.getX()+22, spike1.getY())
                 )
+        );
+
+        spike2Path = new Bezier(
+                        shootingPos,
+                        new Point(spike2.getX(), spike2.getY())
+                );
+//                new Bezier(
+//                        new Point(spike2.getX(), spike2.getY()),
+//                        //new Point(spike2.getX()+30, spike2.getY())
+//                        spike2take
+//                )
+//        );
+
+        spike2intake = new Bezier(10,
+                new Point(spike2.getX(), spike2.getY()),
+                spike2take
+        );
+
+
+        spike3Path = new Bezier(
+                        shootingPos,
+                        new Point(spike3.getX(), spike3.getY())
+                );
+//                new Bezier(
+//                        new Point(spike3.getX(), spike3.getY()-7),
+//                        new Point(spike3.getX()+30, spike3.getY())
+//                )
+//        );
+
+        spike3intake = new Bezier(10,
+                new Point(spike3.getX(), spike3.getY()),
+                spike3take
+        );
+
+        spike1ToShoot = new Bezier(0,
+                new Point(spike1.getX()+24, spike1.getY()),
+                shootingPos
         );
 
 
         spike2ToShoot = new MergedBezier(
-                90,
-                new Bezier(
-                        90,
-                        spike2,
-                        new Point(spike2.getX()-1, -3)
+                new Bezier(0,
+                        new Point(spike2.getX()+24, spike2.getY()),
+                        new Point(spike2.getX()+12, spike2.getY())
                 ),
                 new Bezier(
-                        90,
-                        new Point(spike2.getX()-1, -1),
+                        new Point(spike2.getX()+12, spike2.getY()),
                         shootingPos
                 )
         );
 
-        spike3ToShoot = new MergedBezier(
-                90,
-                new Bezier(
-                        spike3,
-                        new Point(spike3.getX(), -3)
-                ),
-                new Bezier(90,
-                        new Point(spike3.getX(), -3),
-                        shootingPos
-                )
+        spike3ToShoot = new Bezier(0,
+                new Point(spike3.getX()+28, spike3.getY()),
+                shootingPos
         );
 
         rotate90 = new Bezier(
-                90,
+                0,
                 new Point(spike2.getX()+11, spike2.getY()+6)
         );
 
-        SequentialCommand scheduler = new SequentialCommand(
-                new RunCommand(()-> Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, -0.618, 7.25, AngleUnit.DEGREES, 0))),
-
-
-                new ScoreThreeArtifacts(follower, shootPath, 100, Shooter.angleToPosition(-41), 0.3),
-
-
-                new ParallelCommand(
-                        new RunCommand(()->Bob.intake.holdAtZero()),
-                        new FollowTrajectory(follower, spike1Path),
-                        new RunCommand(()-> Bob.shooter.setTargetVelocity(0)),
-                        new RunCommand(()-> Bob.shooter.setIntake(1))
-
-                ),
-                new Wait(10),
-                new RunCommand(()->follower.pause()),
-                new JankyIntakeSpike(0.2 , 3, 1),
-                new RunCommand(()->follower.resume()),
-//                new FollowTrajectory(follower, openGatePath),
-//                new Wait(500),
-
-                new ScoreThreeArtifacts(follower, shootPath, 100, Shooter.angleToPosition(-41), 0.3),
-
-
-                new ParallelCommand(
-                        new FollowTrajectory(follower, spike2Path),
-                        new RunCommand(()-> Bob.shooter.setTargetVelocity(0)),
-                        new RunCommand(()-> Bob.shooter.setIntake(1)),
-                        new RunCommand(()->Bob.intake.holdAtZero())
-
-                ),
-//                new Wait(100000),
-
-                new RunCommand(()->follower.pause()),
-                new JankyIntakeSpike(0.2 , 3, 1),
-                new RunCommand(()->follower.resume()),
-
-                new ScoreThreeArtifacts(follower, shootPath, 100, Shooter.angleToPosition(-41), 0.3),
-
-
-                new ParallelCommand(
-                        new FollowTrajectory(follower, spike3Path),
-                        new RunCommand(()-> Bob.shooter.setTargetVelocity(0)),
-                        new RunCommand(()->Bob.intake.holdAtZero())
-                ),
-
-//                new Wait(100000),
-                new RunCommand(()->follower.pause()),
-                new JankyIntakeSpike(0.2 , 3, 1),
-                new RunCommand(()->follower.resume()),
-
-                new ScoreThreeArtifacts(follower, shootPath, 100, Shooter.angleToPosition(-41), 0.3),
-
-                new FollowTrajectory(follower, rotate90)
-
-        );
+        SequentialCommand scheduler = getSequentialCommand();
+        scheduler.init();
+        while (opModeInInit()) {
+            Bob.shooter.updateTurret();
+            Bob.shooter.getTurretAngle();
+        }
 
         waitForStart();
-        scheduler.init();
         while (opModeIsActive()) {
+            loopRateTracker.updateLoopRate();
             scheduler.update();
             Bob.localizer.update();
             Bob.shooter.updateShooter();
             Bob.shooter.updateTurret();
-            Bob.intake.updateSpindexer();
             follower.update();
-//            telemetry.addData("", follower.getTelemetry());
             Bob.shooter.getTurretAngle();
-            telemetry.addData("Intake: ", Bob.intake.getTelemetry());
+            telemetry.addData("Loop Speed: ", loopRateTracker.getLoopRateHz());
             telemetry.update();
+            timer.reset();
         }
+    }
+
+    @NonNull
+    private SequentialCommand getSequentialCommand() {
+        SequentialCommand scheduler = new SequentialCommand(
+                new RunCommand(()->Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(136))),
+                new ScoreThreeArtifacts(follower, shootPath, 196, Shooter.angleToPosition(137), 0.30),
+
+
+                new ParallelCommand(
+                        new FollowTrajectory(follower, spike1Path),
+                        new CollectSpikesV3(follower)
+                ),
+
+//                new ParallelCommand(
+//                        new RunCommand(() -> Bob.intake.rollerStop()),
+//                        new FollowTrajectory(follower, openGatePath)
+//                ),
+
+                new ScoreThreeArtifacts(follower, spike1ToShoot, 196, Shooter.angleToPosition(137), 0.30),
+
+
+                new FollowTrajectory(follower, spike2Path),
+                new ParallelCommand(
+                        new FollowTrajectory(follower, spike2intake),
+                        new CollectSpikesV3(follower)
+                ),
+
+
+                new ScoreThreeArtifacts(follower, spike2ToShoot, 196, Shooter.angleToPosition(137), 0.30),
+
+
+                new FollowTrajectory(follower, spike3Path),
+                new ParallelCommand(
+                        new FollowTrajectory(follower, spike3intake),
+                        new CollectSpikesV3(follower)
+                ),
+
+
+                new ScoreThreeArtifacts(follower, spike3ToShoot, 196, Shooter.angleToPosition(137), 0.30),
+
+                new ParallelCommand(
+                        new FollowTrajectory(follower, rotate90),
+                        new RunCommand(()-> Bob.shooter.setTurretTargetPos(0))
+                )
+
+        );
+        return scheduler;
     }
 
 }

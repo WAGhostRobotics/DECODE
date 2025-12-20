@@ -8,13 +8,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 public class PinpointLocalizer {
     GoBildaPinpointDriver pinpoint;
+    long lastTime = System.nanoTime();
     private final double xOffset = -122;
     private final double yOffset = 0;
 
     public PinpointLocalizer(HardwareMap hardwareMap) {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
         pinpoint.setOffsets(xOffset, yOffset);
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.resetPosAndIMU();
 
@@ -36,7 +37,11 @@ public class PinpointLocalizer {
     }
 
     public void update() {
-        pinpoint.update();
+        long now = System.nanoTime();
+        if (now - lastTime > 33_000_000) {
+            pinpoint.update();
+            lastTime = now;
+        }
     }
 
     public double getEncoderX() {
