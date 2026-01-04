@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode.Components;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
-import static org.firstinspires.ftc.teamcode.Components.Intake.SlotState.G;
-import static org.firstinspires.ftc.teamcode.Components.Intake.SlotState.P;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -68,7 +66,6 @@ public class Camera {
     ElapsedTime timer = new ElapsedTime();
     private final int timerThreshold = 3;           // In seconds
     private int motifID = 0;
-    private Intake.SlotState[] motif;
     boolean blueAlliance = true;
     boolean initialized;
 
@@ -261,23 +258,6 @@ public class Camera {
     }
 
     public void switchPipeline() {
-
-    }
-    public Intake.SlotState[] getMotif() {
-        LLResult llResult = limelight3A.getLatestResult();
-        if (llResult != null && llResult.isValid()) {       // If April tag is visible
-            motifID = llResult.getFiducialResults().get(0).getFiducialId();
-            if (motifID == 21) {
-                motif = new Intake.SlotState[]{G, P, P};
-            }
-            else if (motifID == 22) {
-                motif = new Intake.SlotState[]{P, G, P};
-            }
-            else if (motifID == 23) {
-                motif = new Intake.SlotState[]{P, P, G};
-            }
-        }
-        return motif;
 
     }
 
