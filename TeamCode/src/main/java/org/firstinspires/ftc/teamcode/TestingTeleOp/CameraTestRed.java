@@ -33,7 +33,7 @@ public class CameraTestRed extends LinearOpMode {
         ToggleButtonReader shooterOff = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
         Limelight3A limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
         Bob.init(hardwareMap, false, false);
-        Bob.limelight.switchToGoalPipeline();
+        Bob.limelight.switchToBothGoalPipeline();
         limelight3A.start();
 
         double heading = 0;
@@ -49,114 +49,12 @@ public class CameraTestRed extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
             Bob.localizer.update();
-            double x = -gamepad1.left_stick_y;
-            double y = -gamepad1.left_stick_x;
-            double driveTurn = -gamepad1.right_stick_x;
-            double magnitude = Math.hypot(x, y);
-            double theta = Math.toDegrees(Math.atan2(y, x));
-            heading = Bob.localizer.getHeading();
-            theta = normalizeDegrees(theta - heading);
-            Bob.drivetrain.drive(magnitude, theta, driveTurn, 0.8);
-
-            double turretAngle = Bob.shooter.getTurretAngle();
-            ;
-            double netAngle = turretAngle + heading;
-
-
-            if (gamepad1.dpad_left || gamepad1.right_trigger>0.1) {
-                if (gamepad1.right_trigger > 0.1) {
-                    Bob.shooter.shoot();
-                }
-                Bob.intake.rollerIn();
+            Bob.limelight.trackAprilTag(Bob.localizer.getHeading(), Bob.shooter.getTurretAngle(), true);
+            if (Bob.limelight.isVisible()) {
+                Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
             }
-            else if (gamepad1.dpad_right) {
-                Bob.intake.rollerOut();
-            }
-            else {
-                Bob.intake.rollerStop();
-            }
-
-            if (gamepad1.right_trigger < 0.1) {
-                Bob.shooter.popDown();
-            }
-
-
-
-
-
-            limelight3A.updateRobotOrientation(netAngle);
-            LLResult llResult = limelight3A.getLatestResult();
-            if (llResult != null && llResult.isValid()) {
-                botPose = llResult.getBotpose_MT2();
-                rawX = botPose.getPosition().x;
-                rawY = botPose.getPosition().y;
-                aprilX = (botPose.getPosition().x + xTranslation);
-                aprilY = (botPose.getPosition().y + yTranslation);
-                aprilXInches = aprilX * 39.37;
-                aprilYInches = aprilY * 39.37;
-                distance = Math.hypot(aprilX, aprilY)*Math.cos(Math.toRadians(19));
-                Bob.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
-                targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(aprilYInches, aprilXInches)))-180;
-                telemetry.addData("Pose: ", botPose);
-            }
-            else {
-                double estimatedY = Bob.localizer.getPosY();
-                double estimatedX = Bob.localizer.getPosX();
-                distance = Math.hypot(estimatedX/39.37, estimatedY/39.37);
-                targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(estimatedY, estimatedX))-180);
-            }
-            hoodAngle = getHoodAngle(distance);
-            hoodPos = hoodAngleToPos(hoodAngle);
-            shooterTarget = targetHeading - heading;
-            normalizedShooterTarget = normalizeTurretAngle(shooterTarget);
-            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(normalizedShooterTarget));
-
-
-            if (shooterButton.wasJustReleased()) {
-                shooterOn = true;
-//                targetVelocity = 0;
-//                Bob.shooter.setHood(0.2);
-            }
-            else if (farShooterButton.wasJustReleased()) {
-                shooterOn = true;
-//                Bob.shooter.setHood(0.05);
-//                targetVelocity = 0;
-
-            }
-            else if (shooterOff.wasJustReleased()) {
-                shooterOn = false;
-//                targetVelocity = 0;
-
-            }
-
-            if (shooterOn) {
-                Bob.shooter.updateTurret();
-                Bob.shooter.setHood(hoodPos);
-                Bob.shooter.setTargetVelocity(targetVelocity);
-
-            }
-            else {
-                Bob.shooter.setTargetVelocity(0);
-            }
-
-            Bob.shooter.updateShooter();
-            shooterButton.readValue();
-            shooterOff.readValue();
-            farShooterButton.readValue();
-            telemetry.addData("Target Heading: ", targetHeading);
-            telemetry.addData("Shooter Target: ", shooterTarget);
-            telemetry.addData("Normalized Shooter Target: ", normalizedShooterTarget);
-            telemetry.addData("Localizer: ", Bob.localizer.getHeading());
-            telemetry.addData("RawX: " , rawX);
-            telemetry.addData("RawY: ", rawY);
-            telemetry.addData("X: ", Bob.localizer.getPosX());
-            telemetry.addData("Y: ", Bob.localizer.getPosY());
-            telemetry.addData("Turret Angle: ", turretAngle);
-            telemetry.addData("Turret Tele: ", Bob.shooter.getTurretTelemetry());
-            telemetry.addData("\nNet Angle: ", netAngle);
-            telemetry.addData("Distance: ", distance);
-            telemetry.addData("Hood Angle: ", hoodAngle);
-            telemetry.addData("Hood Pos: ", hoodPos);
+            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
+            telemetry.addData("Turret: ", Bob.shooter.getTurretTelemetry());
             telemetry.update();
         }
     }

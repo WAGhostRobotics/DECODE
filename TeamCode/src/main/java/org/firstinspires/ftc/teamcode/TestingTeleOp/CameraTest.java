@@ -25,12 +25,18 @@ import org.firstinspires.ftc.teamcode.Core.Bob;
 @Config
 public class CameraTest extends LinearOpMode {
     public static int targetVelocity = 0;
+    boolean blue = true;
+    public static double hoodPos = 0.5;
+    public static double P = 0.00005, I = 0.000005, D = 0;
+    public static double xTranslation = 1.5;
+    public static double yTranslation = 1.5; // Y is only for Blue. Red would be negative
     double rawX = 0, rawY = 0;
     @Override
     public void runOpMode() throws InterruptedException {
         ToggleButtonReader shooterButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.A);
         ToggleButtonReader farShooterButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.B);
         ToggleButtonReader shooterOff = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
+        ToggleButtonReader zoneButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.Y);
         Limelight3A limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
         Bob.init(hardwareMap, true, false);
         limelight3A.start();
@@ -41,9 +47,9 @@ public class CameraTest extends LinearOpMode {
         double shooterTarget = 0, normalizedShooterTarget= 0;
         boolean shooterOn = false;
         Pose3D botPose;
-        double hoodAngle = 0, hoodPos = 0;
+        double hoodAngle = 0;
 
-
+        Bob.limelight.switchToBothGoalPipeline();
 
         waitForStart();
         while (opModeIsActive()) {
@@ -58,7 +64,6 @@ public class CameraTest extends LinearOpMode {
             Bob.drivetrain.drive(magnitude, theta, driveTurn, 0.8);
 
             double turretAngle = Bob.shooter.getTurretAngle();
-            ;
             double netAngle = turretAngle + heading;
 
 
@@ -90,22 +95,27 @@ public class CameraTest extends LinearOpMode {
                 rawX = botPose.getPosition().x;
                 rawY = botPose.getPosition().y;
                 aprilX = (botPose.getPosition().x + xTranslation);
-                aprilY = (botPose.getPosition().y + yTranslation);
+                if (blue) {
+                    aprilY = (botPose.getPosition().y + yTranslation);
+                }
+                else {
+                    aprilY = (botPose.getPosition().y - yTranslation);
+                }
                 aprilXInches = aprilX * 39.37;
                 aprilYInches = aprilY * 39.37;
-                distance = Math.hypot(aprilX, aprilY)*Math.cos(Math.toRadians(19));
+                distance = Math.hypot(aprilX, aprilY) * Math.cos(Math.toRadians(19));
                 Bob.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
-                targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(aprilYInches, aprilXInches)))-180;
+                targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(aprilYInches, aprilXInches))-180);
                 telemetry.addData("Pose: ", botPose);
             }
             else {
                 double estimatedY = Bob.localizer.getPosY();
                 double estimatedX = Bob.localizer.getPosX();
-                distance = Math.hypot(estimatedX/39.37, estimatedY/39.37);
+                distance = Math.hypot(estimatedX/39.37, estimatedY/39.37) * Math.cos(Math.toRadians(19));
                 targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(estimatedY, estimatedX))-180);
             }
             hoodAngle = getHoodAngle(distance);
-            hoodPos = hoodAngleToPos(hoodAngle);
+//            hoodPos = hoodAngleToPos(hoodAngle);
             shooterTarget = targetHeading - heading;
             normalizedShooterTarget = normalizeTurretAngle(shooterTarget);
             Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(normalizedShooterTarget));
@@ -137,11 +147,17 @@ public class CameraTest extends LinearOpMode {
             else {
                 Bob.shooter.setTargetVelocity(0);
             }
+            Bob.shooter.setTurretPID(P, I, D);
 
             Bob.shooter.updateShooter();
             shooterButton.readValue();
             shooterOff.readValue();
             farShooterButton.readValue();
+            zoneButton.readValue();
+            if (zoneButton.wasJustReleased()) {
+                blue = !blue;
+            }
+
             telemetry.addData("Target Heading: ", targetHeading);
             telemetry.addData("Shooter Target: ", shooterTarget);
             telemetry.addData("Normalized Shooter Target: ", normalizedShooterTarget);
@@ -156,6 +172,8 @@ public class CameraTest extends LinearOpMode {
             telemetry.addData("Distance: ", distance);
             telemetry.addData("Hood Angle: ", hoodAngle);
             telemetry.addData("Hood Pos: ", hoodPos);
+            telemetry.addData("Shooter: ", Bob.shooter.getTelemetry());
+            telemetry.addData("Blue: ", blue);
             telemetry.update();
         }
     }

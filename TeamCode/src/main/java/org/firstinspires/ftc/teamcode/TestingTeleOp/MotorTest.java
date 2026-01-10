@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 public class MotorTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        DcMotorEx m1 = hardwareMap.get(DcMotorEx.class, "lf");
+        DcMotorEx m1 = hardwareMap.get(DcMotorEx.class, "rf");
         waitForStart();
         while (opModeIsActive()) {
             if (gamepad1.a) {

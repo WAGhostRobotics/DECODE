@@ -11,7 +11,7 @@ public class ServoTest extends OpMode {
 
     @Override
     public void init() {
-        servo = hardwareMap.get(Servo.class, "popper");
+        servo = hardwareMap.get(Servo.class, "gate");
         servo.setPosition(0);
         telemetry.setMsTransmissionInterval(200);
     }

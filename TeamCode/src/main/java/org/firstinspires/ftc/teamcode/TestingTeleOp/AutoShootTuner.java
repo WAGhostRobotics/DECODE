@@ -33,8 +33,8 @@ public class AutoShootTuner extends LinearOpMode {
     public static double intakePower;
 
     double localizerX, localizerY, localizerHeading;
-    public static double xTranslation = 1.1;
-    public static double yTranslation = 1.57; // Y is only for Blue. Red would be negative
+    public static double xTranslation = 1.5;
+    public static double yTranslation = 1.5; // Y is only for Blue. Red would be negative
     public static double P = 0.0008, I = 0.000, D = 0;
     public static double kStaticTurn = 0.05;
     PIDController headingControl;

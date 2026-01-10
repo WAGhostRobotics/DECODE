@@ -41,6 +41,7 @@ public class TurretTuner extends LinearOpMode {
             double heading = Bob.localizer.getHeading();
             theta = normalizeDegrees(theta - heading);
             Bob.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
+
             Bob.localizer.update();
             Bob.limelight.trackAprilTag(Bob.localizer.getHeading(), Bob.shooter.getTurretAngle(), true);
             Bob.shooter.setTurretPID(P, I, D);
@@ -62,9 +63,11 @@ public class TurretTuner extends LinearOpMode {
             Bob.shooter.updateTurret();
             switchReader.readValue();
             telemetry.addData("Turret: ", Bob.shooter.getTurretTelemetry());
+            telemetry.addData("Position: ", Bob.shooter.getPosition());
 //            telemetry.addData("error: ", error);
             telemetry.addData("Camera: ", Bob.limelight.getTelemetry());
             telemetry.update();
         }
     }
 }
+

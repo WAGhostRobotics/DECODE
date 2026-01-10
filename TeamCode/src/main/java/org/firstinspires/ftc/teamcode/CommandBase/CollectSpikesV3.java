@@ -4,6 +4,7 @@ import android.media.midi.MidiOutputPort;
 
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
+import org.firstinspires.ftc.teamcode.Components.SimpleIntake;
 import org.firstinspires.ftc.teamcode.Core.Bob;
 
 public class CollectSpikesV3 extends Command {
@@ -20,9 +21,9 @@ public class CollectSpikesV3 extends Command {
 
     @Override
     public void update() {
-        if (Bob.intake.getCurrentDraw() >= 3.6) {
-            Bob.intake.rollerStop();
-        }
+//        if (Bob.intake.getCurrentDraw() >= SimpleIntake.currentThreshold) {
+//            Bob.intake.rollerStop();
+//        }
     }
 
     @Override

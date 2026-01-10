@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
 import org.firstinspires.ftc.teamcode.Core.Bob;
 
 /**
@@ -58,8 +59,8 @@ public class Camera {
     // So we add these x and y translational offsets to whatever the limelight returns
     // x Translation is the same for red and blue
     // y Translation is positive for blue negative for red
-    private double xTranslation = 1.01;
-    private double yTranslation = 1.57;
+    private double xTranslation = 1.5;
+    private double yTranslation = 1.5;
 
     // Translational constant from the april Tag to the actual backboard
 
@@ -75,6 +76,7 @@ public class Camera {
         timer.reset();
         limelight3A.start();
         this.blueAlliance = blueAlliance;
+        switchToGoalPipeline();
 //        if (blueAlliance) {
 //            limelight3A.pipelineSwitch(0);              // Blue april tag Pipeline
 //            yTranslation *= -1;                               // Flipped bc red is other side
@@ -100,20 +102,17 @@ public class Camera {
             aprilHeading = botPose.getOrientation().getYaw(DEGREES);
 
             // Get the x and y (Then apply translation to figure out where robot is relative to the goal)
-            if (!blueAlliance) {
-                aprilX = -botPose.getPosition().x;
-            }
-            else {
-                aprilX = botPose.getPosition().x;
-            }
-
-            aprilX += xTranslation;
-            aprilY = (botPose.getPosition().y + yTranslation);
+            aprilX = botPose.getPosition().x + xTranslation;
+            if (blueAlliance)
+                aprilY = (botPose.getPosition().y + yTranslation);
+            else
+                aprilY = (botPose.getPosition().y - yTranslation);
 
             aprilXInches = aprilX * meterToInches;
             aprilYInches = aprilY * meterToInches;
 
             distance = Math.hypot(aprilX, aprilY);
+            distance = distance*Math.cos(Math.toRadians(19));
             distanceInches = distance * meterToInches;
 
             // Always relocalize when April Tag is in sight (Timer added to chill the loop speeds and pinpoint death)
@@ -125,7 +124,7 @@ public class Camera {
 
 
             // Heading Control to keep Robot locked to the goal
-            targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(aprilYInches, aprilXInches)))-180;
+            targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(aprilYInches, aprilXInches))-180);
 
         }
         else if (initialized) {
@@ -135,16 +134,17 @@ public class Camera {
             estimatedX = localizerX;
             estimatedY = localizerY;
             distance = Math.hypot(estimatedX/meterToInches, estimatedY/meterToInches);
+            distance = distance*Math.cos(Math.toRadians(19));
 
             distanceInches = distance * meterToInches;
             targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(estimatedY, estimatedX))-180);
         }
 
         if (initialized) {
-            hoodAngle = (Math.max(Math.min(Math.toDegrees(Math.atan(goalHeight / distance)), 63), 27));
+//            hoodAngle = (Math.max(Math.min(Math.toDegrees(Math.atan(goalHeight / distance)), 63), 27));
             turretAngle = targetHeading - heading;
             turretAngle = normalizeTurretAngle(turretAngle);
-            calculatedShooterVelocity = calculateShooterTargetVelocity(distance);
+//            calculatedShooterVelocity = calculateShooterTargetVelocity(distance);
         }
     }
 
@@ -171,7 +171,8 @@ public class Camera {
                         "Target Shooter Velocity: " + calculatedShooterVelocity + "\n" +
                         "Target Heading: " + targetHeading + "\n" +
                         "Heading Error: " + headingError + "\n" +
-                        "TurretAngle: " + turretAngle + "\n";
+                        "TurretAngle: " + turretAngle + "\n" +
+                        "Blue Alliance: " + blueAlliance;
 
         return returnString;
     }
@@ -238,7 +239,7 @@ public class Camera {
     }
 
     public double normalizeTurretAngle(double degrees) {
-            return ((degrees + 90) % 360 ) - 90;
+            return normalizeDegrees(degrees);
     }
 
 
@@ -248,17 +249,23 @@ public class Camera {
 
     public void switchToGoalPipeline() {
         if (!blueAlliance) {
-            limelight3A.pipelineSwitch(1);              // Blue april tag Pipeline
-            xTranslation *= -1;
+            limelight3A.pipelineSwitch(1);              // Red april tag Pipeline
         }
         else {
-            limelight3A.pipelineSwitch(0);              // Red april tag Pipeline
+            limelight3A.pipelineSwitch(0);              // Blue april tag Pipeline
 
         }
+    }
+    public void switchToBothGoalPipeline() {
+        limelight3A.pipelineSwitch(2);
     }
 
     public void switchPipeline() {
 
+    }
+
+    public double getDistance() {
+        return distance;
     }
 
     public boolean isVisible() {
@@ -267,5 +274,9 @@ public class Camera {
 
     public boolean isInitialized() {
         return initialized;
+    }
+
+    public void setBlueAlliance(boolean blueAlliance) {
+        this.blueAlliance = blueAlliance;
     }
 }
