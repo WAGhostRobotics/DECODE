@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Core.Bob;
 
-@TeleOp
+//@TeleOp
 @Config
 public class TeleRed extends LinearOpMode {
 

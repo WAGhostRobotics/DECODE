@@ -12,7 +12,8 @@ public class SensorTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        RevColorSensorV3 ds = hardwareMap.get(RevColorSensorV3.class, "colorSensor");
+        RevColorSensorV3 ds = hardwareMap.get(RevColorSensorV3.class, "distance");
+        RevColorSensorV3 intakeDistance = hardwareMap.get(RevColorSensorV3.class, "intakeDistance");
 
         waitForStart();
 
@@ -30,6 +31,7 @@ public class SensorTest extends LinearOpMode {
             telemetry.addData("Color is: ", green);
             telemetry.addData("Color is: ", blue);
             telemetry.addData("Distance is: ", ds.getDistance(DistanceUnit.CM));
+            telemetry.addData("Distance is: ", intakeDistance.getDistance(DistanceUnit.CM));
             telemetry.update();
 
         }

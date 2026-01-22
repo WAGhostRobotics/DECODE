@@ -6,68 +6,60 @@ import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.gamepad.ToggleButtonReader;
-import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.CommandBase.TeleShoot;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
-import org.firstinspires.ftc.teamcode.Components.ShooterLUT;
 import org.firstinspires.ftc.teamcode.Core.Bob;
 
 @Config
 @TeleOp
-public class ShooterTest extends LinearOpMode {
+public class MainTeleOp extends LinearOpMode {
     boolean blue = true;
-    public static double intakePower = 1;                 // Change this in dashboard at runtime
-    public static double spinPower = 0.75;
-    public static double targetVelocity = 0;
-    public static double increment = 0.001;         // Change this in dashboard if you want to control speed with dpads
-    public static double P = 0.125, I=0.00275, D = 0;
-    public static double hoodPos = 0;
-
-    public double currentVelocity, error;
-
+    public static double delay = 1;
+    boolean shooterOn = false;
+    ElapsedTime timer;
 
 
     @Override
     public void runOpMode() throws InterruptedException {
-        ToggleButtonReader shootReader = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
+        timer = new ElapsedTime();
         ToggleButtonReader zoneReader = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.Y);
         ToggleButtonReader imuReader = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.A);
-        Bob.init(hardwareMap, false, false);
+
+
+        ToggleButtonReader gateReader = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
+        ToggleButtonReader shootButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.RIGHT_BUMPER);
+
+
+        Bob.init(hardwareMap, false, true);
 
         while (opModeInInit()) {
             zoneReader.readValue();
             if (zoneReader.wasJustReleased()) {
                 blue = !blue;
+                Bob.limelight.setBlueAlliance(blue);
             }
             telemetry.addData("Blue: ", blue);
             telemetry.update();
         }
         waitForStart();
         Bob.intake.closeGate();
-        Bob.limelight.setBlueAlliance(blue);
+
         Bob.limelight.switchToGoalPipeline();
         while (opModeIsActive()) {
             Bob.localizer.update();
             Bob.limelight.trackAprilTag(Bob.localizer.getHeading(), Bob.shooter.getTurretAngle(), true);
             double distance = Bob.limelight.getDistance();
-            if (Bob.limelight.isVisible()) {
-                Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
-            }
+
+            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
+
             Bob.shooter.updateTurret();
-            if (shootReader.wasJustReleased()) {
-                if (Bob.intake.gateOpen) {
-                    Bob.intake.closeGate();
-                }
-                else {
-                    Bob.intake.openGate();
-                }
+            if (gateReader.wasJustReleased()) {
+                Bob.intake.setBallIn(false);
+                Bob.intake.closeGate();
             }
 
             double x = -gamepad1.left_stick_y;
@@ -78,24 +70,42 @@ public class ShooterTest extends LinearOpMode {
             double heading = Bob.localizer.getHeading();
             theta = normalizeDegrees(theta - heading);
             Bob.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
+            Bob.intake.updateIntake();
 
-
-            if (gamepad1.right_trigger>0.1) {
-                Bob.intake.rollerIn();
-            }
-            else if (gamepad1.left_trigger>0.1) {
+            if (gamepad1.left_trigger>0.1) {
                 Bob.intake.rollerOut();
             }
             else if (gamepad1.right_bumper) {
-                Bob.shooter.shoot();
+                if (shootButton.wasJustPressed()) {
+                    Bob.intake.loaderStop();
+                    Bob.intake.rollerStop();
+                    Bob.intake.setBallIn(true);
+                    Bob.intake.openGate();
+                }
+                else if (timer.seconds() > delay) {
+                    Bob.shooter.shoot();
+                }
+                else {
+                    Bob.intake.rollerStop();
+                    Bob.shooter.stop();
+                }
+            }
+            else if (shootButton.wasJustReleased()) {
+                Bob.intake.loaderStop();
             }
             else {
-                Bob.intake.rollerStop();
-                Bob.shooter.stop();
+                timer.reset();
+                if (!Bob.intake.gateOpen)
+                    Bob.intake.rollerIn();
+                else
+                    Bob.intake.rollerStop();
             }
 
             Bob.shooter.setHood(Bob.shooterLUT.getHoodAngle(distance));
-            if (Bob.intake.gateOpen) {
+
+
+
+            if (Bob.intake.isOneBallIn()) {
                 Bob.shooter.setTargetVelocity(Bob.shooterLUT.getSpeed(distance));
             }
             else {
@@ -103,8 +113,9 @@ public class ShooterTest extends LinearOpMode {
             }
             Bob.shooter.updateShooter();
 
-            shootReader.readValue();
+            gateReader.readValue();
             zoneReader.readValue();
+            shootButton.readValue();
             imuReader.readValue();
 
             if (zoneReader.wasJustReleased()) {
@@ -117,9 +128,15 @@ public class ShooterTest extends LinearOpMode {
                 Bob.localizer.resetHeading();
             }
 
+
             telemetry.addData("Power: ", Bob.shooter.getTelemetry());
+            telemetry.addData("Distance: ", Bob.limelight.getDistance());
+            telemetry.addData("X: ", Bob.localizer.getPosX());
+            telemetry.addData("Y: ", Bob.localizer.getPosY());
             telemetry.addData("Heading: ", Bob.localizer.getHeading());
+            telemetry.addData("Intake: ", Bob.intake.getTelemetry());
             telemetry.addData("Blue: ", blue);
+            telemetry.addData("Timer: ", timer.seconds());
             telemetry.update();
 
         }

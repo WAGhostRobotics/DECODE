@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Components.Constants;
 import org.firstinspires.ftc.teamcode.Core.Bob;
 
-@TeleOp
+//@TeleOp
 @Config
 public class Tuner extends OpMode {
     public static double xP= Constants.translationalXP, xI=Constants.translationalXI, xD=Constants.translationalXD;
@@ -41,7 +41,7 @@ public class Tuner extends OpMode {
         );
         Bob.init(hardwareMap);
         follower = new MotionPlanner(Bob.drivetrain, Bob.localizer, hardwareMap);
-        follower.setMovementPower(0.96);
+        follower.setMovementPower(0.9);
     }
 
     @Override

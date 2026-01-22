@@ -4,7 +4,7 @@ import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-@Autonomous(name = "huskyLens")
+//@Autonomous(name = "huskyLens")
 public class HuskyColorRec extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {

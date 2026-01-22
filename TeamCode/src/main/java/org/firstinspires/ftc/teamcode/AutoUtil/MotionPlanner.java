@@ -23,8 +23,8 @@ public class MotionPlanner {
     private double kStaticX = Constants.kStaticX;                 // Minimum power before robot moves in X direction
     private double kStaticY = Constants.kStaticY;
     private double kStaticTurn = Constants.kStaticTurn;
-    private final double permissibleTranslationalError = 1.25, permissibleHeadingError = 1;          // Translational in inches, Heading in degrees
-    private final double speedThresholdDistance = 15;       // 15 in before the end point, the robot will stop going full speed and start slowing down
+    private final double permissibleTranslationalError = 1.5, permissibleHeadingError = 1;          // Translational in inches, Heading in degrees
+    private final double speedThresholdDistance = 26;       // 15 in before the end point, the robot will stop going full speed and start slowing down
     private double speedThresholdPoint;                     // Up until this "point" in the spline, robot goes full speed. Then slows down at the end
     private int index;                                      // Index of the Bezier that robot currently at
 
@@ -35,6 +35,7 @@ public class MotionPlanner {
     private double movementPower;
     private boolean isEndOfSpline;
     private boolean toUpdate = true;                // Needed to pause motion planner at times
+    private boolean forceComplete;
 
     private ElapsedTime timer;
     private double seconds;
@@ -52,6 +53,7 @@ public class MotionPlanner {
     }
 
     public void startFollowingPath(Path path) {
+        forceComplete = false;
         toUpdate = true;
         this.spline = path;
         double length = path.approximateLength();
@@ -60,6 +62,10 @@ public class MotionPlanner {
         isEndOfSpline = false;
         reset();
 
+    }
+
+    public void forceComplete() {
+        forceComplete = true;
     }
 
     private void reset() {
@@ -114,6 +120,9 @@ public class MotionPlanner {
         updateRobotValues();                // Get current position and heading
 
         checkForNaN();
+        if (spline == null) {
+            return;
+        }
 
         if (!toUpdate) {
             return;
@@ -250,11 +259,11 @@ public class MotionPlanner {
         return Math.abs(error)<permissibleTranslationalError;
     }
     private boolean reachedX() {
-        return Math.abs(xError) < permissibleTranslationalError && isEndOfSpline;
+        return Math.abs(xError) < permissibleTranslationalError;
     }
 
     private boolean reachedY() {
-        return Math.abs(yError) < permissibleTranslationalError && isEndOfSpline;
+        return Math.abs(yError) < permissibleTranslationalError;
     }
 
     private boolean stopped() {
@@ -266,6 +275,9 @@ public class MotionPlanner {
     }
 
     public boolean isFinished() {
+        if (forceComplete) {
+            return true;
+        }
         return isEndOfSpline && reachedFinalX() && reachedFinalY() && reachedHeading() && stopped();
     }
 
@@ -313,19 +325,18 @@ public class MotionPlanner {
     public String getTelemetry() {
         return "Updating: " + toUpdate +
                 "\nisFinished: " + isFinished() +
+                "\nEnd Part: " + isEndOfSpline +
                 "\nX Error: " + xError +
                 "\nY Error: " + yError +
+                "\nStopped: " + stopped() +
+                "\nHeading Error: " + headingError +
                 "\nX Power: " + xPower +
                 "\nY Power: " + yPower +
                 "\nCurrent X: " + currentX +
                 "\nTarget X: " + targetX +
                 "\nCurrent Y: " + currentY +
                 "\nTarget Y: " + targetY +
-                "\nIndex: " + index +
-                "\nEnd Part: " + isEndOfSpline +
-                "\nVelocity: " + currentVelocity +
-                "\nDistance: " + distance +
-                "\nSeconds: " + seconds;
+                "\nVelocity: " + currentVelocity;
     }
 
 }

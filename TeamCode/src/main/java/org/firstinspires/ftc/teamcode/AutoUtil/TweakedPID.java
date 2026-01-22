@@ -15,7 +15,7 @@ public class TweakedPID {
     private double prevErrorVal;
     private double errorTolerance_p;
     private double errorTolerance_v;
-    private double lastTimeStamp;
+    private long lastTimeStamp;
     private double period;
 
     public TweakedPID(double kp, double ki, double kd, double kf) {
@@ -37,7 +37,7 @@ public class TweakedPID {
         this.measuredValue = pv;
         this.minIntegral = (double)-1.0F;
         this.maxIntegral = (double)1.0F;
-        this.lastTimeStamp = (double)0.0F;
+        this.lastTimeStamp = 0;
         this.period = (double)0.0F;
         this.errorVal_p = this.setPoint - this.measuredValue;
         this.reset();
@@ -46,7 +46,7 @@ public class TweakedPID {
     public void reset() {
         this.totalError = (double)0.0F;
         this.prevErrorVal = (double)0.0F;
-        this.lastTimeStamp = (double)0.0F;
+        this.lastTimeStamp = 0;
     }
 
     public void setTolerance(double positionTolerance) {
@@ -98,32 +98,36 @@ public class TweakedPID {
     }
 
     public double calculate(double pv) {
-        this.prevErrorVal = this.errorVal_p;
-        double currentTimeStamp = System.nanoTime() / 1e9;
+        prevErrorVal = errorVal_p;
 
-        if (Double.isNaN(this.lastTimeStamp) || this.lastTimeStamp == 0.0) {
-            this.lastTimeStamp = currentTimeStamp;
-        }
+        long currentTimeStamp = System.nanoTime()/ (long) 1e9;
+        if (lastTimeStamp == 0) lastTimeStamp = currentTimeStamp;
+        period = currentTimeStamp - lastTimeStamp;
+        lastTimeStamp = currentTimeStamp;
 
-        this.period = currentTimeStamp - this.lastTimeStamp;
-        this.lastTimeStamp = currentTimeStamp;
-
-        if (this.period <= 0.0 || Double.isNaN(this.period)) {
-            this.period = 1e-6;
-        }
-
-        if (this.measuredValue == pv) {
-            this.errorVal_p = this.setPoint - this.measuredValue;
+        if (measuredValue == pv) {
+            errorVal_p = setPoint - measuredValue;
         } else {
-            this.errorVal_p = this.setPoint - pv;
-            this.measuredValue = pv;
+            errorVal_p = setPoint - pv;
+            measuredValue = pv;
         }
 
-        this.errorVal_v = (this.errorVal_p - this.prevErrorVal) / this.period;
+        if ((period) > 0.0) {
+            errorVal_v = (errorVal_p - prevErrorVal) / period;
+        } else {
+            errorVal_v = 0;
+        }
 
-        this.totalError += this.period * (this.setPoint - this.measuredValue);
-        this.totalError = this.totalError < this.minIntegral ? this.minIntegral : Math.min(this.maxIntegral, this.totalError);
-        return this.kP * this.errorVal_p + this.kI * this.totalError + this.kD * this.errorVal_v + this.kF * this.setPoint;
+        /*
+        if total error is the integral from 0 to t of e(t')dt', and
+        e(t) = sp - pv, then the total error, E(t), equals sp*t - pv*t.
+         */
+        totalError += period * (setPoint - measuredValue);
+        totalError = totalError < minIntegral ? minIntegral : Math.min(maxIntegral, totalError);
+
+        // returns u(t)
+        return kP * errorVal_p + kI * totalError + kD * errorVal_v + kF * setPoint;
+
     }
 
     public void setPIDF(double kp, double ki, double kd, double kf) {

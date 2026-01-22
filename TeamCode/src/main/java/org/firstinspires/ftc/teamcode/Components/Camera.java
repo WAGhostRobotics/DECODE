@@ -65,7 +65,7 @@ public class Camera {
     // Translational constant from the april Tag to the actual backboard
 
     ElapsedTime timer = new ElapsedTime();
-    private final int timerThreshold = 3;           // In seconds
+    private final int timerThreshold = 2;           // In seconds
     private int motifID = 0;
     boolean blueAlliance = true;
     boolean initialized;

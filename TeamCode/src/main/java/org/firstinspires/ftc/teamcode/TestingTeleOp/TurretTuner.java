@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.CommandBase.Shoot;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Core.Bob;
 
-@TeleOp
+//@TeleOp
 @Config
 public class TurretTuner extends LinearOpMode {
     public static double P=0.0002, I=0.00007, D;

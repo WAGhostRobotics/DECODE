@@ -21,8 +21,8 @@ import org.firstinspires.ftc.teamcode.Core.Bob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Config
-@TeleOp
+//@Config
+//@TeleOp
 public class AutoShootTuner extends LinearOpMode {
     private static final Logger log = LoggerFactory.getLogger(AutoShootTuner.class);
     public static boolean tuning = false;

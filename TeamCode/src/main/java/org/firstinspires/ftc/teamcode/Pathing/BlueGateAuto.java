@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.AutoUtil.LoopRateTracker;
 import org.firstinspires.ftc.teamcode.AutoUtil.MergedBezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
+import org.firstinspires.ftc.teamcode.CommandBase.CollectBalls;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesV3;
 import org.firstinspires.ftc.teamcode.CommandBase.FollowTrajectory;
 import org.firstinspires.ftc.teamcode.CommandBase.ScoreThreeArtifacts;
@@ -24,7 +25,7 @@ import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Core.Bob;
 
 @Autonomous
-public class Blue12Ball extends LinearOpMode {
+public class BlueGateAuto extends LinearOpMode {
     ElapsedTime timer;
     LoopRateTracker loopRateTracker = new LoopRateTracker();
     Bezier shootPath, spike1Path, spike2Path, openGatePath, spike3Path, spike3ToShoot, spike1ToShoot, spike2ToShoot, rotate90, spike2intake, spike3intake;
@@ -35,7 +36,9 @@ public class Blue12Ball extends LinearOpMode {
     public static Point spike3 = new Point(98, 2.27);
     public static Point spike2take = new Point(76.5, -28);
     public static Point spike3take = new Point(98,-28);
-    public static Point openGate = new Point(63.8, -23.75);
+
+    public static Point openGate = new Point(75, -27.7);
+    public static Point openGatePrepPoint = new Point(68.5, -23.5);
 
     MotionPlanner follower;
 
@@ -53,10 +56,16 @@ public class Blue12Ball extends LinearOpMode {
                 shootingPos
         );
 
-        openGatePath = new Bezier(-90,
-                spike1take,
-                new Point(openGate.getX(), spike2.getY()),
-                openGate
+        openGatePath = new MergedBezier(
+                -125,
+                new Bezier(
+                        shootingPos,
+                        new Point(openGatePrepPoint.getX(), 5)
+                ),
+                new Bezier(
+                        new Point(openGatePrepPoint.getX(), 5),
+                        openGate
+                )
         );
 
 
@@ -69,9 +78,9 @@ public class Blue12Ball extends LinearOpMode {
         );
 
         spike2Path = new Bezier( -90,
-                        shootingPos,
-                        new Point(spike2.getX(), spike2.getY())
-                );
+                shootingPos,
+                new Point(spike2.getX(), spike2.getY())
+        );
 
         spike2intake = new Bezier(-90,
                 spike2,
@@ -80,8 +89,8 @@ public class Blue12Ball extends LinearOpMode {
 
 
         spike3Path = new Bezier(-90,
-                        shootingPos,
-                        spike3
+                shootingPos,
+                spike3
         );
 
         spike3intake = new Bezier(-90,
@@ -150,15 +159,6 @@ public class Blue12Ball extends LinearOpMode {
                 ),
                 new ScoreThreeArtifacts(follower, shootPath, 182, Shooter.angleToPosition(128), 0.17),
 
-
-                new ParallelCommand(
-                        new FollowTrajectory(follower, spike1Path),
-                        new CollectSpikesV3(follower)
-                ),
-                new FollowTrajectory(follower, openGatePath),
-
-                new ScoreThreeArtifacts(follower, spike1ToShoot, 182, Shooter.angleToPosition(132.4), 0.17),
-
                 new FollowTrajectory(follower, spike2Path),
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike2intake),
@@ -166,12 +166,25 @@ public class Blue12Ball extends LinearOpMode {
                 ),
                 new ScoreThreeArtifacts(follower, spike2ToShoot, 182, Shooter.angleToPosition(131), 0.17),
 
+                new ParallelCommand(
+                        new FollowTrajectory(follower, openGatePath),
+                        new CollectBalls(follower, 1)
+                ),
+                new ScoreThreeArtifacts(follower, spike2ToShoot, 182, Shooter.angleToPosition(131), 0.17),
+
+                new ParallelCommand(
+                        new FollowTrajectory(follower, spike1Path),
+                        new CollectSpikesV3(follower)
+                ),
+                new ScoreThreeArtifacts(follower, spike1ToShoot, 182, Shooter.angleToPosition(132.4), 0.17),
+
+
                 new FollowTrajectory(follower, spike3Path),
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike3intake),
                         new CollectSpikesV3(follower)
                 ),
-                new ScoreThreeArtifacts(follower, spike3ToShoot, 182, Shooter.angleToPosition(131), 0.17),
+                new ScoreThreeArtifacts(follower, spike3ToShoot, 182, Shooter.angleToPosition(132.3), 0.17),
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, rotate90),

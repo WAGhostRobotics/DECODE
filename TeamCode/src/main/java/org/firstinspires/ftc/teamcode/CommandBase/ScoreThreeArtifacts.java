@@ -10,15 +10,17 @@ import org.firstinspires.ftc.teamcode.Core.Bob;
 public class ScoreThreeArtifacts extends SequentialCommand {
     public ScoreThreeArtifacts(MotionPlanner follower, Bezier path, double flywheelVelocity, int turretPos, double hoodPos) {
         super(
-                new RunCommand(()-> Bob.intake.rollerStop()),
                 new ParallelCommand(
+                        new RunCommand(()-> Bob.intake.shootStop()),
+                        new RunCommand(()-> Bob.intake.openGate()),
                         new FollowTrajectory(follower, path),
                         new RunCommand(()-> Bob.shooter.setTargetVelocity(flywheelVelocity)),
                         new RunCommand(()-> Bob.shooter.setTurretTargetPos(turretPos)),
                         new RunCommand(()-> Bob.shooter.setHood(hoodPos))
                 ),
-                new Shoot(5),
-                new RunCommand(()->Bob.shooter.setTargetVelocity(0))
+                new Shoot(1.6),
+                new RunCommand(()->Bob.shooter.setTargetVelocity(0)),
+                new RunCommand(()-> Bob.intake.closeGate())
         );
     }
 }

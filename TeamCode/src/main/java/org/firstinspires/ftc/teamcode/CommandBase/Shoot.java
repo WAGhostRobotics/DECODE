@@ -23,7 +23,7 @@ public class Shoot extends Command {
     @Override
     public void update() {
         if (timer.seconds() <= seconds) {
-            Bob.shooter.autoShoot();
+            Bob.shooter.shoot();
         }
     }
 

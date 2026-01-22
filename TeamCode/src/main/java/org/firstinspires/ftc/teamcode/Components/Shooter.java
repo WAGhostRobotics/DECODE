@@ -27,7 +27,7 @@ public class Shooter {
     }
     DcMotorEx wheel1;
     DcMotorEx wheel2;
-    double P = 0.07, I=0.004, D = 0;
+    double P = 0.14, I=0.006, D = 0;
     double currentVelocity, targetVelocity, error, power;
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
@@ -80,7 +80,7 @@ public class Shooter {
     }
 
     public boolean reachedVelocity() {
-        return Math.abs(error)<6;
+        return targetVelocity != 0 && Math.abs(error)<6;
     }
 
     public double getCurrentVelocity() {
@@ -112,7 +112,7 @@ public class Shooter {
     }
 
     public void shoot() {
-        if (Math.abs(error) < 3) {
+        if (Math.abs(error) < 4) {
             Bob.intake.shoot();
         }
         else {
@@ -200,6 +200,9 @@ public class Shooter {
     }
 
     public void setHood(double pos) {
+        if (Double.isNaN(pos)) {
+            return;
+        }
         hoodPos = Range.clip(pos, 0, 1);
         rightHood.setPosition(1-pos);
     }

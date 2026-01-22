@@ -21,8 +21,8 @@ import org.firstinspires.ftc.teamcode.Components.Camera;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Core.Bob;
 
-@TeleOp
-@Config
+//@TeleOp
+//@Config
 public class CameraTest extends LinearOpMode {
     public static int targetVelocity = 0;
     boolean blue = true;
