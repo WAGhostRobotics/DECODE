@@ -50,6 +50,7 @@ public class Bob {
         shooter.setHood(0);
 
 
+
     }
 
     public static void init(HardwareMap hardwareMap, boolean blueAlliance, boolean teleop) {
@@ -65,6 +66,9 @@ public class Bob {
         intake = new SimpleIntake(hardwareMap);
         limelight = new Camera(hardwareMap, blueAlliance);
         shooter.setHood(0);
+        if (teleop) {
+            Bob.intake.openGate();
+        }
 
 
     }

@@ -38,20 +38,21 @@ public class ShooterLUT {
         speeds.add(1.23, 180);
         speeds.add(1.32, 181);
         speeds.add(1.60, 184);
-        speeds.add(1.80, 185);
-        speeds.add(2.0, 188);
-        speeds.add(2.15, 189);
+        speeds.add(1.80, 186);
+        speeds.add(2.0, 187);
+        speeds.add(2.15, 188);
         speeds.add(2.20, 192);
-        speeds.add(2.35, 194);
+        speeds.add(2.35, 192);
 
         speeds.add(2.40, 196);
         speeds.add(2.50, 196);
-        speeds.add(2.80, 205);
+        speeds.add(2.80, 202);
         speeds.add(3.0, 208);
-        speeds.add(3.25, 214);
-        speeds.add(3.5, 219);
-        speeds.add(3.9, 225);
-        speeds.add(4.1, 227);
+        speeds.add(3.3, 209);
+        speeds.add(3.5, 212);
+        speeds.add(3.7, 215);
+        speeds.add(3.9, 218);
+        speeds.add(4.1, 219);
         speeds.createLUT();
     }
 

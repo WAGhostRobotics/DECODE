@@ -59,8 +59,8 @@ public class Camera {
     // So we add these x and y translational offsets to whatever the limelight returns
     // x Translation is the same for red and blue
     // y Translation is positive for blue negative for red
-    private double xTranslation = 1.5;
-    private double yTranslation = 1.5;
+    private double xTranslation = 1.6;
+    private double yTranslation = 1.3;
 
     // Translational constant from the april Tag to the actual backboard
 
@@ -200,7 +200,7 @@ public class Camera {
     }
 
     private void getLocalizerValues() {
-        localizerHeading = Bob.localizer.getHeading();
+        localizerHeading = normalizeDegrees(Bob.localizer.getHeading());
         localizerY = Bob.localizer.getPosY();
         localizerX = Bob.localizer.getPosX();
     }
@@ -253,7 +253,6 @@ public class Camera {
         }
         else {
             limelight3A.pipelineSwitch(0);              // Blue april tag Pipeline
-
         }
     }
     public void switchToBothGoalPipeline() {
@@ -278,5 +277,14 @@ public class Camera {
 
     public void setBlueAlliance(boolean blueAlliance) {
         this.blueAlliance = blueAlliance;
+    }
+
+    public void setXYTranslation(double x, double y) {
+        xTranslation = x;
+        yTranslation = y;
+    }
+
+    public void resetInitialized() {
+        initialized = false;
     }
 }

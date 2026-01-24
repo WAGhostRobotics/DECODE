@@ -322,9 +322,12 @@ public class MotionPlanner {
         toUpdate = true;
     }
 
+    public boolean isEndOfSpline() {
+        return isEndOfSpline;
+    }
+
     public String getTelemetry() {
-        return "Updating: " + toUpdate +
-                "\nisFinished: " + isFinished() +
+        return "isFinished: " + isFinished() +
                 "\nEnd Part: " + isEndOfSpline +
                 "\nX Error: " + xError +
                 "\nY Error: " + yError +
@@ -335,8 +338,7 @@ public class MotionPlanner {
                 "\nCurrent X: " + currentX +
                 "\nTarget X: " + targetX +
                 "\nCurrent Y: " + currentY +
-                "\nTarget Y: " + targetY +
-                "\nVelocity: " + currentVelocity;
+                "\nTarget Y: " + targetY;
     }
 
 }

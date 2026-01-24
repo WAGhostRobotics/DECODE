@@ -12,7 +12,7 @@ public class ScoreThreeArtifacts extends SequentialCommand {
         super(
                 new ParallelCommand(
                         new RunCommand(()-> Bob.intake.shootStop()),
-                        new RunCommand(()-> Bob.intake.openGate()),
+                        new OpenGate(follower),
                         new FollowTrajectory(follower, path),
                         new RunCommand(()-> Bob.shooter.setTargetVelocity(flywheelVelocity)),
                         new RunCommand(()-> Bob.shooter.setTurretTargetPos(turretPos)),

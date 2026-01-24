@@ -124,13 +124,13 @@ public class RedGateAuto extends LinearOpMode {
         rotate90 = new Bezier(
                 90,
                 shootingPos,
-                spike2
+                spike1take
         );
 
         SequentialCommand scheduler = getSequentialCommand();
         scheduler.init();
         while (opModeInInit()) {
-            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(-134));
+            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(-133));
             Bob.shooter.updateTurret();
             Bob.shooter.getTurretAngle();
         }
@@ -156,9 +156,9 @@ public class RedGateAuto extends LinearOpMode {
         SequentialCommand scheduler = new SequentialCommand(
                 new RunCommand(()-> Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, 1.7, 13.57, AngleUnit.DEGREES, 38.5))),
                 new ParallelCommand(
-                        new RunCommand(()->Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(-136)))
+                        new RunCommand(()->Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(-133)))
                 ),
-                new ScoreThreeArtifacts(follower, shootPath, 182, Shooter.angleToPosition(-136), 0.17),
+                new ScoreThreeArtifacts(follower, shootPath, 182, Shooter.angleToPosition(-133), 0.17),
 
                 new FollowTrajectory(follower, spike2Path),
                 new ParallelCommand(
@@ -167,7 +167,7 @@ public class RedGateAuto extends LinearOpMode {
                         new CollectSpikesV3(follower)
                 ),
                 new RunCommand(()-> follower.setMovementPower(0.9)),
-                new ScoreThreeArtifacts(follower, spike2ToShoot, 182, Shooter.angleToPosition(-136), 0.17),
+                new ScoreThreeArtifacts(follower, spike2ToShoot, 182, Shooter.angleToPosition(-133), 0.17),
 
                 new ParallelCommand(
                         new RunCommand(()-> follower.setMovementPower(0.9)),
@@ -175,7 +175,7 @@ public class RedGateAuto extends LinearOpMode {
                         new CollectBalls(follower, 1)
                 ),
                 new RunCommand(()-> follower.setMovementPower(0.9)),
-                new ScoreThreeArtifacts(follower, spike2ToShoot, 182, Shooter.angleToPosition(-136), 0.17),
+                new ScoreThreeArtifacts(follower, spike2ToShoot, 182, Shooter.angleToPosition(-133), 0.17),
 
                 new ParallelCommand(
                         new RunCommand(()-> follower.setMovementPower(0.9)),
@@ -183,7 +183,7 @@ public class RedGateAuto extends LinearOpMode {
                         new CollectSpikesV3(follower)
                 ),
                 new RunCommand(()-> follower.setMovementPower(0.9)),
-                new ScoreThreeArtifacts(follower, spike1ToShoot, 182, Shooter.angleToPosition(-136), 0.17),
+                new ScoreThreeArtifacts(follower, spike1ToShoot, 182, Shooter.angleToPosition(-133), 0.17),
 
 
                 new FollowTrajectory(follower, spike3Path),
@@ -193,7 +193,7 @@ public class RedGateAuto extends LinearOpMode {
                         new CollectSpikesV3(follower)
                 ),
                 new RunCommand(()-> follower.setMovementPower(0.9)),
-                new ScoreThreeArtifacts(follower, spike3ToShoot, 182, Shooter.angleToPosition(-137), 0.17),
+                new ScoreThreeArtifacts(follower, spike3ToShoot, 182, Shooter.angleToPosition(-133), 0.17),
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, rotate90),

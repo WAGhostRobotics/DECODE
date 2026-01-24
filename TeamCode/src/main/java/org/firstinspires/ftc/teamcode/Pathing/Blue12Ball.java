@@ -35,7 +35,7 @@ public class Blue12Ball extends LinearOpMode {
     public static Point spike3 = new Point(98, 2.27);
     public static Point spike2take = new Point(76.5, -28);
     public static Point spike3take = new Point(98,-28);
-    public static Point openGate = new Point(63.8, -23.75);
+    public static Point openGate = new Point(63.8, -23.4);
 
     MotionPlanner follower;
 

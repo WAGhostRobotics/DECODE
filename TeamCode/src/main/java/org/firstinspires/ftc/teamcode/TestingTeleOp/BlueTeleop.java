@@ -10,17 +10,21 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.CommandBase.TeleShoot;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Core.Bob;
 
+
 @Config
 @TeleOp
-public class MainTeleOp extends LinearOpMode {
+public class BlueTeleop extends LinearOpMode {
     boolean blue = true;
+    boolean failsafe = false;
     public static double delay = 1;
     boolean shooterOn = false;
     ElapsedTime timer;
+
+    public static double xTranslation = 1.55;
+    public static double yTranslation = 1.3;
 
 
     @Override
@@ -29,37 +33,45 @@ public class MainTeleOp extends LinearOpMode {
         ToggleButtonReader zoneReader = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.Y);
         ToggleButtonReader imuReader = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.A);
 
+        ToggleButtonReader failsafeButton = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.START);
+        ToggleButtonReader gateReader = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.X);
+        ToggleButtonReader shootButton = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.RIGHT_BUMPER);
 
-        ToggleButtonReader gateReader = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
-        ToggleButtonReader shootButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.RIGHT_BUMPER);
 
 
-        Bob.init(hardwareMap, false, true);
-
-        while (opModeInInit()) {
-            zoneReader.readValue();
-            if (zoneReader.wasJustReleased()) {
-                blue = !blue;
-                Bob.limelight.setBlueAlliance(blue);
-            }
-            telemetry.addData("Blue: ", blue);
-            telemetry.update();
-        }
         waitForStart();
+        Bob.init(hardwareMap, true, true);
+        Bob.localizer.setHeadingDegrees(180);
         Bob.intake.closeGate();
 
-        Bob.limelight.switchToGoalPipeline();
         while (opModeIsActive()) {
+            // Remove later
+//            Bob.limelight.setXYTranslation(xTranslation, yTranslation);
+
+
+            if (failsafeButton.wasJustReleased()) {
+                failsafe = !failsafe;
+            }
+
             Bob.localizer.update();
-            Bob.limelight.trackAprilTag(Bob.localizer.getHeading(), Bob.shooter.getTurretAngle(), true);
+            Bob.limelight.trackAprilTag(Bob.localizer.getHeading()-180, Bob.shooter.getTurretAngle(), true);
             double distance = Bob.limelight.getDistance();
 
-            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
-
+            if (Bob.intake.isOneBallIn()) {
+                if (!failsafe) {
+                    Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
+                }
+                else {
+                    Bob.shooter.setTurretTargetPos(0);
+                }
+            }
             Bob.shooter.updateTurret();
+
+
             if (gateReader.wasJustReleased()) {
                 Bob.intake.setBallIn(false);
                 Bob.intake.closeGate();
+                Bob.shooter.resetTurret();
             }
 
             double x = -gamepad1.left_stick_y;
@@ -67,16 +79,17 @@ public class MainTeleOp extends LinearOpMode {
             double driveTurn = -gamepad1.right_stick_x;
             double magnitude = Math.hypot(x, y);
             double theta = Math.toDegrees(Math.atan2(y, x));
-            double heading = Bob.localizer.getHeading();
+            double heading = Bob.localizer.getHeading() - 180;
             theta = normalizeDegrees(theta - heading);
             Bob.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
             Bob.intake.updateIntake();
 
-            if (gamepad1.left_trigger>0.1) {
+            if (gamepad1.left_trigger>0.3) {
                 Bob.intake.rollerOut();
             }
-            else if (gamepad1.right_bumper) {
+            else if (gamepad2.right_bumper) {
                 if (shootButton.wasJustPressed()) {
+                    timer.reset();
                     Bob.intake.loaderStop();
                     Bob.intake.rollerStop();
                     Bob.intake.setBallIn(true);
@@ -97,16 +110,32 @@ public class MainTeleOp extends LinearOpMode {
                 timer.reset();
                 if (!Bob.intake.gateOpen)
                     Bob.intake.rollerIn();
-                else
+                else {
+                    Bob.intake.loaderStop();
                     Bob.intake.rollerStop();
+                }
             }
 
-            Bob.shooter.setHood(Bob.shooterLUT.getHoodAngle(distance));
+            if (!failsafe)
+                Bob.shooter.setHood(Bob.shooterLUT.getHoodAngle(distance));
+            else
+                Bob.shooter.setHood(0.17);
 
 
+            if (Bob.intake.gateOpen) {
+                gamepad2.setLedColor(255, 0, 0, 5);
+            }
+            else {
+                gamepad2.setLedColor(0, 255, 0, 5);
+            }
 
             if (Bob.intake.isOneBallIn()) {
-                Bob.shooter.setTargetVelocity(Bob.shooterLUT.getSpeed(distance));
+                if (!failsafe) {
+                    Bob.shooter.setTargetVelocity(Bob.shooterLUT.getSpeed(distance));
+                }
+                else {
+                    Bob.shooter.setTargetVelocity(182);
+                }
             }
             else {
                 Bob.shooter.setTargetVelocity(0);
@@ -117,15 +146,12 @@ public class MainTeleOp extends LinearOpMode {
             zoneReader.readValue();
             shootButton.readValue();
             imuReader.readValue();
+            failsafeButton.readValue();
 
-            if (zoneReader.wasJustReleased()) {
-                blue = !blue;
-                Bob.limelight.setBlueAlliance(blue);
-                Bob.limelight.switchToGoalPipeline();
-            }
 
             if (imuReader.wasJustReleased()) {
-                Bob.localizer.resetHeading();
+                Bob.limelight.resetInitialized();
+                Bob.localizer.setHeadingDegrees(180);
             }
 
 
@@ -135,7 +161,6 @@ public class MainTeleOp extends LinearOpMode {
             telemetry.addData("Y: ", Bob.localizer.getPosY());
             telemetry.addData("Heading: ", Bob.localizer.getHeading());
             telemetry.addData("Intake: ", Bob.intake.getTelemetry());
-            telemetry.addData("Blue: ", blue);
             telemetry.addData("Timer: ", timer.seconds());
             telemetry.update();
 
@@ -144,9 +169,4 @@ public class MainTeleOp extends LinearOpMode {
 
 
     }
-    private void rollerIn() {
-
-    }
-
-
 }

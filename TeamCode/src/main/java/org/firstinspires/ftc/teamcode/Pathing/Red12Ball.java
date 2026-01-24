@@ -131,7 +131,7 @@ public class Red12Ball extends LinearOpMode {
         SequentialCommand scheduler = getSequentialCommand();
         scheduler.init();
         while (opModeInInit()) {
-            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(-134));
+            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(-133));
             Bob.shooter.updateTurret();
             Bob.shooter.getTurretAngle();
         }
@@ -157,9 +157,9 @@ public class Red12Ball extends LinearOpMode {
         SequentialCommand scheduler = new SequentialCommand(
                 new RunCommand(()-> Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, 1.7, 13.57, AngleUnit.DEGREES, 38.5))),
                 new ParallelCommand(
-                        new RunCommand(()->Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(-136)))
+                        new RunCommand(()->Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(-133)))
                 ),
-                new ScoreThreeArtifacts(follower, shootPath, 182, Shooter.angleToPosition(-136), 0.17),
+                new ScoreThreeArtifacts(follower, shootPath, 182, Shooter.angleToPosition(-133), 0.17),
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike1Path),
@@ -167,7 +167,7 @@ public class Red12Ball extends LinearOpMode {
                 ),
                 new FollowTrajectory(follower, openGatePath),
 
-                new ScoreThreeArtifacts(follower, spike1ToShoot, 182, Shooter.angleToPosition(-136), 0.17),
+                new ScoreThreeArtifacts(follower, spike1ToShoot, 182, Shooter.angleToPosition(-133), 0.17),
 
 
                 new FollowTrajectory(follower, spike2Path),
@@ -175,7 +175,7 @@ public class Red12Ball extends LinearOpMode {
                         new FollowTrajectory(follower, spike2intake),
                         new CollectSpikesV3(follower)
                 ),
-                new ScoreThreeArtifacts(follower, spike2ToShoot, 182, Shooter.angleToPosition(-136), 0.17),
+                new ScoreThreeArtifacts(follower, spike2ToShoot, 182, Shooter.angleToPosition(-133), 0.17),
 
 
                 new FollowTrajectory(follower, spike3Path),
@@ -183,7 +183,7 @@ public class Red12Ball extends LinearOpMode {
                         new FollowTrajectory(follower, spike3intake),
                         new CollectSpikesV3(follower)
                 ),
-                new ScoreThreeArtifacts(follower, spike3ToShoot, 182, Shooter.angleToPosition(-136), 0.17),
+                new ScoreThreeArtifacts(follower, spike3ToShoot, 182, Shooter.angleToPosition(-133), 0.17),
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, rotate90),

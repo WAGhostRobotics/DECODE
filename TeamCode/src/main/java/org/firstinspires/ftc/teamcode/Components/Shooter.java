@@ -112,7 +112,7 @@ public class Shooter {
     }
 
     public void shoot() {
-        if (Math.abs(error) < 4) {
+        if (Math.abs(error) < 3) {
             Bob.intake.shoot();
         }
         else {
@@ -169,13 +169,13 @@ public class Shooter {
     }
 
     public void setTurretTargetPos(int position) {
-        position = Range.clip(position, -27000, 24500);
+        position = Range.clip(position, -29000, 27000);
         turretTargetPos = position;
     }
 
     public void updateTurret() {
         turretError = turretTargetPos - currentPosition;
-        if (Math.abs(turretError)<10) {
+        if (Math.abs(turretError)<125) {
             turretPower = 0;
             turretController.reset();
             return;
@@ -184,6 +184,11 @@ public class Shooter {
         turretPower = Range.clip(turretPower, -1, 1);
         turret1.setPower(turretPower);
         turret2.setPower(turretPower);
+    }
+
+    public void resetTurret() {
+        setTurretTargetPos(0);
+        turretController.reset();
     }
 
     public double getTurretAngle() {

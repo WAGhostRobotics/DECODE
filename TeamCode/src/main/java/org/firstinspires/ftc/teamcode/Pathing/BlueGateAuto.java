@@ -37,7 +37,7 @@ public class BlueGateAuto extends LinearOpMode {
     public static Point spike2take = new Point(76.5, -28);
     public static Point spike3take = new Point(98,-28);
 
-    public static Point openGate = new Point(75, -27.7);
+    public static Point openGate = new Point(75, -29.3);
     public static Point openGatePrepPoint = new Point(68.5, -23.5);
 
     MotionPlanner follower;
@@ -123,7 +123,7 @@ public class BlueGateAuto extends LinearOpMode {
         rotate90 = new Bezier(
                 -90,
                 shootingPos,
-                spike2
+                spike1take
         );
 
         SequentialCommand scheduler = getSequentialCommand();
@@ -176,7 +176,7 @@ public class BlueGateAuto extends LinearOpMode {
                         new FollowTrajectory(follower, spike1Path),
                         new CollectSpikesV3(follower)
                 ),
-                new ScoreThreeArtifacts(follower, spike1ToShoot, 182, Shooter.angleToPosition(132.4), 0.17),
+                new ScoreThreeArtifacts(follower, spike1ToShoot, 182, Shooter.angleToPosition(133), 0.17),
 
 
                 new FollowTrajectory(follower, spike3Path),
@@ -184,7 +184,7 @@ public class BlueGateAuto extends LinearOpMode {
                         new FollowTrajectory(follower, spike3intake),
                         new CollectSpikesV3(follower)
                 ),
-                new ScoreThreeArtifacts(follower, spike3ToShoot, 182, Shooter.angleToPosition(132.3), 0.17),
+                new ScoreThreeArtifacts(follower, spike3ToShoot, 182, Shooter.angleToPosition(133), 0.17),
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, rotate90),
