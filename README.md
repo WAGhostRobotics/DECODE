@@ -49,3 +49,5 @@ OKAY. Hard parts over.
 When shooter mode is on, we use the Tx from the limelight and apply a PID control to turn the robot until the tx is 0 (If you look closely we add an offset to the tx bc the limelight is not directly in the middle of the robot, so we need the limelight tx to be a bit offset so that the shooter itself is perfectly aligned with the goal)
 
 With both heading control and velocity control, we can make shots from basically anywhere in the field :))))
+
+SGFuZ2luJyB3aXRoIG15IGNvdXNpbiwgcmVhZGluJyBkaXJ0eSBtYWdhemluZXMKV2Ugc2VlbiB0d28gbmlnZ2FzIGtpc3NpbicsIHdlIGFpbid0IGtub3cgd2hhdCB0aGF0IHNoaXQgbWVhbgpUaGVuIHdlIHN0YXJ0IHJlLWVuYWN0aW4nIGV2ZXJ5dGhpbmcgdGhhdCB3ZSBoYWQgc2VlbgpUaGF0J3Mgd2hlbiBJIGdhdmUgbXkgY291c2luIGhlYWQsIGdhdmUgbXkgY291c2luIGhlYWQKR2F2ZSBteSBjb3VzaW4gaGVhZCwgSSBnYXZlIG15IGNvdXNpbiBoZWFkCkkgZ2F2ZSBteSBjb3VzaW4gaGVhZA==
