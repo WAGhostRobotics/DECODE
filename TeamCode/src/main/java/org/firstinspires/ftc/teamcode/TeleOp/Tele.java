@@ -119,3 +119,5 @@ public class Tele extends LinearOpMode {
         }
     }
 }
+
+// He was molested as a baby boy, messed up his head even changed the way he played with toys
