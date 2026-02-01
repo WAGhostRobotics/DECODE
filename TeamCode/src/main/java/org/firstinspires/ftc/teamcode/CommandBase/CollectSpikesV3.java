@@ -1,11 +1,8 @@
 package org.firstinspires.ftc.teamcode.CommandBase;
 
-import android.media.midi.MidiOutputPort;
-
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.Components.SimpleIntake;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 public class CollectSpikesV3 extends Command {
     MotionPlanner follower;
@@ -16,22 +13,22 @@ public class CollectSpikesV3 extends Command {
 
     @Override
     public void init() {
-        Bob.intake.closeGate();
-        Bob.intake.setBallIn(false);
-        Bob.intake.rollerIn();
+        Gus.intake.closeGate();
+        Gus.intake.setBallIn(false);
+        Gus.intake.rollerIn();
     }
 
     @Override
     public void update() {
-        Bob.intake.updateIntake();
-        Bob.intake.rollerIn();
+        Gus.intake.updateIntake();
+        Gus.intake.rollerIn();
     }
 
     @Override
     public boolean isFinished() {
-        if (follower.isFinished() || Bob.intake.isFull()) {
+        if (follower.isFinished() || Gus.intake.isFull()) {
             follower.forceComplete();
-            Bob.intake.rollerStop();
+            Gus.intake.rollerStop();
             return true;
         }
         return false;
@@ -39,7 +36,7 @@ public class CollectSpikesV3 extends Command {
 
     @Override
     public void stop() {
-        Bob.intake.rollerStop();
+        Gus.intake.rollerStop();
     }
 }
 

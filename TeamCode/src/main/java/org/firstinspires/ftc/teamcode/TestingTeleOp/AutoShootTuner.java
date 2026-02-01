@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.TestingTeleOp;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
@@ -11,13 +10,12 @@ import com.arcrobotics.ftclib.gamepad.ToggleButtonReader;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +56,7 @@ public class AutoShootTuner extends LinearOpMode {
         double aprilXInches, aprilYInches;
         limelight3A.start();
         limelight3A.pipelineSwitch(0);
-        Bob.init(hardwareMap);
+        Gus.init(hardwareMap);
 
         while (opModeInInit()) {
 
@@ -70,22 +68,22 @@ public class AutoShootTuner extends LinearOpMode {
                 aprilY = (botPose.getPosition().y + yTranslation);
                 aprilXInches = aprilX * 39.37;
                 aprilYInches = aprilY * 39.37;
-                Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, aprilHeading));
+                Gus.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, aprilHeading));
             }
         }
 
         waitForStart();
         while (opModeIsActive()) {
-            Bob.localizer.update();
+            Gus.localizer.update();
             getLocalizerValues();
-            limelight3A.updateRobotOrientation(Bob.localizer.getHeading());
+            limelight3A.updateRobotOrientation(Gus.localizer.getHeading());
             double x = -gamepad1.left_stick_y;
             double y = -gamepad1.left_stick_x;
             double magnitude = Math.hypot(x, y);
             double tx = 0;
             double theta = Math.toDegrees(Math.atan2(y, x));
             if (isFieldOriented) {
-                theta = normalizeDegrees(theta - Bob.localizer.getHeading());
+                theta = normalizeDegrees(theta - Gus.localizer.getHeading());
             }
             headingControl.setPID(P, I, D);
             if (shooterOn) {
@@ -103,7 +101,7 @@ public class AutoShootTuner extends LinearOpMode {
                     distance = Math.hypot(aprilX, aprilY)*Math.cos(Math.toRadians(18));
                     shooterVelocity = computeVelocity(distance);
                     if (reloacalize.wasJustReleased()) {
-                        Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, aprilHeading));
+                        Gus.localizer.setPose(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, aprilHeading));
                     }
 
 //                    tx = -llResult.getTx() + 1.7;     // offset bc limelight not in middle
@@ -130,13 +128,13 @@ public class AutoShootTuner extends LinearOpMode {
                 driveTurn = Math.signum(driveTurn) * kStaticTurn + driveTurn;
                 driveTurn = Range.clip(driveTurn, -1, 1);
                 if (!tuning)
-                    Bob.shooter.setTargetVelocity(shooterVelocity);
+                    Gus.shooter.setTargetVelocity(shooterVelocity);
                 else
-                    Bob.shooter.setTargetVelocity(tuneVelocity);
+                    Gus.shooter.setTargetVelocity(tuneVelocity);
             }
             else {
-                Bob.shooter.resetPID();
-                Bob.shooter.setTargetVelocity(0);
+                Gus.shooter.resetPID();
+                Gus.shooter.setTargetVelocity(0);
                 driveTurn = -gamepad1.right_stick_x;
             }
 
@@ -153,29 +151,29 @@ public class AutoShootTuner extends LinearOpMode {
             }
 
             if (resetHeading.wasJustReleased()) {
-                Bob.localizer.resetHeading();
+                Gus.localizer.resetHeading();
             }
 
             if (gamepad1.right_trigger>0) {
-                Bob.shooter.setIntake(1);
+                Gus.shooter.setIntake(1);
             }
             else if (gamepad1.left_trigger > 0) {
-                Bob.shooter.setIntake(-0.55);
+                Gus.shooter.setIntake(-0.55);
             }
             shooterButton.readValue();
             fieldOriented.readValue();
             resetHeading.readValue();
             reloacalize.readValue();
-            Bob.drivetrain.drive(magnitude, theta, driveTurn, 0.875);
-            Bob.shooter.updateShooter();
-            Bob.shooter.setIntake(intakePower);
+            Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.875);
+            Gus.shooter.updateShooter();
+            Gus.shooter.setIntake(intakePower);
             telemetry.addData("Loc X: ", localizerX);
             telemetry.addData("Loc Y: ", localizerY);
             telemetry.addData("ShooterVelocity: ", shooterVelocity);
             telemetry.addData("Distance Estimate: ", distanceEstimate);
             telemetry.addData("Distance: ", distance);
             // FIX THESE REDUNDANT LOCALIZER CALLS!!!!!!!!!!!!!!!!
-            telemetry.addData("Heading: ", Bob.localizer.getHeading());
+            telemetry.addData("Heading: ", Gus.localizer.getHeading());
             telemetry.addData("Target Heading: ", targetHeading);
             telemetry.addData("Target Heading Estimate: ", targetHeadingEstimate);
             telemetry.addData("Tx: ", tx);
@@ -205,8 +203,8 @@ public class AutoShootTuner extends LinearOpMode {
     }
 
     private void getLocalizerValues() {
-        localizerHeading = Bob.localizer.getHeading();
-        localizerY = Bob.localizer.getPosY();
-        localizerX = Bob.localizer.getPosX();
+        localizerHeading = Gus.localizer.getHeading();
+        localizerY = Gus.localizer.getPosY();
+        localizerX = Gus.localizer.getPosX();
     }
 }

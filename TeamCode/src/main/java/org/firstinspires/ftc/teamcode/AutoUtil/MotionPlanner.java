@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Components.DriveTrain.Drivetrain;
 import org.firstinspires.ftc.teamcode.Components.Constants;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 public class MotionPlanner {
     private Path spline;                    // Path to be followed (Can be Bezier, Merged or anything else)
@@ -17,12 +18,12 @@ public class MotionPlanner {
     private double targetHeading, targetX, targetY;
     private double xError, yError, headingError;
     private double xPower, yPower, magnitude, theta, driveTurn;
-    private final TweakedPID translationalControlX = new TweakedPID(Constants.translationalXP,Constants.translationalXI, Constants.translationalXD);
-    private final PIDController translationalControlY =  new PIDController(Constants.translationalYP, Constants.translationalYI, Constants.translationalYD);
-    private final PIDController headingControl = new PIDController(Constants.headingP, Constants.headingI, Constants.headingD);
-    private double kStaticX = Constants.kStaticX;                 // Minimum power before robot moves in X direction
-    private double kStaticY = Constants.kStaticY;
-    private double kStaticTurn = Constants.kStaticTurn;
+    private static final TweakedPID translationalControlX = new TweakedPID(Constants.translationalXP,Constants.translationalXI, Constants.translationalXD);
+    private static final PIDController translationalControlY =  new PIDController(Constants.translationalYP, Constants.translationalYI, Constants.translationalYD);
+    private static final PIDController headingControl = new PIDController(Constants.headingP, Constants.headingI, Constants.headingD);
+    private static double kStaticX = Constants.kStaticX;                 // Minimum power before robot moves in X direction
+    private static double kStaticY = Constants.kStaticY;
+    private static double kStaticTurn = Constants.kStaticTurn;
     private final double permissibleTranslationalError = 1.5, permissibleHeadingError = 1;          // Translational in inches, Heading in degrees
     private final double speedThresholdDistance = 26;       // 15 in before the end point, the robot will stop going full speed and start slowing down
     private double speedThresholdPoint;                     // Up until this "point" in the spline, robot goes full speed. Then slows down at the end
@@ -339,6 +340,30 @@ public class MotionPlanner {
                 "\nTarget X: " + targetX +
                 "\nCurrent Y: " + currentY +
                 "\nTarget Y: " + targetY;
+    }
+
+    public static void holdPosition(double targetX, double targetY, double heading) {
+        double xError = targetX - Gus.localizer.getPosX();
+        double yError = targetY - Gus.localizer.getPosY();
+        double currentHeading = Gus.localizer.getHeading();
+        double headingError = heading - currentHeading;
+
+        double translationalError = Math.hypot(xError, yError);
+        double theta = normalizeDegrees(Math.toDegrees(Math.atan2(yError, xError)) - currentHeading);       // Theta relative to robot
+        xError = Math.cos(Math.toRadians(theta))*translationalError;                // X and Y relative to robot
+        yError = Math.sin(Math.toRadians(theta))*translationalError;
+        double xPower = translationalControlX.calculate(0, xError);
+        double yPower = translationalControlY.calculate(0, yError);
+        xPower = xPower + Math.signum(xPower)* kStaticX;
+        yPower = yPower + Math.signum(yPower)* kStaticY;
+        xPower = (Math.abs(xError)>1) ? (xPower): 0;
+        yPower = (Math.abs(yError)>1) ? (yPower): 0;
+
+        double magnitude = Math.hypot(xPower, yPower);
+        double driveTurn = headingControl.calculate(0, headingError);
+        driveTurn =  (Math.abs(headingError)>1) ? (driveTurn + Math.signum(driveTurn) * kStaticTurn) : 0;
+
+        Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
     }
 
 }

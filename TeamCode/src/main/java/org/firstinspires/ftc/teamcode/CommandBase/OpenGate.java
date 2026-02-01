@@ -1,10 +1,8 @@
 package org.firstinspires.ftc.teamcode.CommandBase;
 
-import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 public class OpenGate extends Command {
     MotionPlanner follower;
@@ -20,7 +18,7 @@ public class OpenGate extends Command {
     @Override
     public void update() {
         if (follower.isEndOfSpline()) {
-            Bob.intake.openGate();
+            Gus.intake.openGate();
         }
     }
 

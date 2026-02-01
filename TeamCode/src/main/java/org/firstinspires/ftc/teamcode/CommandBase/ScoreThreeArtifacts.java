@@ -5,22 +5,22 @@ import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.SequentialCommand;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 public class ScoreThreeArtifacts extends SequentialCommand {
     public ScoreThreeArtifacts(MotionPlanner follower, Bezier path, double flywheelVelocity, int turretPos, double hoodPos) {
         super(
                 new ParallelCommand(
-                        new RunCommand(()-> Bob.intake.shootStop()),
+                        new RunCommand(()-> Gus.intake.shootStop()),
                         new OpenGate(follower),
                         new FollowTrajectory(follower, path),
-                        new RunCommand(()-> Bob.shooter.setTargetVelocity(flywheelVelocity)),
-                        new RunCommand(()-> Bob.shooter.setTurretTargetPos(turretPos)),
-                        new RunCommand(()-> Bob.shooter.setHood(hoodPos))
+                        new RunCommand(()-> Gus.shooter.setTargetVelocity(flywheelVelocity)),
+                        new RunCommand(()-> Gus.shooter.setTurretTargetPos(turretPos)),
+                        new RunCommand(()-> Gus.shooter.setHood(hoodPos))
                 ),
-                new Shoot(1.6),
-                new RunCommand(()->Bob.shooter.setTargetVelocity(0)),
-                new RunCommand(()-> Bob.intake.closeGate())
+                new Shoot(2.0),
+                new RunCommand(()-> Gus.shooter.setTargetVelocity(0)),
+                new RunCommand(()-> Gus.intake.closeGate())
         );
     }
 }

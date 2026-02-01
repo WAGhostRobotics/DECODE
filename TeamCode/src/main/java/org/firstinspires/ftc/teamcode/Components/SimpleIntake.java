@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 public class SimpleIntake {
     DcMotorEx intake;
@@ -21,15 +21,20 @@ public class SimpleIntake {
     double highSensorDistance = 0;
     double lowerSensorDistance = 0;
 
-    double current;
+    double currentLoader;
+    double currentIntake;
     Servo gate;
     public boolean gateOpen = true;
     double power;
     double outPower;
     public static final double oneBallInThreshold = 2.0;
-    public static final double noBallInThreshold = 3.0;
-    public static final double rampFullThreshold = 1.0;
-    public static final double currentThreshold = 4.0;
+    public static final double rampFullThreshold = 4.8;
+    private double[] rampReadings;
+    double minReading, maxReading;
+    private final int numReadings = 5;
+    private int index = 0;
+    public static final double currentThresholdLoader = 4.0;
+    public static final double currentThresholdIntake = 4.0;
     boolean oneBallIn;
     boolean full;
 
@@ -47,27 +52,33 @@ public class SimpleIntake {
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         power = 1;
         outPower = 0.6;
+        rampReadings = new double[numReadings];
+        index = 0;
     }
 
     public void updateIntake() {
         long now = System.nanoTime();
-        if (now - lastTime > 33_000_000) {
+        if (now - lastTime > 16_500_000) {
+            lowerSensorDistance = intakeDistance.getDistance(DistanceUnit.CM);
+            index = (index + 1) % numReadings;
+            rampReadings[index] = lowerSensorDistance;
             lastTime = now;
             highSensorDistance = distance.getDistance(DistanceUnit.CM);
-            lowerSensorDistance = intakeDistance.getDistance(DistanceUnit.CM);
-            getCurrentDraw();
+            getMaxAndMin();
+            getCurrentDrawLoader();
+            getCurrentDrawIntake();
         }
 
-        if (!oneBallIn && (highSensorDistance <= oneBallInThreshold || current > currentThreshold) ) {
+        if (!oneBallIn && (highSensorDistance <= oneBallInThreshold || currentLoader > currentThresholdLoader) ) {
             oneBallIn = true;
             loaderStop();
         }
 
-        if (oneBallIn && lowerSensorDistance <= rampFullThreshold) {
+        if (oneBallIn && (currentIntake > currentThresholdIntake && maxReading <= rampFullThreshold)) {
             full = true;
-            power = 0.3;
+            power = 0.05;
         }
-        else {
+        else if (minReading >= rampFullThreshold) {
             power = 1;
         }
     }
@@ -94,6 +105,7 @@ public class SimpleIntake {
     public void setBallIn(boolean ballIn) {
         oneBallIn = ballIn;
         if (!ballIn) {
+            power = 1;
             full = false;
         }
     }
@@ -120,32 +132,37 @@ public class SimpleIntake {
     }
 
     public void openGate() {
-        gate.setPosition(0.90);
+        gate.setPosition(0.91);
         gateOpen = true;
         oneBallIn = true;
     }
 
     public void closeGate() {
-        gate.setPosition(0.135);
+        gate.setPosition(0.14);
         gateOpen = false;
     }
 
     public String getTelemetry() {
 
         return "Power: " + power +
-                "\nCurrent: " + current +
+                "\nCurrent: " + currentLoader +
                 "\nDone: " + oneBallIn +
                 "\nRamp Distance: " + lowerSensorDistance +
                 "\nHigh Distance: " + highSensorDistance;
     }
 
-    public double getCurrentDraw() {
-        current = loader.getCurrent(CurrentUnit.AMPS);
-        return current;
+    public double getCurrentDrawLoader() {
+        currentLoader = loader.getCurrent(CurrentUnit.AMPS);
+        return currentLoader;
+    }
+
+    public double getCurrentDrawIntake() {
+        currentIntake = intake.getCurrent(CurrentUnit.AMPS);
+        return currentIntake;
     }
 
     public void updateGate() {
-        if (Bob.shooter.reachedVelocity()) {
+        if (Gus.shooter.reachedVelocity()) {
             openGate();
         }
     }
@@ -156,6 +173,19 @@ public class SimpleIntake {
 
     public boolean isFull() {
         return full;
+    }
+
+    public void getMaxAndMin() {
+        double max = rampReadings[0];
+        double min = rampReadings[0];
+        for (double reading: rampReadings) {
+            if (reading > max)
+                max = reading;
+            if (reading < min)
+                min = reading;
+        }
+        maxReading = max;
+        minReading = min;
     }
 
 }

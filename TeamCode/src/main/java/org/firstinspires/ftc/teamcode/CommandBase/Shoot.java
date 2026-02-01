@@ -3,9 +3,7 @@ package org.firstinspires.ftc.teamcode.CommandBase;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
-import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 public class Shoot extends Command {
     ElapsedTime timer;
@@ -23,14 +21,14 @@ public class Shoot extends Command {
     @Override
     public void update() {
         if (timer.seconds() <= seconds) {
-            Bob.shooter.shoot();
+            Gus.shooter.shoot();
         }
     }
 
     @Override
     public boolean isFinished() {
         if (timer.seconds() >= seconds) {
-            Bob.shooter.stop();
+            Gus.shooter.stop();
             return true;
         }
         return false;

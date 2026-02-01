@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-//@TeleOp
-//@Config
+@TeleOp
+@Config
 public class HoodTesting extends OpMode {
     public static double hoodPos = 0;
     Servo rightHood;

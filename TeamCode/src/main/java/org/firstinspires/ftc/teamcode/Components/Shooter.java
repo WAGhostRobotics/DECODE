@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Components;
 
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -10,7 +11,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.AutoUtil.ShooterPID;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 public class Shooter {
 
@@ -27,23 +29,24 @@ public class Shooter {
     }
     DcMotorEx wheel1;
     DcMotorEx wheel2;
-    double P = 0.14, I=0.006, D = 0;
+    double P = 0.01, I=0.00, D = 0, F = 0.003475, S = 0.02;
     double currentVelocity, targetVelocity, error, power;
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
     public static double intakeShootPower = 1;
     private final int standByVelocity = 100;
 
-    private PIDController pidController;
+    private ShooterPID pidController;
     private PIDController turretController;
     int turretTargetPos, currentPosition, turretError;
+    int shooterThreshold = 15;
     double turretPower;
 
     public void init(HardwareMap hardwareMap) {
-        pidController = new PIDController(P, I, D);
+        pidController = new ShooterPID(P, I, D, F, S);
         pidController.setIntegrationBounds(-10000000, 10000000);
-        turretController = new PIDController(0.00005, 0.000005, 0);
-        turretController.setIntegrationBounds(-10000000, 10000000);
+        turretController = new PIDController(0.00006, 0.000005, 0);
+        turretController.setIntegrationBounds(-500000, 500000);
 
         turret1 = hardwareMap.get(CRServo.class, "turret1");
         turret2 = hardwareMap.get(CRServo.class, "turret2");
@@ -59,10 +62,10 @@ public class Shooter {
     }
 
     public void init(HardwareMap hardwareMap, boolean teleop) {
-        pidController = new PIDController(P, I, D);
+        pidController = new ShooterPID(P, I, D, F, S);
         pidController.setIntegrationBounds(-10000000, 10000000);
-        turretController = new PIDController(0.00005, 0.000005, 0);
-        turretController.setIntegrationBounds(-10000000, 10000000);
+        turretController = new PIDController(0.00006, 0.000005, 0);
+        turretController.setIntegrationBounds(-500000, 500000);
 
 
         turret1 = hardwareMap.get(CRServo.class, "turret1");
@@ -97,7 +100,7 @@ public class Shooter {
         }
         getCurrentVelocity();
         error = targetVelocity - currentVelocity;
-        power = pidController.calculate(0, error);
+        power = pidController.calculate(currentVelocity, targetVelocity);
         power = Range.clip(power, -1, 1);
         wheel1.setPower(power);
         wheel2.setPower(-power);
@@ -108,20 +111,20 @@ public class Shooter {
     }
 
     public void stop() {
-        Bob.intake.shootStop();
+        Gus.intake.shootStop();
     }
 
     public void shoot() {
-        if (Math.abs(error) < 3) {
-            Bob.intake.shoot();
+        if (Math.abs(error) < shooterThreshold) {
+            Gus.intake.shoot();
         }
         else {
-            Bob.intake.loaderStop();
+            Gus.intake.loaderStop();
         }
     }
 
     public void autoShoot() {
-        Bob.intake.shoot();
+        Gus.intake.shoot();
     }
     public void popDown() {
     }
@@ -140,8 +143,8 @@ public class Shooter {
         return targetVelocity;
     }
 
-    public void setPID(double p, double i, double d) {
-        pidController.setPID(p, i, d);
+    public void setPID(double p, double i, double d, double f, double s) {
+        pidController.setPIDFS(p, i, d, f, s);
     }
 
     public void resetPID() {
@@ -222,5 +225,9 @@ public class Shooter {
 
     public void setTurretPID(double p, double i, double d) {
         turretController.setPID(p, i, d);
+    }
+
+    public void setShooterThreshold(int threshold) {
+        shooterThreshold = threshold;
     }
 }

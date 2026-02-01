@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.SequentialCommand;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 @Autonomous
 public class RedGateAuto extends LinearOpMode {
@@ -49,8 +49,8 @@ public class RedGateAuto extends LinearOpMode {
         timer = new ElapsedTime();
         shootingPos = new Point(shootingPos.getX(), multiplier* shootingPos.getY());
         spike1take = new Point(spike1take.getX(), multiplier* spike1take.getY());
-        Bob.init(hardwareMap, true, false);
-        follower = new MotionPlanner(Bob.drivetrain, Bob.localizer, hardwareMap);
+        Gus.init(hardwareMap, true, false);
+        follower = new MotionPlanner(Gus.drivetrain, Gus.localizer, hardwareMap);
         follower.setMovementPower(0.9);
         shootPath = new Bezier(90,
                 new Point(0, 0),
@@ -130,20 +130,20 @@ public class RedGateAuto extends LinearOpMode {
         SequentialCommand scheduler = getSequentialCommand();
         scheduler.init();
         while (opModeInInit()) {
-            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(-133));
-            Bob.shooter.updateTurret();
-            Bob.shooter.getTurretAngle();
+            Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(-133));
+            Gus.shooter.updateTurret();
+            Gus.shooter.getTurretAngle();
         }
 
         waitForStart();
         while (opModeIsActive()) {
             loopRateTracker.updateLoopRate();
             scheduler.update();
-            Bob.localizer.update();
-            Bob.shooter.updateShooter();
-            Bob.shooter.updateTurret();
+            Gus.localizer.update();
+            Gus.shooter.updateShooter();
+            Gus.shooter.updateTurret();
             follower.update();
-            Bob.shooter.getTurretAngle();
+            Gus.shooter.getTurretAngle();
             telemetry.addData("Loop Speed: ", loopRateTracker.getLoopRateHz());
             telemetry.addData("MP: ", follower.getTelemetry());
             telemetry.update();
@@ -154,9 +154,9 @@ public class RedGateAuto extends LinearOpMode {
     @NonNull
     private SequentialCommand getSequentialCommand() {
         SequentialCommand scheduler = new SequentialCommand(
-                new RunCommand(()-> Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, 1.7, 13.57, AngleUnit.DEGREES, 38.5))),
+                new RunCommand(()-> Gus.localizer.setPose(new Pose2D(DistanceUnit.INCH, 1.7, 13.57, AngleUnit.DEGREES, 38.5))),
                 new ParallelCommand(
-                        new RunCommand(()->Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(-133)))
+                        new RunCommand(()-> Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(-133)))
                 ),
                 new ScoreThreeArtifacts(follower, shootPath, 182, Shooter.angleToPosition(-133), 0.17),
 
@@ -197,7 +197,7 @@ public class RedGateAuto extends LinearOpMode {
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, rotate90),
-                        new RunCommand(()-> Bob.shooter.setTurretTargetPos(0))
+                        new RunCommand(()-> Gus.shooter.setTurretTargetPos(0))
                 )
 
         );

@@ -2,24 +2,19 @@ package org.firstinspires.ftc.teamcode.TestingTeleOp;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
-import static org.firstinspires.ftc.teamcode.TestingTeleOp.AutoShootTuner.xTranslation;
-import static org.firstinspires.ftc.teamcode.TestingTeleOp.AutoShootTuner.yTranslation;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.gamepad.ToggleButtonReader;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.Components.Camera;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 //@TeleOp
 //@Config
@@ -38,7 +33,7 @@ public class CameraTest extends LinearOpMode {
         ToggleButtonReader shooterOff = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
         ToggleButtonReader zoneButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.Y);
         Limelight3A limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
-        Bob.init(hardwareMap, true, false);
+        Gus.init(hardwareMap, true, false);
         limelight3A.start();
 
         double heading = 0;
@@ -49,39 +44,39 @@ public class CameraTest extends LinearOpMode {
         Pose3D botPose;
         double hoodAngle = 0;
 
-        Bob.limelight.switchToBothGoalPipeline();
+        Gus.limelight.switchToBothGoalPipeline();
 
         waitForStart();
         while (opModeIsActive()) {
-            Bob.localizer.update();
+            Gus.localizer.update();
             double x = -gamepad1.left_stick_y;
             double y = -gamepad1.left_stick_x;
             double driveTurn = -gamepad1.right_stick_x;
             double magnitude = Math.hypot(x, y);
             double theta = Math.toDegrees(Math.atan2(y, x));
-            heading = Bob.localizer.getHeading();
+            heading = Gus.localizer.getHeading();
             theta = normalizeDegrees(theta - heading);
-            Bob.drivetrain.drive(magnitude, theta, driveTurn, 0.8);
+            Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.8);
 
-            double turretAngle = Bob.shooter.getTurretAngle();
+            double turretAngle = Gus.shooter.getTurretAngle();
             double netAngle = turretAngle + heading;
 
 
             if (gamepad1.dpad_left || gamepad1.right_trigger>0.1) {
                 if (gamepad1.right_trigger > 0.1) {
-                    Bob.shooter.shoot();
+                    Gus.shooter.shoot();
                 }
-                Bob.intake.rollerIn();
+                Gus.intake.rollerIn();
             }
             else if (gamepad1.dpad_right) {
-                Bob.intake.rollerOut();
+                Gus.intake.rollerOut();
             }
             else {
-                Bob.intake.rollerStop();
+                Gus.intake.rollerStop();
             }
 
             if (gamepad1.right_trigger < 0.1) {
-                Bob.shooter.popDown();
+                Gus.shooter.popDown();
             }
 
 
@@ -104,13 +99,13 @@ public class CameraTest extends LinearOpMode {
                 aprilXInches = aprilX * 39.37;
                 aprilYInches = aprilY * 39.37;
                 distance = Math.hypot(aprilX, aprilY) * Math.cos(Math.toRadians(19));
-                Bob.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
+                Gus.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
                 targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(aprilYInches, aprilXInches))-180);
                 telemetry.addData("Pose: ", botPose);
             }
             else {
-                double estimatedY = Bob.localizer.getPosY();
-                double estimatedX = Bob.localizer.getPosX();
+                double estimatedY = Gus.localizer.getPosY();
+                double estimatedX = Gus.localizer.getPosX();
                 distance = Math.hypot(estimatedX/39.37, estimatedY/39.37) * Math.cos(Math.toRadians(19));
                 targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(estimatedY, estimatedX))-180);
             }
@@ -118,7 +113,7 @@ public class CameraTest extends LinearOpMode {
 //            hoodPos = hoodAngleToPos(hoodAngle);
             shooterTarget = targetHeading - heading;
             normalizedShooterTarget = normalizeTurretAngle(shooterTarget);
-            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(normalizedShooterTarget));
+            Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(normalizedShooterTarget));
 
 
             if (shooterButton.wasJustReleased()) {
@@ -139,17 +134,17 @@ public class CameraTest extends LinearOpMode {
             }
 
             if (shooterOn) {
-                Bob.shooter.updateTurret();
-                Bob.shooter.setHood(hoodPos);
-                Bob.shooter.setTargetVelocity(targetVelocity);
+                Gus.shooter.updateTurret();
+                Gus.shooter.setHood(hoodPos);
+                Gus.shooter.setTargetVelocity(targetVelocity);
 
             }
             else {
-                Bob.shooter.setTargetVelocity(0);
+                Gus.shooter.setTargetVelocity(0);
             }
-            Bob.shooter.setTurretPID(P, I, D);
+            Gus.shooter.setTurretPID(P, I, D);
 
-            Bob.shooter.updateShooter();
+            Gus.shooter.updateShooter();
             shooterButton.readValue();
             shooterOff.readValue();
             farShooterButton.readValue();
@@ -161,18 +156,18 @@ public class CameraTest extends LinearOpMode {
             telemetry.addData("Target Heading: ", targetHeading);
             telemetry.addData("Shooter Target: ", shooterTarget);
             telemetry.addData("Normalized Shooter Target: ", normalizedShooterTarget);
-            telemetry.addData("Localizer: ", Bob.localizer.getHeading());
+            telemetry.addData("Localizer: ", Gus.localizer.getHeading());
             telemetry.addData("RawX: " , rawX);
             telemetry.addData("RawY: ", rawY);
-            telemetry.addData("X: ", Bob.localizer.getPosX());
-            telemetry.addData("Y: ", Bob.localizer.getPosY());
+            telemetry.addData("X: ", Gus.localizer.getPosX());
+            telemetry.addData("Y: ", Gus.localizer.getPosY());
             telemetry.addData("Turret Angle: ", turretAngle);
-            telemetry.addData("Turret Tele: ", Bob.shooter.getTurretTelemetry());
+            telemetry.addData("Turret Tele: ", Gus.shooter.getTurretTelemetry());
             telemetry.addData("\nNet Angle: ", netAngle);
             telemetry.addData("Distance: ", distance);
             telemetry.addData("Hood Angle: ", hoodAngle);
             telemetry.addData("Hood Pos: ", hoodPos);
-            telemetry.addData("Shooter: ", Bob.shooter.getTelemetry());
+            telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
             telemetry.addData("Blue: ", blue);
             telemetry.update();
         }

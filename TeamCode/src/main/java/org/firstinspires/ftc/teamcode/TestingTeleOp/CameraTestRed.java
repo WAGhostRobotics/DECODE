@@ -1,25 +1,16 @@
 package org.firstinspires.ftc.teamcode.TestingTeleOp;
 
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
-import static org.firstinspires.ftc.teamcode.TestingTeleOp.AutoShootTuner.xTranslation;
-import static org.firstinspires.ftc.teamcode.TestingTeleOp.AutoShootTuner.yTranslation;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.gamepad.ToggleButtonReader;
-import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.Components.Camera;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 //@TeleOp
 //@Config
@@ -32,8 +23,8 @@ public class CameraTestRed extends LinearOpMode {
         ToggleButtonReader farShooterButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.B);
         ToggleButtonReader shooterOff = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
         Limelight3A limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
-        Bob.init(hardwareMap, false, false);
-        Bob.limelight.switchToBothGoalPipeline();
+        Gus.init(hardwareMap, false, false);
+        Gus.limelight.switchToBothGoalPipeline();
         limelight3A.start();
 
         double heading = 0;
@@ -48,13 +39,13 @@ public class CameraTestRed extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
-            Bob.localizer.update();
-            Bob.limelight.trackAprilTag(Bob.localizer.getHeading(), Bob.shooter.getTurretAngle(), true);
-            if (Bob.limelight.isVisible()) {
-                Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
+            Gus.localizer.update();
+            Gus.limelight.trackAprilTag(Gus.localizer.getHeading(), Gus.shooter.getTurretAngle(), true);
+            if (Gus.limelight.isVisible()) {
+                Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(Gus.limelight.getTurretAngle()));
             }
-            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
-            telemetry.addData("Turret: ", Bob.shooter.getTurretTelemetry());
+            Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(Gus.limelight.getTurretAngle()));
+            telemetry.addData("Turret: ", Gus.shooter.getTurretTelemetry());
             telemetry.update();
         }
     }

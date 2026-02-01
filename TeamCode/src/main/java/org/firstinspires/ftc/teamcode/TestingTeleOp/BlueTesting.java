@@ -10,13 +10,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.CommandBase.TeleShoot;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
+
 
 @Config
 @TeleOp
-public class RedTeleop extends LinearOpMode {
+public class BlueTesting extends LinearOpMode {
     boolean blue = true;
     boolean failsafe = false;
     public static double delay = 1;
@@ -40,9 +40,9 @@ public class RedTeleop extends LinearOpMode {
 
 
         waitForStart();
-        Bob.init(hardwareMap, false, true);
-        Bob.localizer.setHeadingDegrees(180);
-        Bob.intake.closeGate();
+        Gus.init(hardwareMap, true, true);
+        Gus.localizer.setHeadingDegrees(180);
+        Gus.intake.closeGate();
 
         while (opModeIsActive()) {
             // Remove later
@@ -53,25 +53,25 @@ public class RedTeleop extends LinearOpMode {
                 failsafe = !failsafe;
             }
 
-            Bob.localizer.update();
-            Bob.limelight.trackAprilTag(Bob.localizer.getHeading()-180, Bob.shooter.getTurretAngle(), true);
-            double distance = Bob.limelight.getDistance();
+            Gus.localizer.update();
+            Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), true);
+            double distance = Gus.limelight.getDistance();
 
-            if (Bob.intake.isOneBallIn()) {
+            if (Gus.intake.isOneBallIn()) {
                 if (!failsafe) {
-                    Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
+                    Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(Gus.limelight.getTurretAngle()));
                 }
                 else {
-                    Bob.shooter.setTurretTargetPos(0);
+                    Gus.shooter.setTurretTargetPos(0);
                 }
             }
-            Bob.shooter.updateTurret();
+            Gus.shooter.updateTurret();
 
 
             if (gateReader.wasJustReleased()) {
-                Bob.intake.setBallIn(false);
-                Bob.intake.closeGate();
-                Bob.shooter.resetTurret();
+                Gus.intake.setBallIn(false);
+                Gus.intake.closeGate();
+                Gus.shooter.resetTurret();
             }
 
             double x = -gamepad1.left_stick_y;
@@ -79,68 +79,69 @@ public class RedTeleop extends LinearOpMode {
             double driveTurn = -gamepad1.right_stick_x;
             double magnitude = Math.hypot(x, y);
             double theta = Math.toDegrees(Math.atan2(y, x));
-            double heading = Bob.localizer.getHeading() - 180;
+            double heading = Gus.localizer.getHeading() - 180;
             theta = normalizeDegrees(theta - heading);
-            Bob.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
-            Bob.intake.updateIntake();
+            Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
+            Gus.intake.updateIntake();
 
             if (gamepad1.left_trigger>0.3) {
-                Bob.intake.rollerOut();
+                Gus.intake.rollerOut();
             }
             else if (gamepad2.right_bumper) {
                 if (shootButton.wasJustPressed()) {
+                    Gus.shooter.resetTurret();
                     timer.reset();
-                    Bob.intake.loaderStop();
-                    Bob.intake.rollerStop();
-                    Bob.intake.setBallIn(true);
-                    Bob.intake.openGate();
+                    Gus.intake.loaderStop();
+                    Gus.intake.rollerStop();
+                    Gus.intake.setBallIn(true);
+                    Gus.intake.openGate();
                 }
                 else if (timer.seconds() > delay) {
-                    Bob.shooter.shoot();
+                    Gus.shooter.shoot();
                 }
                 else {
-                    Bob.intake.rollerStop();
-                    Bob.shooter.stop();
+                    Gus.intake.rollerStop();
+                    Gus.shooter.stop();
                 }
             }
             else if (shootButton.wasJustReleased()) {
-                Bob.intake.loaderStop();
+                Gus.intake.loaderStop();
             }
             else {
                 timer.reset();
-                if (!Bob.intake.gateOpen)
-                    Bob.intake.rollerIn();
+                if (!Gus.intake.gateOpen)
+                    Gus.intake.rollerIn();
                 else {
-                    Bob.intake.loaderStop();
-                    Bob.intake.rollerStop();
+                    Gus.intake.loaderStop();
+                    Gus.intake.rollerStop();
                 }
             }
 
             if (!failsafe)
-                Bob.shooter.setHood(Bob.shooterLUT.getHoodAngle(distance));
+                Gus.shooter.setHood(Gus.shooterLUT.getHoodAngle(distance));
             else
-                Bob.shooter.setHood(0.17);
+                Gus.shooter.setHood(0.17);
 
 
-            if (Bob.intake.gateOpen) {
+            if (Gus.intake.gateOpen) {
                 gamepad2.setLedColor(255, 0, 0, 5);
             }
             else {
                 gamepad2.setLedColor(0, 255, 0, 5);
             }
 
-            if (Bob.intake.isOneBallIn()) {
+            if (Gus.intake.isOneBallIn()) {
                 if (!failsafe) {
-                    Bob.shooter.setTargetVelocity(Bob.shooterLUT.getSpeed(distance));
+                    Gus.shooter.setTargetVelocity(Gus.shooterLUT.getSpeed(distance));
                 }
                 else {
-                    Bob.shooter.setTargetVelocity(182);
+                    Gus.shooter.setTargetVelocity(182);
                 }
             }
             else {
-                Bob.shooter.setTargetVelocity(0);
+                Gus.shooter.setTargetVelocity(0);
             }
-            Bob.shooter.updateShooter();
+            Gus.shooter.updateShooter();
 
             gateReader.readValue();
             zoneReader.readValue();
@@ -150,18 +151,19 @@ public class RedTeleop extends LinearOpMode {
 
 
             if (imuReader.wasJustReleased()) {
-                Bob.limelight.resetInitialized();
-                Bob.localizer.setHeadingDegrees(180);
+                Gus.limelight.resetInitialized();
+                Gus.localizer.setHeadingDegrees(180);
             }
 
 
-            telemetry.addData("Power: ", Bob.shooter.getTelemetry());
-            telemetry.addData("Distance: ", Bob.limelight.getDistance());
-            telemetry.addData("X: ", Bob.localizer.getPosX());
-            telemetry.addData("Y: ", Bob.localizer.getPosY());
-            telemetry.addData("Heading: ", Bob.localizer.getHeading());
-            telemetry.addData("Intake: ", Bob.intake.getTelemetry());
+            telemetry.addData("Power: ", Gus.shooter.getTelemetry());
+            telemetry.addData("Distance: ", Gus.limelight.getDistance());
+            telemetry.addData("X: ", Gus.localizer.getPosX());
+            telemetry.addData("Y: ", Gus.localizer.getPosY());
+            telemetry.addData("Heading: ", Gus.localizer.getHeading());
+            telemetry.addData("Intake: ", Gus.intake.getTelemetry());
             telemetry.addData("Timer: ", timer.seconds());
+            telemetry.addData("Intake Current: ", Gus.intake.getCurrentDrawIntake());
             telemetry.update();
 
         }

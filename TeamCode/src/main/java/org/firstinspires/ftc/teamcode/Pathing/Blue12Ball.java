@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.SequentialCommand;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 @Autonomous
 public class Blue12Ball extends LinearOpMode {
@@ -31,11 +31,11 @@ public class Blue12Ball extends LinearOpMode {
     public static int multiplier=1;
     public static Point shootingPos = new Point(51.3, 11.7);
     public static Point spike1take = new Point(51.3, -21.5);
-    public static Point spike2 = new Point(76.5, 3.27);
-    public static Point spike3 = new Point(98, 2.27);
+    public static Point spike2 = new Point(75.5, 3.27);
+    public static Point spike3 = new Point(97, 2.27);
     public static Point spike2take = new Point(76.5, -28);
     public static Point spike3take = new Point(98,-28);
-    public static Point openGate = new Point(63.8, -23.4);
+    public static Point openGate = new Point(63.8, -23.5);
 
     MotionPlanner follower;
 
@@ -45,8 +45,8 @@ public class Blue12Ball extends LinearOpMode {
         timer = new ElapsedTime();
         shootingPos = new Point(shootingPos.getX(), multiplier* shootingPos.getY());
         spike1take = new Point(spike1take.getX(), multiplier* spike1take.getY());
-        Bob.init(hardwareMap, true, false);
-        follower = new MotionPlanner(Bob.drivetrain, Bob.localizer, hardwareMap);
+        Gus.init(hardwareMap, true, false);
+        follower = new MotionPlanner(Gus.drivetrain, Gus.localizer, hardwareMap);
         follower.setMovementPower(0.9);
         shootPath = new Bezier(-90,
                 new Point(0, 0),
@@ -120,20 +120,20 @@ public class Blue12Ball extends LinearOpMode {
         SequentialCommand scheduler = getSequentialCommand();
         scheduler.init();
         while (opModeInInit()) {
-            Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(128));
-            Bob.shooter.updateTurret();
-            Bob.shooter.getTurretAngle();
+            Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(130));
+            Gus.shooter.updateTurret();
+            Gus.shooter.getTurretAngle();
         }
 
         waitForStart();
         while (opModeIsActive()) {
             loopRateTracker.updateLoopRate();
             scheduler.update();
-            Bob.localizer.update();
-            Bob.shooter.updateShooter();
-            Bob.shooter.updateTurret();
+            Gus.localizer.update();
+            Gus.shooter.updateShooter();
+            Gus.shooter.updateTurret();
             follower.update();
-            Bob.shooter.getTurretAngle();
+            Gus.shooter.getTurretAngle();
             telemetry.addData("Loop Speed: ", loopRateTracker.getLoopRateHz());
             telemetry.addData("MP: ", follower.getTelemetry());
             telemetry.update();
@@ -144,38 +144,38 @@ public class Blue12Ball extends LinearOpMode {
     @NonNull
     private SequentialCommand getSequentialCommand() {
         SequentialCommand scheduler = new SequentialCommand(
-                new RunCommand(()-> Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, 2.35, -13.2, AngleUnit.DEGREES, -39))),
+                new RunCommand(()-> Gus.localizer.setPose(new Pose2D(DistanceUnit.INCH, 2.35, -13.2, AngleUnit.DEGREES, -39))),
                 new ParallelCommand(
-                        new RunCommand(()->Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(128)))
+                        new RunCommand(()-> Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(131)))
                 ),
-                new ScoreThreeArtifacts(follower, shootPath, 182, Shooter.angleToPosition(128), 0.17),
+                new ScoreThreeArtifacts(follower, shootPath, 182, Shooter.angleToPosition(131), 0.17),
 
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike1Path),
                         new CollectSpikesV3(follower)
                 ),
-                new FollowTrajectory(follower, openGatePath),
+//                new FollowTrajectory(follower, openGatePath),
 
-                new ScoreThreeArtifacts(follower, spike1ToShoot, 182, Shooter.angleToPosition(132.4), 0.17),
+                new ScoreThreeArtifacts(follower, spike1ToShoot, 182, Shooter.angleToPosition(133.5), 0.17),
 
                 new FollowTrajectory(follower, spike2Path),
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike2intake),
                         new CollectSpikesV3(follower)
                 ),
-                new ScoreThreeArtifacts(follower, spike2ToShoot, 182, Shooter.angleToPosition(131), 0.17),
+                new ScoreThreeArtifacts(follower, spike2ToShoot, 182, Shooter.angleToPosition(133.5), 0.17),
 
                 new FollowTrajectory(follower, spike3Path),
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike3intake),
                         new CollectSpikesV3(follower)
                 ),
-                new ScoreThreeArtifacts(follower, spike3ToShoot, 182, Shooter.angleToPosition(131), 0.17),
+                new ScoreThreeArtifacts(follower, spike3ToShoot, 182, Shooter.angleToPosition(133.5), 0.17),
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, rotate90),
-                        new RunCommand(()-> Bob.shooter.setTurretTargetPos(0))
+                        new RunCommand(()-> Gus.shooter.setTurretTargetPos(0))
                 )
 
         );

@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.Components.DriveTrain.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Components.ShooterLUT;
 import org.firstinspires.ftc.teamcode.Components.SimpleIntake;
 
-public class Bob {
+public class Gus {
     public static ShooterLUT shooterLUT;
     public static HardwareMap hardwareMap;
     public static MecanumDrive drivetrain;
@@ -25,7 +25,7 @@ public class Bob {
         shooterLUT.init();
         shooter = new Shooter();
         shooter.init(hardwareMap);
-        Bob.hardwareMap = hardwareMap;
+        Gus.hardwareMap = hardwareMap;
         drivetrain = new MecanumDrive(hardwareMap);
         localizer = new PinpointLocalizer(hardwareMap);
         movementPower = 0.8;
@@ -41,7 +41,7 @@ public class Bob {
 
         shooter = new Shooter();
         shooter.init(hardwareMap);
-        Bob.hardwareMap = hardwareMap;
+        Gus.hardwareMap = hardwareMap;
         drivetrain = new MecanumDrive(hardwareMap);
         localizer = new PinpointLocalizer(hardwareMap);
         movementPower = 0.8;
@@ -59,7 +59,7 @@ public class Bob {
 
         shooter = new Shooter();
         shooter.init(hardwareMap, teleop);
-        Bob.hardwareMap = hardwareMap;
+        Gus.hardwareMap = hardwareMap;
         drivetrain = new MecanumDrive(hardwareMap);
         localizer = new PinpointLocalizer(hardwareMap);
         movementPower = 0.8;
@@ -67,10 +67,11 @@ public class Bob {
         limelight = new Camera(hardwareMap, blueAlliance);
         shooter.setHood(0);
         if (teleop) {
-            Bob.intake.openGate();
+            Gus.intake.openGate();
         }
 
 
     }
+
 
 }

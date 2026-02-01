@@ -4,13 +4,11 @@ import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.gamepad.ToggleButtonReader;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Components.Constants;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 //@TeleOp
 @Config
@@ -39,8 +37,8 @@ public class Tuner extends OpMode {
         path = new Bezier(0,
                 new Point(targetX, targetY)
         );
-        Bob.init(hardwareMap);
-        follower = new MotionPlanner(Bob.drivetrain, Bob.localizer, hardwareMap);
+        Gus.init(hardwareMap);
+        follower = new MotionPlanner(Gus.drivetrain, Gus.localizer, hardwareMap);
         follower.setMovementPower(0.9);
     }
 
@@ -55,8 +53,8 @@ public class Tuner extends OpMode {
     @Override
     public void loop() {
         loopRateTracker.updateLoopRate();
-        double x = Bob.localizer.getPosX();
-        double y = Bob.localizer.getPosY();
+        double x = Gus.localizer.getPosX();
+        double y = Gus.localizer.getPosY();
 
         follower.setXPID(xP, xI, xD);
         follower.setYPID(yP, yI, yD);
@@ -76,7 +74,7 @@ public class Tuner extends OpMode {
         }
         startPath.readValue();
         follower.update();
-        Bob.localizer.update();
+        Gus.localizer.update();
         telemetry.addData("", follower.getTelemetry());
         telemetry.addData("Loop Speed: ", loopRateTracker.getLoopRateHz());
         telemetry.update();

@@ -11,8 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 /**
  * This file includes code to automatically shoot at goal
@@ -37,34 +36,18 @@ public class Camera {
     // All limelight values are initially in meters. Need to convert to inches
     private final double meterToInches = 39.37;
     private double aprilX, aprilY, aprilXInches, aprilYInches, aprilHeading;
-    private double localizerX, localizerY, localizerHeading, lastLocalizerX, lastLocalizerY, estimatedX, estimatedY;
+    private double lastX, lastY, localizerX, localizerY, localizerHeading, estimatedX, estimatedY, newY, newX;
+    private double seconds, airTime;
     private double distance, distanceInches;
-    private double calculatedShooterVelocity;
 
     private double targetHeading, headingError, turretAngle = 0, hoodAngle;
-    private final double permissibleError = 0.5;
 
-
-
-    private final double theta = 55;    // Shooting angle is fixed at 55 degrees
-    private final double goalHeight = 1.7;
-    private final double limelightAngle = 18;       // Limelight is mounted at 18 degree angle
-
-    // Experimental slope for the line of best fit (relationship between distance and required flywheel velocity)
-    private final double experimentalSlope = 0.882431;
-
-    // xTranslation and yTranslation are offsets
-    // When limelight sees april tag and estimates pose, the origin is the center of the field
-    // We want the origin (0, 0) to be the actual goal
-    // So we add these x and y translational offsets to whatever the limelight returns
-    // x Translation is the same for red and blue
-    // y Translation is positive for blue negative for red
-    private double xTranslation = 1.6;
+    private double xTranslation = 1.7;
     private double yTranslation = 1.3;
 
     // Translational constant from the april Tag to the actual backboard
 
-    ElapsedTime timer = new ElapsedTime();
+    ElapsedTime timer = new ElapsedTime(), speedTimer = new ElapsedTime();
     private final int timerThreshold = 2;           // In seconds
     private int motifID = 0;
     boolean blueAlliance = true;
@@ -74,6 +57,7 @@ public class Camera {
         initialized = false;
         limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
         timer.reset();
+        speedTimer.reset();
         limelight3A.start();
         this.blueAlliance = blueAlliance;
         switchToGoalPipeline();
@@ -111,20 +95,23 @@ public class Camera {
             aprilXInches = aprilX * meterToInches;
             aprilYInches = aprilY * meterToInches;
 
-            distance = Math.hypot(aprilX, aprilY);
-            distance = distance*Math.cos(Math.toRadians(19));
+            distance = Math.hypot(aprilX, aprilY) * Math.cos(Math.toRadians(19));
+
+            getLeadPose(true);
+//
+            distance = Math.hypot(newX/meterToInches, newY/meterToInches) * Math.cos(Math.toRadians(19));
             distanceInches = distance * meterToInches;
 
             // Always relocalize when April Tag is in sight (Timer added to chill the loop speeds and pinpoint death)
             if (!initialized  || timer.seconds()>timerThreshold) {
                 initialized = true;
-                Bob.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
+                Gus.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
                 timer.reset();
             }
 
 
             // Heading Control to keep Robot locked to the goal
-            targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(aprilYInches, aprilXInches))-180);
+            targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(newY, newX))-180);
 
         }
         else if (initialized) {
@@ -133,18 +120,17 @@ public class Camera {
 
             estimatedX = localizerX;
             estimatedY = localizerY;
-            distance = Math.hypot(estimatedX/meterToInches, estimatedY/meterToInches);
-            distance = distance*Math.cos(Math.toRadians(19));
-
+            getLeadPose(false);
+//            distance = Math.hypot(estimatedY/meterToInches, estimatedX/meterToInches) * Math.cos(Math.toRadians(19));
+            distance = Math.hypot(newX/meterToInches, newY/meterToInches) * Math.cos(Math.toRadians(19));
             distanceInches = distance * meterToInches;
-            targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(estimatedY, estimatedX))-180);
+
+            targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(newY, newX))-180);
         }
 
         if (initialized) {
-//            hoodAngle = (Math.max(Math.min(Math.toDegrees(Math.atan(goalHeight / distance)), 63), 27));
             turretAngle = targetHeading - heading;
             turretAngle = normalizeTurretAngle(turretAngle);
-//            calculatedShooterVelocity = calculateShooterTargetVelocity(distance);
         }
     }
 
@@ -152,27 +138,29 @@ public class Camera {
         String returnString = "Is Visible? " + aprilVisible + "\n" +
                                 "Initialized: " + initialized + "\n";
 
-        if (aprilVisible) {
-            returnString = returnString + "April X: " + aprilX + "\n" +
-                    "April X (In): " + aprilXInches + "\n" +
-                    "April Y: " + aprilY + "\n" +
-                    "April Y (In): " + aprilYInches + "\n" +
-                    "April Heading: " + aprilHeading + "\n";
-        }
+//        if (aprilVisible) {
+//            returnString = returnString + "April X: " + aprilX + "\n" +
+//                    "April X (In): " + aprilXInches + "\n" +
+//                    "April Y: " + aprilY + "\n" +
+//                    "April Y (In): " + aprilYInches + "\n" +
+//                    "April Heading: " + aprilHeading + "\n";
+//        }
 
 
         returnString = returnString + "Localizer X: " + localizerX + "\n" +
                         "Localizer Y: " + localizerY + "\n" +
+                        "Lead X: " + newX + "\n" +
+                        "Lead Y: " + newY + "\n" +
+                        "AirTime: " + airTime + "\n" +
                         "Estimated X: " + estimatedX + "\n" +
                         "Estimated Y: " + estimatedY + "\n" +
                         "Localizer Heading: " + localizerHeading + "\n" +
                         "Distance: " + distance + "\n" +
-                        "Distance (In) " + distanceInches + "\n" +
-                        "Target Shooter Velocity: " + calculatedShooterVelocity + "\n" +
                         "Target Heading: " + targetHeading + "\n" +
                         "Heading Error: " + headingError + "\n" +
                         "TurretAngle: " + turretAngle + "\n" +
                         "Blue Alliance: " + blueAlliance;
+
 
         return returnString;
     }
@@ -180,46 +168,50 @@ public class Camera {
 
     // For distance function and Shooter velocity function explanation check Desmos link:
     // https://www.desmos.com/calculator/ffcaewmxtr
-    private double distanceFunction(double x, double theta) {  // Theta in degrees
-        double xSquared = Math.pow(x, 2);
-        double tanTheta = Math.tan(Math.toRadians(theta));   // Theta converted to radians before than
-        return (xSquared)/((x*tanTheta)-1);
-    }
-
-    private double calculateShooterTargetVelocity(double rawX) {
-        // Caveats:
-        // If robot is closer than a certain distance, shoot at an experimentally measured minimum velocity
-
-        if (rawX < 1.4) {
-            return 128;
-        }
-        double x = distanceFunction(rawX, theta);
-        double rawY = experimentalSlope*x;
-        calculatedShooterVelocity = Math.sqrt(rawY)*100;
-        return calculatedShooterVelocity;     // Velocity
-    }
-
     private void getLocalizerValues() {
-        localizerHeading = normalizeDegrees(Bob.localizer.getHeading());
-        localizerY = Bob.localizer.getPosY();
-        localizerX = Bob.localizer.getPosX();
+        localizerHeading = normalizeDegrees(Gus.localizer.getHeading());
+        localizerY = Gus.localizer.getPosY();
+        localizerX = Gus.localizer.getPosX();
     }
 
-    public double getShooterVelocity() {
-        return calculatedShooterVelocity;
+    private void getLeadPose(boolean isVisible) {
+        double changeX = localizerX - lastX;
+        double changeY = localizerY - lastY;
+        airTime = Gus.shooterLUT.getAirTime(distance);
+        seconds = speedTimer.seconds();
+        distance = Math.hypot(changeX, changeY);
+
+        if (airTime > 0 ) {
+            if (isVisible) {
+                newX = aprilXInches + (changeX / seconds) * airTime;
+                newY = aprilYInches + (changeY / seconds) * airTime;
+            }
+            else {
+                newX = localizerX + (changeX / seconds) * airTime;
+                newY = localizerY + (changeY / seconds) * airTime;
+            }
+        }
+        else {
+            if (isVisible) {
+                newX = aprilXInches;
+                newY = aprilYInches;
+            }
+            else {
+                newX = localizerX;
+                newY = localizerY;
+            }
+        }
+        lastX = localizerX;
+        lastY = localizerY;
+        speedTimer.reset();
     }
+
 
     public double getTurretAngle() {
         return turretAngle;
     }
 
-    public double getHoodAngle() {
-        return hoodAngle;
-    }
 
-    public double getAprilHeading() {
-        return aprilHeading;
-    }
 
     public double getTargetHeading() {
         return targetHeading;
@@ -233,7 +225,7 @@ public class Camera {
             aprilVisible = true;                    // Just for telemetry purposes
             Pose3D botPose = llResult.getBotpose();
             aprilHeading = botPose.getOrientation().getYaw(DEGREES)-180;
-            Bob.localizer.setPose(new Pose2D(DistanceUnit.INCH, localizerX, localizerY, DEGREES, normalizeDegrees(aprilHeading-90)));
+            Gus.localizer.setPose(new Pose2D(DistanceUnit.INCH, localizerX, localizerY, DEGREES, normalizeDegrees(aprilHeading-90)));
 
         }
     }

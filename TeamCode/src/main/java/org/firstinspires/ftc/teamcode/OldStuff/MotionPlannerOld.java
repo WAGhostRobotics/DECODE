@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.AutoUtil.Path;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
 import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Components.DriveTrain.MecanumDrive;
-import org.firstinspires.ftc.teamcode.Core.Bob;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 @Config
 public class MotionPlannerOld {
@@ -333,7 +333,7 @@ public class MotionPlannerOld {
 
 
 //                drive.driveMax(magnitude, theta, driveTurn, movementPower, voltage);
-                Bob.drivetrain.driveMax(magnitude, theta, driveTurn, 0.8);
+                Gus.drivetrain.driveMax(magnitude, theta, driveTurn, 0.8);
             }
 
         }else{
