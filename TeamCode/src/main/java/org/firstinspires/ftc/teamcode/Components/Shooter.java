@@ -39,7 +39,7 @@ public class Shooter {
     private ShooterPID pidController;
     private PIDController turretController;
     int turretTargetPos, currentPosition, turretError;
-    int shooterThreshold = 15;
+    int shooterThreshold = 8;
     double turretPower;
 
     public void init(HardwareMap hardwareMap) {
