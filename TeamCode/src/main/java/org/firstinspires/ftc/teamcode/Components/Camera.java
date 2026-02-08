@@ -35,14 +35,14 @@ public class Camera {
 
     // All limelight values are initially in meters. Need to convert to inches
     private final double meterToInches = 39.37;
-    private double aprilX, aprilY, aprilXInches, aprilYInches, aprilHeading;
+    private double aprilX, aprilY, aprilXInches, aprilYInches, aprilHeading, netAngle;
     private double lastX, lastY, localizerX, localizerY, localizerHeading, estimatedX, estimatedY, newY, newX;
     private double seconds, airTime;
     private double distance, distanceInches;
 
     private double targetHeading, headingError, turretAngle = 0, hoodAngle;
 
-    private double xTranslation = 1.7;
+    private double xTranslation = 1.76;
     private double yTranslation = 1.3;
 
     // Translational constant from the april Tag to the actual backboard
@@ -52,8 +52,10 @@ public class Camera {
     private int motifID = 0;
     boolean blueAlliance = true;
     boolean initialized;
+    boolean forceStop = false;
 
     public Camera(HardwareMap hardwareMap, boolean blueAlliance) {
+        forceStop = false;
         initialized = false;
         limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
         timer.reset();
@@ -75,12 +77,12 @@ public class Camera {
     public Camera(HardwareMap hardwareMap) {
         this(hardwareMap, true);               // Just calls the constructor (defaults to blue alliance)
     }
-    public void trackAprilTag(double heading, double turretHeading, boolean tracking) {
+    public void trackAprilTag(double heading, double turretHeading, boolean moving) {
         getLocalizerValues();
-        double netAngle = heading + turretHeading;
+        netAngle = heading + turretHeading;
         limelight3A.updateRobotOrientation(netAngle);
         LLResult llResult = limelight3A.getLatestResult();
-        if (llResult != null && llResult.isValid()) {       // If April tag is visible
+        if (llResult != null && llResult.isValid() && !forceStop) {       // If April tag is visible
             aprilVisible = true;                    // Just for telemetry purposes
             Pose3D botPose = llResult.getBotpose_MT2();
             aprilHeading = botPose.getOrientation().getYaw(DEGREES);
@@ -96,22 +98,20 @@ public class Camera {
             aprilYInches = aprilY * meterToInches;
 
             distance = Math.hypot(aprilX, aprilY) * Math.cos(Math.toRadians(19));
-
-            getLeadPose(true);
-//
+            if (moving) {
+                getLeadPose(true);
+            }
+            else {
+                newX = aprilXInches;
+                newY = aprilYInches;
+            }
             distance = Math.hypot(newX/meterToInches, newY/meterToInches) * Math.cos(Math.toRadians(19));
-            distanceInches = distance * meterToInches;
 
-            // Always relocalize when April Tag is in sight (Timer added to chill the loop speeds and pinpoint death)
-            if (!initialized  || timer.seconds()>timerThreshold) {
+            if (!initialized) {
+                setLocalizer();
                 initialized = true;
-                Gus.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
-                timer.reset();
             }
 
-
-            // Heading Control to keep Robot locked to the goal
-            targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(newY, newX))-180);
 
         }
         else if (initialized) {
@@ -120,13 +120,18 @@ public class Camera {
 
             estimatedX = localizerX;
             estimatedY = localizerY;
-            getLeadPose(false);
-//            distance = Math.hypot(estimatedY/meterToInches, estimatedX/meterToInches) * Math.cos(Math.toRadians(19));
-            distance = Math.hypot(newX/meterToInches, newY/meterToInches) * Math.cos(Math.toRadians(19));
-            distanceInches = distance * meterToInches;
 
-            targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(newY, newX))-180);
+            if (moving) {
+                getLeadPose(false);
+            }
+            else {
+                newX = estimatedX;
+                newY = estimatedY;
+            }
+            distance = Math.hypot(newX/meterToInches, newY/meterToInches) * Math.cos(Math.toRadians(19));
         }
+
+        targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(newY, newX))-180);
 
         if (initialized) {
             turretAngle = targetHeading - heading;
@@ -138,13 +143,13 @@ public class Camera {
         String returnString = "Is Visible? " + aprilVisible + "\n" +
                                 "Initialized: " + initialized + "\n";
 
-//        if (aprilVisible) {
-//            returnString = returnString + "April X: " + aprilX + "\n" +
-//                    "April X (In): " + aprilXInches + "\n" +
-//                    "April Y: " + aprilY + "\n" +
-//                    "April Y (In): " + aprilYInches + "\n" +
-//                    "April Heading: " + aprilHeading + "\n";
-//        }
+        if (aprilVisible) {
+            returnString = returnString + "April X: " + aprilX + "\n" +
+                    "April X (In): " + aprilXInches + "\n" +
+                    "April Y: " + aprilY + "\n" +
+                    "April Y (In): " + aprilYInches + "\n" +
+                    "April Heading: " + aprilHeading + "\n";
+        }
 
 
         returnString = returnString + "Localizer X: " + localizerX + "\n" +
@@ -278,5 +283,16 @@ public class Camera {
 
     public void resetInitialized() {
         initialized = false;
+    }
+
+    public void setLocalizer() {
+        if (isVisible() && !forceStop) {
+            initialized = true;
+            Gus.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
+        }
+    }
+
+    public void turnOff() {
+        forceStop = true;
     }
 }

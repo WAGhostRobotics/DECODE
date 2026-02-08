@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -28,15 +29,17 @@ public class SimpleIntake {
     double power;
     double outPower;
     public static final double oneBallInThreshold = 2.0;
-    public static final double rampFullThreshold = 4.8;
+    public static final double rampFullThreshold = 9.5;
     private double[] rampReadings;
     double minReading, maxReading;
     private final int numReadings = 5;
     private int index = 0;
-    public static final double currentThresholdLoader = 4.0;
+    public static final double currentThresholdLoader = 5.0;
     public static final double currentThresholdIntake = 4.0;
     boolean oneBallIn;
     boolean full;
+    ElapsedTime loaderTimer;
+    double timerThreshold = 0.5;
 
 
     public SimpleIntake(HardwareMap hardwareMap) {
@@ -54,6 +57,7 @@ public class SimpleIntake {
         outPower = 0.6;
         rampReadings = new double[numReadings];
         index = 0;
+        loaderTimer = new ElapsedTime();
     }
 
     public void updateIntake() {
@@ -74,7 +78,7 @@ public class SimpleIntake {
             loaderStop();
         }
 
-        if (oneBallIn && (currentIntake > currentThresholdIntake && maxReading <= rampFullThreshold)) {
+        if (oneBallIn && (maxReading <= rampFullThreshold)) {
             full = true;
             power = 0.05;
         }
@@ -86,7 +90,12 @@ public class SimpleIntake {
     public void rollerIn() {
         if (!oneBallIn && !gateOpen) {
             intake.setPower(power);
-            loader.setPower(1);
+            if (loaderTimer.seconds() > timerThreshold) {
+                loader.setPower(1);
+            }
+            else {
+                loader.setPower(0);
+            }
         }
         else {
             intake.setPower(power);
@@ -95,7 +104,7 @@ public class SimpleIntake {
     }
 
     public void slowRollerIn() {
-        intake.setPower(0.7);
+        intake.setPower(0.5);
     }
     public void rollerOut() {
         oneBallIn = false;
@@ -105,6 +114,7 @@ public class SimpleIntake {
     public void setBallIn(boolean ballIn) {
         oneBallIn = ballIn;
         if (!ballIn) {
+            loaderTimer.reset();
             power = 1;
             full = false;
         }
@@ -132,13 +142,13 @@ public class SimpleIntake {
     }
 
     public void openGate() {
-        gate.setPosition(0.91);
+        gate.setPosition(0);
         gateOpen = true;
         oneBallIn = true;
     }
 
     public void closeGate() {
-        gate.setPosition(0.14);
+        gate.setPosition(0.7578);
         gateOpen = false;
     }
 

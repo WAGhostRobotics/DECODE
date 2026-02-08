@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.Core.Gus;
 public class ShooterTuner extends OpMode {
     public static int targetVelocity = 0;
     public static double hoodPos = 0.5;
-    public static double P = 0.14, I = 0.006, D = 0, F=0, S=0;
+    public static double P = 0.01, I=0.00, D = 0, F = 0.003475, S = 0.02;
 
     @Override
     public void init() {
@@ -37,6 +37,7 @@ public class ShooterTuner extends OpMode {
         Gus.shooter.updateShooter();
         Gus.shooter.setTargetVelocity(targetVelocity);
         telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
+        telemetry.addData("Voltage: ", hardwareMap.voltageSensor.iterator().next().getVoltage());
         telemetry.update();
     }
 }

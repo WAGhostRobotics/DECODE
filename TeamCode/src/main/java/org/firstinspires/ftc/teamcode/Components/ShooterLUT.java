@@ -14,33 +14,33 @@ public class ShooterLUT {
         speeds = new InterpLUT();
         hoodAngle = new InterpLUT();
         timeInAir = new InterpLUT();
-        hoodAngle.add(0, 0.9);
-        hoodAngle.add(0.8, 0.9);
-        hoodAngle.add(1.0, 0.7);
-        hoodAngle.add(1.2, 0.5);
-        hoodAngle.add(1.4, 0.53);
-        hoodAngle.add(1.6, 0.46);
-        hoodAngle.add(1.80, 0.4);
-        hoodAngle.add(2.0, 0.36);
-        hoodAngle.add(2.23, 0.34);
-        hoodAngle.add(2.40, 0.34);
-        hoodAngle.add(2.60, 0.32);
+        hoodAngle.add(0, 0.95);
+        hoodAngle.add(0.8, 0.95);
+        hoodAngle.add(1.0, 0.82);
+        hoodAngle.add(1.2, 0.59);
+        hoodAngle.add(1.4, 0.5);
+        hoodAngle.add(1.6, 0.41);
+        hoodAngle.add(1.80, 0.36);
+        hoodAngle.add(2.0, 0.32);
+        hoodAngle.add(2.23, 0.31);
+        hoodAngle.add(2.40, 0.32);
+        hoodAngle.add(2.60, 0.30);//
         hoodAngle.add(2.80, 0.25);
-        hoodAngle.add(3.0, 0.23);
-        hoodAngle.add(3.2, 0.23);
-        hoodAngle.add(3.4, 0.22);
-        hoodAngle.add(3.6, 0.22);
-        hoodAngle.add(3.8, 0.2);
-        hoodAngle.add(4.0, 0.18);
-        hoodAngle.add(4.2, 0.19);
-        hoodAngle.add(4.4, 0.18);
+        hoodAngle.add(3.0, 0.20);
+        hoodAngle.add(3.22, 0.16);
+        hoodAngle.add(3.4, 0.12);//
+        hoodAngle.add(3.6, 0.10);
+        hoodAngle.add(3.8, 0.06);//
+        hoodAngle.add(4.0, 0.06);
+        hoodAngle.add(4.2, 0.06);
+        hoodAngle.add(4.4, 0.06);
         hoodAngle.createLUT();
 
         speeds.add(0,0);
-        speeds.add(0.8, 148);
-        speeds.add(1.0, 155);
-        speeds.add(1.2, 163);
-        speeds.add(1.4, 164);
+        speeds.add(0.8, 131);
+        speeds.add(1.0, 137);
+        speeds.add(1.2, 140);
+        speeds.add(1.4, 158);
         speeds.add(1.60, 166);
         speeds.add(1.80, 171);
         speeds.add(2.0, 174);
@@ -51,11 +51,11 @@ public class ShooterLUT {
         speeds.add(3.0, 200);
         speeds.add(3.20, 202);
         speeds.add(3.4, 207);
-        speeds.add(3.6, 210);
-        speeds.add(3.8, 216);
-        speeds.add(4.0, 223);
-        speeds.add(4.2, 226);
-        speeds.add(4.4, 230);
+        speeds.add(3.6, 212);
+        speeds.add(3.8, 212);
+        speeds.add(4.0, 212);
+        speeds.add(4.2, 214);
+        speeds.add(4.4, 215);
         speeds.createLUT();
 
         timeInAir.add(0, 0);

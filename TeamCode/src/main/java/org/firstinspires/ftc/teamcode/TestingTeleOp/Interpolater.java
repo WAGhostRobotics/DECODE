@@ -53,7 +53,7 @@ public class Interpolater extends LinearOpMode {
             }
 
             Gus.localizer.update();
-            Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), true);
+            Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), false);
             double distance = Gus.limelight.getDistance();
 
             if (Gus.intake.isOneBallIn()) {

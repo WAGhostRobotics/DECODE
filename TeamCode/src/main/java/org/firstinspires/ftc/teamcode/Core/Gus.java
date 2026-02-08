@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Core;
 
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
@@ -8,6 +9,8 @@ import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Components.DriveTrain.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Components.ShooterLUT;
 import org.firstinspires.ftc.teamcode.Components.SimpleIntake;
+
+import java.util.List;
 
 public class Gus {
     public static ShooterLUT shooterLUT;
@@ -69,6 +72,13 @@ public class Gus {
         if (teleop) {
             Gus.intake.openGate();
         }
+
+        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+
 
 
     }
