@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.AutoUtil.MergedBezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectBalls;
+import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesV2;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesV3;
 import org.firstinspires.ftc.teamcode.CommandBase.FollowTrajectory;
 import org.firstinspires.ftc.teamcode.CommandBase.ScoreThreeArtifacts;
@@ -25,7 +26,7 @@ import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Core.Gus;
 
 @Autonomous
-public class RedGateAuto extends LinearOpMode {
+public class Red15Lazer extends LinearOpMode {
     ElapsedTime timer;
     LoopRateTracker loopRateTracker = new LoopRateTracker();
     Bezier shootPath, spike1Path, spike2Path, openGatePath, openGateSpikePath, spike3Path, spike3ToShoot, spike1ToShoot, spike2ToShoot, rotate90, spike2intake, spike3intake;
@@ -118,16 +119,11 @@ public class RedGateAuto extends LinearOpMode {
                 spike3
         );
 
-        spike3intake = new MergedBezier(90,
-                new Bezier(
-                        shootingPos,
-                        new Point(spike3.getX()-5, spike3.getY())
-                ),
-                new Bezier(
-                        new Point(spike3.getX()-5, spike3.getY()),
-                        spike3take
-                )
+        spike3intake = new Bezier(90,
+                new Point(spike3.getX(), spike3.getY()),
+                spike3take
         );
+
         spike1ToShoot = new Bezier(90,
                 spike1take,
                 shootingPos
@@ -193,9 +189,10 @@ public class RedGateAuto extends LinearOpMode {
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike2intake),
-                        new CollectSpikesV3(follower)
+                        new CollectSpikesV2(follower)
                 ),
 
+                new FollowTrajectory(follower, openGateSpikePath),
 
                 new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
@@ -205,11 +202,11 @@ public class RedGateAuto extends LinearOpMode {
                 ),
                 new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
-//                new ParallelCommand(
-//                        new FollowTrajectory(follower, openGatePath),
-//                        new CollectBalls(follower, 1.5)
-//                ),
-//                new ScoreThreeArtifacts(follower, spike2ToShoot, 165, Shooter.angleToPosition(-136), 0.40),
+                new ParallelCommand(
+                        new FollowTrajectory(follower, openGatePath),
+                        new CollectBalls(follower, 1.5)
+                ),
+                new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
 //                new ParallelCommand(
 //                        new FollowTrajectory(follower, openGatePath),
@@ -223,13 +220,13 @@ public class RedGateAuto extends LinearOpMode {
                 ),
                 new ScoreThreeArtifacts(follower, spike1ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
-
-                new FollowTrajectory(follower, spike3Path),
-                new ParallelCommand(
-                        new FollowTrajectory(follower, spike3intake),
-                        new CollectSpikesV3(follower)
-                ),
-                new ScoreThreeArtifacts(follower, spike3ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
+//
+//                new FollowTrajectory(follower, spike3Path),
+//                new ParallelCommand(
+//                        new FollowTrajectory(follower, spike3intake),
+//                        new CollectSpikesV3(follower)
+//                ),
+//                new ScoreThreeArtifacts(follower, spike3ToShoot, 182, Shooter.angleToPosition(-133), 0.17),
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, rotate90),

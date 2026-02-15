@@ -15,6 +15,7 @@ package org.firstinspires.ftc.teamcode.AutoUtil;
 public class TurretPID {
 
     private double kP, kI, kD;
+    private double fullPowerThreshold = 4250;
     private double setPoint;
     private double measuredValue;
     private double minIntegral, maxIntegral;
@@ -195,6 +196,10 @@ public class TurretPID {
             measuredValue = pv;
         }
 
+        if (Math.abs(errorVal_p) > fullPowerThreshold) {
+            return 1*Math.signum(errorVal_p);
+        }
+
         if (Math.abs(period) > 1E-6) {
             errorVal_v = (errorVal_p - prevErrorVal) / period;
         } else {
@@ -205,7 +210,7 @@ public class TurretPID {
         if total error is the integral from 0 to t of e(t')dt', and
         e(t) = sp - pv, then the total error, E(t), equals sp*t - pv*t.
          */
-        if (Math.abs(setPoint - measuredValue) < 15000) {
+        if (Math.abs(setPoint - measuredValue) < 5000) {
             totalError += period * (setPoint - measuredValue);
             totalError = totalError < minIntegral ? minIntegral : Math.min(maxIntegral, totalError);
         }
@@ -259,6 +264,10 @@ public class TurretPID {
 
     public double getPeriod() {
         return period;
+    }
+
+    public void setFullPowerThreshold(double k) {
+        fullPowerThreshold = k;
     }
 
 }

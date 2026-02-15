@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.AutoUtil.MergedBezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectBalls;
+import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesV2;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesV3;
 import org.firstinspires.ftc.teamcode.CommandBase.FollowTrajectory;
 import org.firstinspires.ftc.teamcode.CommandBase.ScoreThreeArtifacts;
@@ -25,10 +26,10 @@ import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Core.Gus;
 
 @Autonomous
-public class Blue15 extends LinearOpMode {
+public class Blue15Lazer extends LinearOpMode {
     ElapsedTime timer;
     LoopRateTracker loopRateTracker = new LoopRateTracker();
-    Bezier shootPath, spike1Path, spike2Path, openGatePath, spike3Path, spike3ToShoot, spike1ToShoot, spike2ToShoot, rotate90, spike2intake, spike3intake;
+    Bezier shootPath, spike1Path, spike2Path, openGatePath, openGateSpikePath, spike3Path, spike3ToShoot, spike1ToShoot, spike2ToShoot, rotate90, spike2intake, spike3intake;
     public static int multiplier=1;
     public static Point shootingPos = new Point(51.3, 11.7);
     public static Point spike1take = new Point(51.3, -21.5);
@@ -40,11 +41,14 @@ public class Blue15 extends LinearOpMode {
     public static Point openGate = new Point(75.6, -29.7);
     public static Point openGatePrepPoint = new Point(68.5, -23.5);
 
+    public static Point openGateSpike = new Point(69, -22.5);
+
+
     MotionPlanner follower;
     private Pose2D startingPos = new Pose2D(DistanceUnit.INCH, 21.69, -23.26, AngleUnit.DEGREES, -90);
 
-    int velocity = 170;
-    double turretAngle = 136, hoodPos = 0.38;
+    int velocity = 163;
+    double turretAngle = 134, hoodPos = 0.4;
 
 
     @Override
@@ -72,6 +76,17 @@ public class Blue15 extends LinearOpMode {
                 )
         );
 
+        openGateSpikePath = new MergedBezier(
+                -90,
+                new Bezier(
+                        spike2take,
+                        new Point(spike2.getX(), spike2.getY()-13)
+                ),
+                new Bezier(
+                        new Point(spike2.getX(), spike2.getY()-13),
+                        openGateSpike
+                )
+        );
 
 
         spike1Path = new MergedBezier(-90,
@@ -89,10 +104,10 @@ public class Blue15 extends LinearOpMode {
         spike2intake = new MergedBezier(-90,
                 new Bezier(
                         shootingPos,
-                        spike2
+                        new Point(spike2.getX()-6, spike2.getY())
                 ),
                 new Bezier(
-                        spike2,
+                        new Point(spike2.getX()-6, spike2.getY()),
                         spike2take
                 )
         );
@@ -153,6 +168,7 @@ public class Blue15 extends LinearOpMode {
             Gus.shooter.updateTurret();
             follower.update();
             Gus.shooter.getTurretAngle();
+            Gus.intake.updateIntake();
             telemetry.addData("Loop Speed: ", loopRateTracker.getLoopRateHz());
             telemetry.addData("MP: ", follower.getTelemetry());
             telemetry.update();
@@ -168,22 +184,26 @@ public class Blue15 extends LinearOpMode {
                         new RunCommand(()-> Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle)))
                 ),
                 new ScoreThreeArtifacts(follower, shootPath, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
+                new RunCommand(()-> Gus.intake.setRampFullThreshold()),
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike2intake),
-                        new CollectSpikesV3(follower)
+                        new CollectSpikesV2(follower)
+                ),
+                new FollowTrajectory(follower, openGateSpikePath),
+
+
+                new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
+
+                new ParallelCommand(
+                        new FollowTrajectory(follower, openGatePath),
+                        new CollectBalls(follower, 1.3)
                 ),
                 new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, openGatePath),
-                        new CollectBalls(follower, 1.7)
-                ),
-                new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
-
-                new ParallelCommand(
-                        new FollowTrajectory(follower, openGatePath),
-                        new CollectBalls(follower, 1.7)
+                        new CollectBalls(follower, 1.3)
                 ),
                 new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 

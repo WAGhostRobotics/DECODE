@@ -14,7 +14,8 @@ import org.firstinspires.ftc.teamcode.Core.Gus;
 @TeleOp
 @Config
 public class TurretTuner extends LinearOpMode {
-    public static double P=0.00005, I=0.000005, D;
+    public static double P=0.000013, I=0.0000005, D;
+    public static double turretKStatic = 0.04;
     public static int permissible = 50;
     public static int targetPosition = 0;
 
@@ -37,7 +38,9 @@ public class TurretTuner extends LinearOpMode {
 
             Gus.localizer.update();
             Gus.limelight.trackAprilTag(Gus.localizer.getHeading(), Gus.shooter.getTurretAngle(), true);
+            Gus.shooter.setTurretKStatic(turretKStatic);
             Gus.shooter.setTurretPID(P, I, D);
+
             if (switchReader.wasJustReleased()) {
                 Gus.limelight.switchToGoalPipeline();
             }

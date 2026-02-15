@@ -4,9 +4,9 @@ import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
 import org.firstinspires.ftc.teamcode.Core.Gus;
 
-public class CollectSpikesV3 extends Command {
+public class CollectSpikesV2 extends Command {
     MotionPlanner follower;
-    public CollectSpikesV3(MotionPlanner follower) {
+    public CollectSpikesV2(MotionPlanner follower) {
         this.follower = follower;
     }
 
@@ -25,7 +25,7 @@ public class CollectSpikesV3 extends Command {
 
     @Override
     public boolean isFinished() {
-        if (follower.isFinished() || Gus.intake.isFull()) {
+        if (follower.isFinished()) {
             follower.forceComplete();
             Gus.intake.rollerStop();
             return true;

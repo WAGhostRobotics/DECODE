@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.Core.Gus;
 public class CollectBalls extends Command {
     ElapsedTime timer;
     MotionPlanner follower;
+    boolean finished;
     double seconds;
     public CollectBalls(MotionPlanner follower, double seconds) {
         this.follower = follower;
@@ -19,6 +20,7 @@ public class CollectBalls extends Command {
 
     @Override
     public void init() {
+        finished = false;
         timer.reset();
         Gus.intake.closeGate();
         Gus.intake.setBallIn(false);
@@ -27,10 +29,12 @@ public class CollectBalls extends Command {
 
     @Override
     public void update() {
-        if (!follower.isFinished()) {
+        if (follower.isFinished()) {
+            finished = true;
+        }
+        if (!finished) {
             timer.reset();
         }
-        Gus.intake.updateIntake();
         Gus.intake.rollerIn();
     }
 

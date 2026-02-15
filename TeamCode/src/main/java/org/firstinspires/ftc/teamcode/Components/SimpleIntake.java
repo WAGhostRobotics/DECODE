@@ -29,9 +29,9 @@ public class SimpleIntake {
     double power;
     double outPower;
     public static final double oneBallInThreshold = 2.0;
-    public static final double rampFullThreshold = 9.5;
+    public static double rampFullThreshold = 7.5;
     private double[] rampReadings;
-    double minReading, maxReading;
+    double minReading, maxReading, avgReading;
     private final int numReadings = 5;
     private int index = 0;
     public static final double currentThresholdLoader = 5.0;
@@ -40,6 +40,7 @@ public class SimpleIntake {
     boolean full;
     ElapsedTime loaderTimer;
     double timerThreshold = 0.5;
+    double antiShootPower = -0.09;
 
 
     public SimpleIntake(HardwareMap hardwareMap) {
@@ -80,7 +81,7 @@ public class SimpleIntake {
 
         if (oneBallIn && (maxReading <= rampFullThreshold)) {
             full = true;
-            power = 0.05;
+            power = 0;
         }
         else if (minReading >= rampFullThreshold) {
             power = 1;
@@ -99,8 +100,17 @@ public class SimpleIntake {
         }
         else {
             intake.setPower(power);
-            loader.setPower(0);
+            loader.setPower(antiShootPower);
         }
+    }
+
+    public void bruteRollerIn() {
+        full = false;
+        intake.setPower(1);
+    }
+
+    public void setRampFullThreshold() {
+        rampFullThreshold = avgReading-1;
     }
 
     public void slowRollerIn() {
@@ -148,7 +158,7 @@ public class SimpleIntake {
     }
 
     public void closeGate() {
-        gate.setPosition(0.7578);
+        gate.setPosition(0.76);
         gateOpen = false;
     }
 
@@ -158,7 +168,8 @@ public class SimpleIntake {
                 "\nCurrent: " + currentLoader +
                 "\nDone: " + oneBallIn +
                 "\nRamp Distance: " + lowerSensorDistance +
-                "\nHigh Distance: " + highSensorDistance;
+                "\nHigh Distance: " + highSensorDistance +
+                "\nThreshold: " + rampFullThreshold;
     }
 
     public double getCurrentDrawLoader() {
@@ -186,6 +197,7 @@ public class SimpleIntake {
     }
 
     public void getMaxAndMin() {
+        double sum = 0;
         double max = rampReadings[0];
         double min = rampReadings[0];
         for (double reading: rampReadings) {
@@ -193,9 +205,15 @@ public class SimpleIntake {
                 max = reading;
             if (reading < min)
                 min = reading;
+            sum += reading;
         }
+        avgReading = sum/numReadings;
         maxReading = max;
         minReading = min;
+    }
+
+    public void setAntiShootPower(double pw) {
+        antiShootPower = pw;
     }
 
 }

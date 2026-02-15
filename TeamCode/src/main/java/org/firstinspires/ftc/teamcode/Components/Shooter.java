@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Components;
 
+import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -16,9 +18,9 @@ import org.firstinspires.ftc.teamcode.Core.Gus;
 public class Shooter {
 
     Servo rightHood;
-    double hoodAdjustmentConstant = 0.003;
+    double hoodAdjustmentConstant = 0.005;
     double hoodPos;
-    CRServo turret1, turret2;
+    CRServo turret1, turret2, turret3;
     public enum PopperPos {
         POP(0.596), RETRACT(0.6439);
         private final double pos;
@@ -29,7 +31,7 @@ public class Shooter {
     }
     DcMotorEx wheel1;
     DcMotorEx wheel2;
-    double P = 0.033, I=0.00, D = 0, F = 0.00328, S = 0.09;
+    double P = 0.0275, I=0.00, D = 0, F = 0.00328, S = 0.09;
     double currentVelocity, targetVelocity, shooterError, power;
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
@@ -39,8 +41,10 @@ public class Shooter {
 
     private ShooterPID pidController;
     private TurretPID turretController;
-    private double tP = 0.000032, tI = 0.00000004, tD = 0;
-    private double turretKStatic = 0.026;
+    private PIDController fineTurretController;
+    public static double tP = 0.000055, tI = 0.000002, tD = 0;
+    public static double fTP = 0.000055, fTI = 0.00000, fTD = 0;
+    private double turretKStatic = 0.00;
     int turretTargetPos, currentPosition, turretError;
     int shooterThreshold = 3;
     double turretPower;
@@ -50,9 +54,12 @@ public class Shooter {
         pidController.setIntegrationBounds(-10000000, 10000000);
         turretController = new TurretPID(tP, tI, tD);
         turretController.setIntegrationBounds(-500000, 500000);
+        fineTurretController = new PIDController(fTP, fTI, fTD);
+        fineTurretController.setIntegrationBounds(-10000000, 10000000);
 
         turret1 = hardwareMap.get(CRServo.class, "turret1");
         turret2 = hardwareMap.get(CRServo.class, "turret2");
+        turret3 = hardwareMap.get(CRServo.class, "turret3");
         wheel1 = hardwareMap.get(DcMotorEx.class, "wheel1");
         wheel2 = hardwareMap.get(DcMotorEx.class, "wheel2");
         wheel2.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -69,10 +76,14 @@ public class Shooter {
         pidController.setIntegrationBounds(-10000000, 10000000);
         turretController = new TurretPID(tP, tI, tD);
         turretController.setIntegrationBounds(-500000, 500000);
+        fineTurretController = new PIDController(fTP, fTI, fTD);
+        fineTurretController.setIntegrationBounds(-10000000, 10000000);
 
 
         turret1 = hardwareMap.get(CRServo.class, "turret1");
         turret2 = hardwareMap.get(CRServo.class, "turret2");
+        turret3 = hardwareMap.get(CRServo.class, "turret3");
+
         wheel1 = hardwareMap.get(DcMotorEx.class, "wheel1");
         wheel2 = hardwareMap.get(DcMotorEx.class, "wheel2");
         wheel2.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -189,21 +200,36 @@ public class Shooter {
     public void updateTurret() {
         currentPosition = wheel2.getCurrentPosition();
         turretError = turretTargetPos - currentPosition;
+
+
         if (Math.abs(turretError)<125) {
             turretPower = 0;
-            turretController.reset();
+            turret1.setPower(turretPower);
+            turret2.setPower(turretPower);
+            turret3.setPower(turretPower);
             return;
         }
-        turretPower = turretController.calculate(0, turretError);
+        else if (Math.abs(turretError) < 1000) {
+            turretPower = fineTurretController.calculate(0, turretError);
+        }
+        else {
+            turretPower = turretController.calculate(0, turretError);
+        }
         turretPower = turretPower + Math.signum(turretPower)*turretKStatic;
         turretPower = Range.clip(turretPower, -1, 1);
         turret1.setPower(turretPower);
         turret2.setPower(turretPower);
+        turret3.setPower(turretPower);
+    }
+
+    public void setFullPowerThreshold(double k) {
+        turretController.setFullPowerThreshold(k);
     }
 
     public void resetTurret() {
         setTurretTargetPos(0);
         turretController.reset();
+        fineTurretController.reset();
     }
 
     public double getTurretAngle() {
@@ -240,6 +266,10 @@ public class Shooter {
 
     public void setTurretPID(double p, double i, double d) {
         turretController.setPID(p, i, d);
+    }
+
+    public void setFineTurretPID(double p, double i, double d) {
+        fineTurretController.setPID(p, i, d);
     }
 
     public void setShooterThreshold(int threshold) {

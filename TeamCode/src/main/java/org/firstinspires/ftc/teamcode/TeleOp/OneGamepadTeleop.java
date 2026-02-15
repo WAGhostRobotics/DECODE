@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.internal.files.DataLogger;
 import org.firstinspires.ftc.teamcode.AutoUtil.LoopRateTracker;
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
@@ -21,12 +22,15 @@ import org.firstinspires.ftc.teamcode.Core.Gus;
 @Config
 @TeleOp
 public class OneGamepadTeleop extends LinearOpMode {
-    public static boolean blue = false;
-    public static int shooterThreshold = 5;
-    public static double hoodK = 0.00;
+    public static boolean blue = true;
+    public static int shooterThreshold = 3;
+    public static double hoodK = 0.005;
     public static double xTranslation = 1.76, yTranslation = 1.3;
-    public static double tP = 0.000032, tI = 0.00000004, tD = 0;
-    public static double turretKStatic = 0.026;
+    public static double tP = 0.000055, tI = 0.000002, tD = 0;
+    public static double tPF = 0.00006, tIF = 0.00000, tDF = 0;
+    public static double turretKStatic = 0.00;
+    public static double fullPowerThreshold = 3750;
+    public static double antiShootPower = 0;
     public static boolean moving = false;
     public static int targetVelocity;
     public static double hoodPos;
@@ -36,10 +40,12 @@ public class OneGamepadTeleop extends LinearOpMode {
 
 
 
+
     @Override
     public void runOpMode() throws InterruptedException {
         loopRateTracker = new LoopRateTracker();
         boolean full = false;
+        boolean adjustingHood = false;
         boolean wasEmpty = false;
         boolean shooting = true;
         double magnitude, theta, driveTurn, x, y, heading, targetX = 0, targetY = 0, targetHeading = 0;
@@ -64,11 +70,14 @@ public class OneGamepadTeleop extends LinearOpMode {
 
         while (opModeIsActive()) {
             loopRateTracker.updateLoopRate();
-            Gus.shooter.setTurretKStatic(turretKStatic);
-            Gus.shooter.setTurretPID(tP, tI, tD);
-            Gus.shooter.setShooterThreshold(shooterThreshold);
-            Gus.shooter.setHoodAdjustmentConstant(hoodK);
-            Gus.limelight.setXYTranslation(xTranslation, yTranslation);
+//            Gus.intake.setAntiShootPower(antiShootPower);
+//            Gus.shooter.setFullPowerThreshold(fullPowerThreshold);
+//            Gus.shooter.setFineTurretPID(tPF, tIF, tDF);
+//            Gus.shooter.setTurretKStatic(turretKStatic);
+//            Gus.shooter.setTurretPID(tP, tI, tD);
+//            Gus.shooter.setShooterThreshold(shooterThreshold);
+//            Gus.shooter.setHoodAdjustmentConstant(hoodK);
+//            Gus.limelight.setXYTranslation(xTranslation, yTranslation);
 
             if (failsafeButton.wasJustReleased()) {
                 Gus.limelight.turnOff();
@@ -84,6 +93,12 @@ public class OneGamepadTeleop extends LinearOpMode {
                 Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), moving);
             }
             double distance = Gus.limelight.getDistance();
+            if (distance > 3.2) {
+                adjustingHood = true;
+            }
+            else {
+                adjustingHood = false;
+            }
 
             if (Gus.intake.isOneBallIn()) {
                 if (wasEmpty) {
@@ -101,10 +116,10 @@ public class OneGamepadTeleop extends LinearOpMode {
             if (Gus.intake.isOneBallIn()) {
                 if (!failsafe) {
                     if (hoodPos == 0) {
-                        Gus.shooter.setHood(Gus.shooterLUT.getHoodAngle(distance), true);
+                        Gus.shooter.setHood(Gus.shooterLUT.getHoodAngle(distance), adjustingHood);
                     }
                     else {
-                        Gus.shooter.setHood(hoodPos, true);
+                        Gus.shooter.setHood(hoodPos, adjustingHood);
                     }
                     if (targetVelocity == 0) {
                         Gus.shooter.setTargetVelocity(Gus.shooterLUT.getSpeed(distance));
@@ -132,12 +147,13 @@ public class OneGamepadTeleop extends LinearOpMode {
             if (Gus.intake.isFull() && !full) {
                 full = true;
                 gamepad1.rumble(200);
-                Gus.shooter.resetTurret();
+//                Gus.shooter.resetTurret();
             }
 
             if (gateReader.wasJustReleased()) {
                 if (shooting) {
                     Gus.limelight.setLocalizer();
+
                 }
                 full = false;
                 wasEmpty = true;
@@ -146,6 +162,7 @@ public class OneGamepadTeleop extends LinearOpMode {
                 Gus.intake.closeGate();
                 Gus.shooter.resetTurret();
                 Gus.shooter.setTurretTargetPos(0);
+                Gus.intake.setRampFullThreshold();
             }
 
             x = -gamepad1.left_stick_y;
@@ -156,26 +173,16 @@ public class OneGamepadTeleop extends LinearOpMode {
             heading = Gus.localizer.getHeading() - 180;
             theta = normalizeDegrees(theta - heading);
 
-            if (Math.abs(magnitude) <= 0.1 && Math.abs(driveTurn) <= 0.1 && gamepad1.right_bumper ) {
-                if (initialized && driveTimer.seconds() > 1) {
-                    MotionPlanner.holdPosition(targetX, targetY, targetHeading);
-                }
-                else {
-                    targetX = Gus.localizer.getPosX();
-                    targetY = Gus.localizer.getPosY();
-                    targetHeading = Gus.localizer.getHeading();
-                }
-            }
-            else {
-                initialized = true;
-                Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
-                driveTimer.reset();
-            }
+            Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
+
 
 
 
             if (gamepad1.left_trigger>0.3) {
                 Gus.intake.rollerOut();
+            }
+            else if (gamepad1.right_trigger > 0.2) {
+                Gus.intake.bruteRollerIn();
             }
             else if (gamepad1.right_bumper) {
                 if (shootButton.wasJustPressed()) {
@@ -223,12 +230,12 @@ public class OneGamepadTeleop extends LinearOpMode {
             }
 
 
-            telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
+            telemetry.addData("Shooter: ", Gus.shooter.getTurretTelemetry());
             telemetry.addData("Distance: ", Gus.limelight.getTelemetry());
 //            telemetry.addData("X: ", Gus.localizer.getPosX());
 //            telemetry.addData("Y: ", Gus.localizer.getPosY());
 //            telemetry.addData("Heading: ", Gus.localizer.getHeading());
-//            telemetry.addData("Intake: ", Gus.intake.getTelemetry());
+            telemetry.addData("Intake: ", Gus.intake.getTelemetry());
 //            telemetry.addData("Timer: ", shootTimer.seconds());
             telemetry.addData("LoopRate: ", loopRateTracker.getLoopRateHz());
             telemetry.update();

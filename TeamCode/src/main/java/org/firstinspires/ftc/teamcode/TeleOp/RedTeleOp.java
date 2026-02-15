@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.TeleOp.MainTeleOp;
 
+@Config
 @TeleOp
 public class RedTeleOp extends MainTeleOp {
     @Override

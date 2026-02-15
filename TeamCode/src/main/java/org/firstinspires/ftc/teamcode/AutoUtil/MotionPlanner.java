@@ -131,7 +131,7 @@ public class MotionPlanner {
 
         // The loop below increments index until we reach the point closest to the robot's current (x, y)
         // We want to PID to the next point on the spline that is closest to us
-        while (index <= speedThresholdPoint && distance(spline.getCurvePoints(index+1), currentX, currentY) <
+        while (index < speedThresholdPoint && distance(spline.getCurvePoints(index+1), currentX, currentY) <
                 distance(spline.getCurvePoints(index), currentX, currentY)) {
             index++;
         }
