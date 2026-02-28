@@ -366,4 +366,15 @@ public class MotionPlanner {
         Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
     }
 
+    public static double holdHeading(double heading) {
+
+        double currentHeading = normalizeDegrees(Gus.localizer.getHeading());
+        double headingError = heading - currentHeading;
+
+        double driveTurn = headingControl.calculate(0, headingError);
+        driveTurn =  (Math.abs(headingError)>1) ? (driveTurn + Math.signum(driveTurn) * kStaticTurn) : 0;
+
+        return driveTurn;
+    }
+
 }

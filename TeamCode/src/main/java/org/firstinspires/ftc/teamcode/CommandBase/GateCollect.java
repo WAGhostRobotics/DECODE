@@ -2,50 +2,45 @@ package org.firstinspires.ftc.teamcode.CommandBase;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
 import org.firstinspires.ftc.teamcode.Core.Gus;
 
-public class CollectBalls extends Command {
-    ElapsedTime timer;
+public class GateCollect extends Command {
     MotionPlanner follower;
     boolean finished;
     double seconds;
-    public CollectBalls(MotionPlanner follower, double seconds) {
+    Bezier[] paths;
+    int i = 0;
+    public GateCollect(MotionPlanner follower, Bezier ... paths) {
         this.follower = follower;
-        this.seconds = seconds;
-        timer = new ElapsedTime();
+        this.paths = paths;
     }
 
 
     @Override
     public void init() {
+        follower.resume();
         finished = false;
-        timer.reset();
-        Gus.intake.closeGate();
-        Gus.intake.setBallIn(false);
-        Gus.intake.rollerIn();
+        follower.startFollowingPath(paths[0]);
     }
 
     @Override
     public void update() {
         if (follower.isFinished()) {
-            finished = true;
+            i++;
+            if (i < paths.length) {
+                follower.startFollowingPath(paths[i]);
+            }
         }
-        if (!finished) {
-            timer.reset();
-        }
-        Gus.intake.rollerIn();
         Gus.intake.updateIntake();
+        Gus.intake.rollerIn();
     }
 
     @Override
     public boolean isFinished() {
-        if (timer.seconds() >= seconds || Gus.intake.isFull()) {
-            if (Gus.intake.isFull()) {
-                Gus.intake.rollerStop();
-                follower.forceComplete();
-            }
+        if (Gus.intake.isFull() || (follower.isFinished() && i >= paths.length)) {
             Gus.intake.loaderStop();
             return true;
         }
@@ -57,4 +52,3 @@ public class CollectBalls extends Command {
 
     }
 }
-

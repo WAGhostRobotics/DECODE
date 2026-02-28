@@ -39,8 +39,8 @@ public class Red15Lazer extends LinearOpMode {
     public static Point spike2take = new Point(71.2, 27.5);// **
     public static Point spike3take = new Point(96,27);
 
-    public static Point openGate = new Point(74.2, 26.3);
-    public static Point openGateSpike = new Point(67.2, 22);
+    public static Point openGate = new Point(74.3, 26.3);
+    public static Point openGateSpike = new Point(67.2, 21.7);
 
     public static Point openGatePrepPoint = new Point(64.5, 19);
 

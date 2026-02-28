@@ -11,6 +11,7 @@ public class PinpointLocalizer {
     long lastTime = System.nanoTime();
     private final double xOffset = -110;
     private final double yOffset = -100;
+    private double lastX = 0, lastY = 0, xVelocity, yVelocity;
 
     public PinpointLocalizer(HardwareMap hardwareMap) {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
@@ -39,6 +40,12 @@ public class PinpointLocalizer {
     public void update() {
         long now = System.nanoTime();
         if (now - lastTime > 33_000_000) {
+            double x = getPosX();
+            double y = getPosY();
+            xVelocity = (x - lastX)/(now-lastTime) * 1e9;
+            yVelocity = (y - lastY)/(now-lastTime) * 1e9;
+            lastX = x;
+            lastY = y;
             pinpoint.update();
             lastTime = now;
         }
@@ -63,6 +70,13 @@ public class PinpointLocalizer {
     public void setHeadingDegrees(double heading) {
         Pose2D pose = new Pose2D(DistanceUnit.INCH, getPosX(), getPosY(), AngleUnit.DEGREES, heading);
         pinpoint.setPosition(pose);
+    }
+
+    public double getXVelocity() {
+        return xVelocity;
+    }
+    public double getYVelocity() {
+        return yVelocity;
     }
 
 }

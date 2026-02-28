@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Components;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
+
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -8,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -18,9 +21,9 @@ import org.firstinspires.ftc.teamcode.Core.Gus;
 public class Shooter {
 
     Servo rightHood;
-    double hoodAdjustmentConstant = 0.005;
+    double hoodAdjustmentConstant = 0.003;
     double hoodPos;
-    CRServo turret1, turret2, turret3;
+    Servo turret1, turret2, turret3;
     public enum PopperPos {
         POP(0.596), RETRACT(0.6439);
         private final double pos;
@@ -31,7 +34,7 @@ public class Shooter {
     }
     DcMotorEx wheel1;
     DcMotorEx wheel2;
-    double P = 0.0275, I=0.00, D = 0, F = 0.00328, S = 0.09;
+    double P = 0.023, I=0.00, D = 0, F = 0.00325, S = 0.06;
     double currentVelocity, targetVelocity, shooterError, power;
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
@@ -40,26 +43,24 @@ public class Shooter {
     boolean ready = false;
 
     private ShooterPID pidController;
-    private TurretPID turretController;
-    private PIDController fineTurretController;
-    public static double tP = 0.000055, tI = 0.000002, tD = 0;
-    public static double fTP = 0.000055, fTI = 0.00000, fTD = 0;
-    private double turretKStatic = 0.00;
-    int turretTargetPos, currentPosition, turretError;
+    private static double ninetyValue = 0.28;
+    private static double zero = 0.5;
+    double turretTargetPos;
     int shooterThreshold = 3;
-    double turretPower;
+    ElapsedTime shootTimer;
+    ElapsedTime delay;
+
+    double delayTime = 0.3;
+    double shootTime = 0.15;
 
     public void init(HardwareMap hardwareMap) {
+        shootTimer = new ElapsedTime();
+        delay = new ElapsedTime();
         pidController = new ShooterPID(P, I, D, F, S);
         pidController.setIntegrationBounds(-10000000, 10000000);
-        turretController = new TurretPID(tP, tI, tD);
-        turretController.setIntegrationBounds(-500000, 500000);
-        fineTurretController = new PIDController(fTP, fTI, fTD);
-        fineTurretController.setIntegrationBounds(-10000000, 10000000);
 
-        turret1 = hardwareMap.get(CRServo.class, "turret1");
-        turret2 = hardwareMap.get(CRServo.class, "turret2");
-        turret3 = hardwareMap.get(CRServo.class, "turret3");
+        turret1 = hardwareMap.get(Servo.class, "turret1");
+        turret2 = hardwareMap.get(Servo.class, "turret2");
         wheel1 = hardwareMap.get(DcMotorEx.class, "wheel1");
         wheel2 = hardwareMap.get(DcMotorEx.class, "wheel2");
         wheel2.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -72,17 +73,15 @@ public class Shooter {
     }
 
     public void init(HardwareMap hardwareMap, boolean teleop) {
+        shootTimer = new ElapsedTime();
+        delay = new ElapsedTime();
         pidController = new ShooterPID(P, I, D, F, S);
         pidController.setIntegrationBounds(-10000000, 10000000);
-        turretController = new TurretPID(tP, tI, tD);
-        turretController.setIntegrationBounds(-500000, 500000);
-        fineTurretController = new PIDController(fTP, fTI, fTD);
-        fineTurretController.setIntegrationBounds(-10000000, 10000000);
 
 
-        turret1 = hardwareMap.get(CRServo.class, "turret1");
-        turret2 = hardwareMap.get(CRServo.class, "turret2");
-        turret3 = hardwareMap.get(CRServo.class, "turret3");
+
+        turret1 = hardwareMap.get(Servo.class, "turret1");
+        turret2 = hardwareMap.get(Servo.class, "turret2");
 
         wheel1 = hardwareMap.get(DcMotorEx.class, "wheel1");
         wheel2 = hardwareMap.get(DcMotorEx.class, "wheel2");
@@ -130,7 +129,7 @@ public class Shooter {
     }
 
     public void shoot() {
-        if (Math.abs(shooterError) < shooterThreshold) {
+        if (!ready && Math.abs(shooterError) < shooterThreshold) {
             ready = true;
         }
         if (ready) {
@@ -141,14 +140,29 @@ public class Shooter {
         }
     }
 
-    public void autoShoot() {
-        Gus.intake.shoot();
+    public void shootSlowMotion() {
+        if (!ready && Math.abs(shooterError) < shooterThreshold) {
+            ready = true;
+        }
+        if (ready) {
+            if (shootTimer.seconds() < shootTime) {
+                Gus.intake.shoot();
+                delay.reset();
+            }
+            else if (delay.seconds() < delayTime) {
+                Gus.intake.shootStop();
+                Gus.intake.rollerStop();
+            }
+            else {
+                shootTimer.reset();
+            }
+        }
+        else {
+            Gus.intake.loaderStop();
+        }
     }
+
     public void popDown() {
-    }
-
-    public void popUp() {
-
     }
 
 
@@ -177,71 +191,54 @@ public class Shooter {
                 "\nCurrent V: " + currentVelocity +
                 "\nShooter Error: " + shooterError +
                 "\nPower: " + power +
-                "\nHood: " + hoodPos;
+                "\nHood: " + hoodPos +
+                "\nShoot Timer: " + shootTimer.seconds() +
+                "\nDelay Timer: " + delay.seconds() +
+                "\nReady: " + ready;
     }
 
     public String getTurretTelemetry() {
         return "TargetPos: " + turretTargetPos +
-                "\nCurrent Pos: " + currentPosition +
-                "\nAngle: " + getTurretAngle() +
-                "\nError: " + turretError +
-                "\nTurret Power: " + turretPower;
+                "\nAngle: " + getTurretAngle();
     }
 
     public void setIntake(double pw){
 
     }
 
-    public void setTurretTargetPos(int position) {
-        position = Range.clip(position, -29000, 27000);
+    public void setTurretTargetPos(double position) {
+        if (Double.isNaN(position)) {
+            return;
+        }
+        position = Range.clip(position, 0, 1);
         turretTargetPos = position;
+        turret1.setPosition(turretTargetPos);
+        turret2.setPosition(turretTargetPos);
     }
 
     public void updateTurret() {
-        currentPosition = wheel2.getCurrentPosition();
-        turretError = turretTargetPos - currentPosition;
-
-
-        if (Math.abs(turretError)<125) {
-            turretPower = 0;
-            turret1.setPower(turretPower);
-            turret2.setPower(turretPower);
-            turret3.setPower(turretPower);
-            return;
-        }
-        else if (Math.abs(turretError) < 1000) {
-            turretPower = fineTurretController.calculate(0, turretError);
-        }
-        else {
-            turretPower = turretController.calculate(0, turretError);
-        }
-        turretPower = turretPower + Math.signum(turretPower)*turretKStatic;
-        turretPower = Range.clip(turretPower, -1, 1);
-        turret1.setPower(turretPower);
-        turret2.setPower(turretPower);
-        turret3.setPower(turretPower);
+        turret1.setPosition(turretTargetPos);
+        turret2.setPosition(turretTargetPos);
     }
 
     public void setFullPowerThreshold(double k) {
-        turretController.setFullPowerThreshold(k);
     }
 
     public void resetTurret() {
-        setTurretTargetPos(0);
-        turretController.reset();
-        fineTurretController.reset();
+        setTurretTargetPos(zero);
     }
 
     public double getTurretAngle() {
-        return ((double)-currentPosition/17000) * 90;
+        return (turretTargetPos-zero)*90/ninetyValue;
     }
 
     public double getPosition() {
-        return wheel2.getCurrentPosition();
+        return turretTargetPos;
     }
 
-    public static int angleToPosition(double angle) {
-        return (int)((angle/90.0)*(-17000));
+    public static double angleToPosition(double angle) {
+        angle = normalizeDegrees(angle);
+        return (double) (angle/90.0) * ninetyValue + zero;
     }
 
     public void setHood(double pos) {
@@ -265,11 +262,11 @@ public class Shooter {
 
 
     public void setTurretPID(double p, double i, double d) {
-        turretController.setPID(p, i, d);
+//        turretController.setPID(p, i, d);
     }
 
     public void setFineTurretPID(double p, double i, double d) {
-        fineTurretController.setPID(p, i, d);
+//        fineTurretController.setPID(p, i, d);
     }
 
     public void setShooterThreshold(int threshold) {
@@ -277,10 +274,23 @@ public class Shooter {
     }
 
     public void setTurretKStatic(double k) {
-        turretKStatic = k;
+
+//        turretKStatic = k;
     }
 
     public void setHoodAdjustmentConstant(double k) {
         hoodAdjustmentConstant = k;
+    }
+
+    public double getBallVelocity(double velocity) {
+        return (velocity / 48 * 1.5);
+    }
+
+    public void setDelayTime(double k) {
+        delayTime = k;
+    }
+
+    public void setShootTime(double k) {
+        shootTime = k;
     }
 }

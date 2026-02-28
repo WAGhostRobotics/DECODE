@@ -11,16 +11,24 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SimpleIntake {
+    private static final Logger log = LoggerFactory.getLogger(SimpleIntake.class);
     DcMotorEx intake;
     DcMotorEx loader;
     RevColorSensorV3 distance;
     RevColorSensorV3 intakeDistance;
+    RevColorSensorV3 intakeDistanceTwo;
+
+    RevColorSensorV3 midDistance;
     // Loop optimizer
     long lastTime = System.nanoTime();
     double highSensorDistance = 0;
     double lowerSensorDistance = 0;
+    double secondLowerSensorDistance = 0;
+    double midSensorDistance = 0;
 
     double currentLoader;
     double currentIntake;
@@ -29,18 +37,25 @@ public class SimpleIntake {
     double power;
     double outPower;
     public static final double oneBallInThreshold = 2.0;
+    public static double midSensorThreshold = 2.7;
     public static double rampFullThreshold = 7.5;
+    public static double secondFullThreshold = 3.2;
+    boolean initialized;
+
     private double[] rampReadings;
+    private double[] midReadings;
     double minReading, maxReading, avgReading;
+    double avgReadingMid;
     private final int numReadings = 5;
     private int index = 0;
     public static final double currentThresholdLoader = 5.0;
     public static final double currentThresholdIntake = 4.0;
-    boolean oneBallIn;
+    boolean oneBallIn, twoBallIn;
     boolean full;
-    ElapsedTime loaderTimer;
+    ElapsedTime loaderTimer, intakeTimer;
     double timerThreshold = 0.5;
-    double antiShootPower = -0.09;
+    double intakeTimerThreshold = 0.35;
+    double antiShootPower = -0.08;
 
 
     public SimpleIntake(HardwareMap hardwareMap) {
@@ -48,6 +63,8 @@ public class SimpleIntake {
         loader = hardwareMap.get(DcMotorEx.class, "loader");
         distance = hardwareMap.get(RevColorSensorV3.class, "distance");
         intakeDistance = hardwareMap.get(RevColorSensorV3.class, "intakeDistance");
+        intakeDistanceTwo = hardwareMap.get(RevColorSensorV3.class, "intakeDistanceTwo");
+        midDistance = hardwareMap.get(RevColorSensorV3.class, "midDistance");
         gate = hardwareMap.get(Servo.class, "gate");
         full = false;
         closeGate();
@@ -57,21 +74,27 @@ public class SimpleIntake {
         power = 1;
         outPower = 0.6;
         rampReadings = new double[numReadings];
+        midReadings = new double[numReadings];
         index = 0;
         loaderTimer = new ElapsedTime();
+        intakeTimer = new ElapsedTime();
+        initialized = false;
     }
 
     public void updateIntake() {
         long now = System.nanoTime();
-        if (now - lastTime > 16_500_000) {
+        if (now - lastTime > 33_000_000) {
             lowerSensorDistance = intakeDistance.getDistance(DistanceUnit.CM);
+            secondLowerSensorDistance = intakeDistanceTwo.getDistance(DistanceUnit.CM);
+            midSensorDistance = midDistance.getDistance(DistanceUnit.CM);
             index = (index + 1) % numReadings;
             rampReadings[index] = lowerSensorDistance;
+            midReadings[index] = midSensorDistance;
             lastTime = now;
-            highSensorDistance = distance.getDistance(DistanceUnit.CM);
+            if (!oneBallIn)
+                highSensorDistance = distance.getDistance(DistanceUnit.CM);
             getMaxAndMin();
             getCurrentDrawLoader();
-            getCurrentDrawIntake();
         }
 
         if (!oneBallIn && (highSensorDistance <= oneBallInThreshold || currentLoader > currentThresholdLoader) ) {
@@ -79,13 +102,29 @@ public class SimpleIntake {
             loaderStop();
         }
 
-        if (oneBallIn && (maxReading <= rampFullThreshold)) {
-            full = true;
-            power = 0;
+        if (oneBallIn && (avgReadingMid <= midSensorThreshold)) {
+            twoBallIn = true;
+        }
+        if (!twoBallIn) {
+            full = false;
+        }
+
+        if (twoBallIn && ((maxReading <= rampFullThreshold) || (secondLowerSensorDistance<=secondFullThreshold))) {
+            if (intakeTimer.seconds() > intakeTimerThreshold) {
+                full = true;
+                power = 0;
+                Gus.ledLights.green();
+            }
         }
         else if (minReading >= rampFullThreshold) {
             power = 1;
+            Gus.ledLights.orange();
+            intakeTimer.reset();
         }
+        else {
+            intakeTimer.reset();
+        }
+
     }
 
     public void rollerIn() {
@@ -100,7 +139,12 @@ public class SimpleIntake {
         }
         else {
             intake.setPower(power);
-            loader.setPower(antiShootPower);
+            if (twoBallIn) {
+                loader.setPower(antiShootPower);
+            }
+            else {
+                loader.setPower(0);
+            }
         }
     }
 
@@ -110,7 +154,13 @@ public class SimpleIntake {
     }
 
     public void setRampFullThreshold() {
-        rampFullThreshold = avgReading-1;
+        initialized = true;
+        rampFullThreshold = avgReading-0.65;
+        midSensorThreshold = avgReadingMid-1.3;
+    }
+
+    public boolean isInitialized() {
+        return initialized;
     }
 
     public void slowRollerIn() {
@@ -127,6 +177,8 @@ public class SimpleIntake {
             loaderTimer.reset();
             power = 1;
             full = false;
+            twoBallIn = false;
+            Gus.ledLights.orange();
         }
     }
 
@@ -167,8 +219,13 @@ public class SimpleIntake {
         return "Power: " + power +
                 "\nCurrent: " + currentLoader +
                 "\nDone: " + oneBallIn +
+                "\nTwoBall In: " + twoBallIn +
+                "\nFull: " + full +
                 "\nRamp Distance: " + lowerSensorDistance +
+                "\nRamp 2 Distance: " + secondLowerSensorDistance +
                 "\nHigh Distance: " + highSensorDistance +
+                "\nMid Distance: " + midSensorDistance +
+                "\nMid Distance: " + midSensorThreshold +
                 "\nThreshold: " + rampFullThreshold;
     }
 
@@ -191,25 +248,33 @@ public class SimpleIntake {
     public boolean isOneBallIn() {
         return oneBallIn;
     }
-
+    public boolean isTwoBallIn() {
+        return twoBallIn;
+    }
     public boolean isFull() {
         return full;
     }
 
     public void getMaxAndMin() {
         double sum = 0;
+        double midSum = 0;
         double max = rampReadings[0];
         double min = rampReadings[0];
-        for (double reading: rampReadings) {
+        for (int i = 0; i<numReadings; i++) {
+            double reading = rampReadings[i];
+            double midReading = midReadings[i];
             if (reading > max)
                 max = reading;
             if (reading < min)
                 min = reading;
             sum += reading;
+            midSum += midReading;
+
         }
         avgReading = sum/numReadings;
         maxReading = max;
         minReading = min;
+        avgReadingMid = midSum/numReadings;
     }
 
     public void setAntiShootPower(double pw) {

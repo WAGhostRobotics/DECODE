@@ -21,6 +21,7 @@ public class CollectSpikesV3 extends Command {
     @Override
     public void update() {
         Gus.intake.rollerIn();
+        Gus.intake.updateIntake();
     }
 
     @Override

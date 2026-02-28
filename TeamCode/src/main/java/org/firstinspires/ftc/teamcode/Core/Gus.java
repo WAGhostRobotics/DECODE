@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Core;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.Components.LedLights;
 import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Components.Camera;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
@@ -22,6 +23,7 @@ public class Gus {
 
     public static Shooter shooter;
     public static SimpleIntake intake;
+    public static LedLights ledLights;
 
     public static void init(HardwareMap hardwareMap) {
         shooterLUT = new ShooterLUT();
@@ -35,6 +37,8 @@ public class Gus {
         intake = new SimpleIntake(hardwareMap);
         limelight = new Camera(hardwareMap);
         shooter.setHood(0);
+        ledLights = new LedLights(hardwareMap);
+
 
     }
 
@@ -51,6 +55,8 @@ public class Gus {
         intake = new SimpleIntake(hardwareMap);
         limelight = new Camera(hardwareMap, blueAlliance);
         shooter.setHood(0);
+        ledLights = new LedLights(hardwareMap);
+
 
 
 
@@ -69,14 +75,9 @@ public class Gus {
         intake = new SimpleIntake(hardwareMap);
         limelight = new Camera(hardwareMap, blueAlliance);
         shooter.setHood(0);
+        ledLights = new LedLights(hardwareMap);
         if (teleop) {
             Gus.intake.openGate();
-        }
-
-        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
-
-        for (LynxModule hub : allHubs) {
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
 

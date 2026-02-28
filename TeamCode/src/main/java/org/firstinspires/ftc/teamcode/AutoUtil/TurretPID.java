@@ -15,7 +15,7 @@ package org.firstinspires.ftc.teamcode.AutoUtil;
 public class TurretPID {
 
     private double kP, kI, kD;
-    private double fullPowerThreshold = 4250;
+    private double fullPowerThreshold = 6000;
     private double setPoint;
     private double measuredValue;
     private double minIntegral, maxIntegral;

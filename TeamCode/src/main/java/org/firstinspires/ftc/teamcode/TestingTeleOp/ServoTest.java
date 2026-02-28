@@ -4,34 +4,32 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name = "Setting Position" )
+@TeleOp(name = "Zero Position" )
 public class ServoTest extends OpMode {
-    long lastTime = System.nanoTime();
-    Servo servo;
+    Servo s1;
+    Servo s2;
 
     @Override
+
     public void init() {
-        servo = hardwareMap.get(Servo.class, "gate");
-        servo.setPosition(0);
-        telemetry.setMsTransmissionInterval(200);
+        s1 = hardwareMap.get(Servo.class, "lift1");
+        s2 = hardwareMap.get(Servo.class, "lift2");
+        s1.setPosition(0);
+        s2.setPosition(1);
     }
 
     @Override
     public void loop () {
-        if(gamepad1.a) {
-            servo.setPosition(servo.getPosition() + 0.001);
+        if(gamepad1.dpad_up) {
+            s1.setPosition(s1.getPosition() + 0.001);
+            s2.setPosition(1 - (s1.getPosition() + 0.001));
         } else if(gamepad1.b){
-            servo.setPosition(servo.getPosition() - 0.001);
+            s1.setPosition(s1.getPosition() - 0.001);
+            s2.setPosition(1 - (s1.getPosition() - 0.001));
         }
 
-        telemetry.addData("servo position", servo.getPosition());
-        telemetry.addData("Loop Speed: ", calculateLoopSpeed());
+        telemetry.addData("Lift1 position", s1.getPosition());
+        telemetry.addData("Lift2 position", s2.getPosition());
         telemetry.update();
-    }
-    private double calculateLoopSpeed() {
-        long now = System.nanoTime();
-        double dt = (now-lastTime) / 1e9;
-        lastTime = now;
-        return 1.0/dt;
     }
 }

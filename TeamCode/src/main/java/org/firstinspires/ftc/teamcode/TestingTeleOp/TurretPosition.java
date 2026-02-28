@@ -1,21 +1,35 @@
 package org.firstinspires.ftc.teamcode.TestingTeleOp;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.Components.Shooter;
+
+@Config
 @TeleOp
 public class TurretPosition extends OpMode {
 
-    DcMotorEx wheel1;
+    Servo turret1;
+    Servo turret2;
+    public static double pos = 0.5;
+    public static double angle = 0;
     @Override
     public void init() {
-        wheel1 = hardwareMap.get(DcMotorEx.class, "wheel2");
+        turret1 = hardwareMap.get(Servo.class, "turret1");
+        turret2 = hardwareMap.get(Servo.class, "turret2");
+
     }
 
     @Override
     public void loop() {
-        telemetry.addData("Position: ", wheel1.getCurrentPosition());
+        pos = Shooter.angleToPosition(angle);
+        turret1.setPosition(pos);
+        turret2.setPosition(pos);
+
+        telemetry.addData("Position: ", pos);
         telemetry.update();
     }
 }

@@ -4,57 +4,77 @@ import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.ReadWriteFile;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.internal.files.DataLogger;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.LoopRateTracker;
 import org.firstinspires.ftc.teamcode.AutoUtil.MergedBezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.AutoUtil.Point;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectBalls;
+import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesV2;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesV3;
 import org.firstinspires.ftc.teamcode.CommandBase.FollowTrajectory;
+import org.firstinspires.ftc.teamcode.CommandBase.GateCollect;
 import org.firstinspires.ftc.teamcode.CommandBase.ScoreThreeArtifacts;
+import org.firstinspires.ftc.teamcode.CommandBase.Wait;
 import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.SequentialCommand;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
 
 @Autonomous
-public class RedGateAuto extends LinearOpMode {
-    ElapsedTime timer;
+public class RedGateAuto extends OpMode {
+    private final Logger log = LoggerFactory.getLogger(RedGateAuto.class);
+    File file;
+
     LoopRateTracker loopRateTracker = new LoopRateTracker();
-    Bezier shootPath, spike1Path, spike2Path, openGatePath, openGateSpikePath, spike3Path, spike3ToShoot, spike1ToShoot, spike2ToShoot, rotate90, spike2intake, spike3intake;
-    public static int multiplier=1;
-    public static Point shootingPos = new Point(48.5, -13.6);
-    public static Point farShootingPos = new Point(-125.7, 20.28);
-    public static Point spike1take = new Point(48.5, 21);
-    public static Point spike2 = new Point(73, -2); // **
-    public static Point spike3 = new Point(96, -2.27);
-    public static Point spike2take = new Point(71.2, 27.5);// **
-    public static Point spike3take = new Point(96,27);
+    Bezier shootPath, spike1Path, spike2Path, openGatePath,
+            openGateSpikePath, spike3Path, spike3ToShoot, spike1ToShoot,
+            spike2ToShoot, rotate90, spike2intake, spike3intake, gateIntakePath, gateIntakePush;
+    public int multiplier=1;
+    public Point shootingPos = new Point(48.5, -13.6);
+    public Point farShootingPos = new Point(-125.7, 20.28);
+    public Point spike1take = new Point(48.5, 21);
+    public Point spike2 = new Point(72, -2); // **
+    public Point spike3 = new Point(96, -2.27);
+    public Point spike2take = new Point(71.2, 27.5);// **
+    public Point spike3take = new Point(96,27);
 
-    public static Point openGate = new Point(74.2, 26.3);
-    public static Point openGateSpike = new Point(67.2, 22);
+    public Point openGate = new Point(74.8, 26.3);
+    public Point openGateSpike = new Point(67.2, 22);
+    public Point gateIntake = new Point(81, 28);
 
-    public static Point openGatePrepPoint = new Point(64.5, 19);
+    public Point openGatePrepPoint = new Point(64.5, 19);
 
     MotionPlanner follower;
     Pose2D startingPose = new Pose2D(DistanceUnit.INCH, 20.51, 22.50, AngleUnit.DEGREES, 90);
-    int velocity = 165;
-    double turretAngle = -136, hoodPos = 0.40;
+    int velocity = 160;
+    double turretAngle = -134, hoodPos = 0.45;
+    DataLogger logger;
+    SequentialCommand scheduler;
+
 
 
 
     @Override
-    public void runOpMode() throws InterruptedException {
-        timer = new ElapsedTime();
-        shootingPos = new Point(shootingPos.getX(), multiplier* shootingPos.getY());
-        spike1take = new Point(spike1take.getX(), multiplier* spike1take.getY());
+    public void init() {
+        file = AppUtil.getInstance().getSettingsFile("Headings.txt");
+        shootingPos = new Point(shootingPos.getX(), multiplier * shootingPos.getY());
+        spike1take = new Point(spike1take.getX(), multiplier * spike1take.getY());
         Gus.init(hardwareMap, true, false);
         follower = new MotionPlanner(Gus.drivetrain, Gus.localizer, hardwareMap);
         follower.setMovementPower(0.9);
@@ -75,18 +95,36 @@ public class RedGateAuto extends LinearOpMode {
                 )
         );
 
+        gateIntakePath = new MergedBezier(
+                new Bezier(
+                        135,
+                        openGate,
+                        new Point(gateIntake.getX(), openGate.getY()-6.5)
+                ),
+                new Bezier(
+                        135,
+                        new Point(gateIntake.getX(), openGate.getY()-6.5),
+                        gateIntake
+                )
+        );
+
+        gateIntakePush = new Bezier(
+                180,
+                gateIntake,
+                new Point(gateIntake.getX()-2, gateIntake.getY()+3.5)
+        );
+
         openGateSpikePath = new MergedBezier(
                 90,
                 new Bezier(
                         spike2take,
-                        new Point(spike2.getX(), spike2.getY()+9)
+                        new Point(spike2.getX(), spike2.getY() + 9)
                 ),
                 new Bezier(
-                        new Point(spike2.getX(), spike2.getY()+9),
+                        new Point(spike2.getX(), spike2.getY() + 9),
                         openGateSpike
                 )
         );
-
 
 
         spike1Path = new MergedBezier(90,
@@ -96,19 +134,19 @@ public class RedGateAuto extends LinearOpMode {
                 )
         );
 
-        spike2Path = new Bezier( 90,
+        spike2Path = new Bezier(90,
                 shootingPos,
                 new Point(spike2.getX(), spike2.getY())
         );
 
-        spike2intake = new MergedBezier(90,
+        spike2intake = new MergedBezier(100,
                 new Bezier(
                         shootingPos,
                         spike2
                 ),
                 new Bezier(
                         spike2,
-                        spike2take
+                        openGateSpike
                 )
         );
 
@@ -121,10 +159,10 @@ public class RedGateAuto extends LinearOpMode {
         spike3intake = new MergedBezier(90,
                 new Bezier(
                         shootingPos,
-                        new Point(spike3.getX()-5, spike3.getY())
+                        new Point(spike3.getX() - 5, spike3.getY())
                 ),
                 new Bezier(
-                        new Point(spike3.getX()-5, spike3.getY()),
+                        new Point(spike3.getX() - 5, spike3.getY()),
                         spike3take
                 )
         );
@@ -137,10 +175,10 @@ public class RedGateAuto extends LinearOpMode {
         spike2ToShoot = new MergedBezier(90,
                 new Bezier(
                         openGateSpike,
-                        new Point(spike2.getX(), spike2.getY()+9)
+                        new Point(spike2.getX()-5, spike2.getY() + 12)
                 ),
                 new Bezier(
-                        new Point(spike2.getX(), spike2.getY()+9),
+                        new Point(spike2.getX()-5, spike2.getY() + 12),
                         shootingPos
                 )
         );
@@ -155,35 +193,41 @@ public class RedGateAuto extends LinearOpMode {
                 shootingPos,
                 spike1take
         );
-
-        SequentialCommand scheduler = getSequentialCommand();
+        scheduler = getSequentialCommand();
         scheduler.init();
-        while (opModeInInit()) {
-            Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle));
-            Gus.shooter.updateTurret();
-            Gus.shooter.getTurretAngle();
-        }
-
-        waitForStart();
-        while (opModeIsActive()) {
-            loopRateTracker.updateLoopRate();
-            scheduler.update();
-            Gus.localizer.update();
-            Gus.shooter.updateShooter();
-            Gus.shooter.updateTurret();
-            follower.update();
-            Gus.shooter.getTurretAngle();
-            Gus.intake.updateIntake();
-            telemetry.addData("Loop Speed: ", loopRateTracker.getLoopRateHz());
-            telemetry.addData("MP: ", follower.getTelemetry());
-            telemetry.update();
-            timer.reset();
-        }
     }
 
+    @Override
+    public void init_loop()  {
+        Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle));
+        Gus.shooter.updateTurret();
+        Gus.shooter.getTurretAngle();
+    }
+
+    @Override
+    public void loop()  {
+        loopRateTracker.updateLoopRate();
+        scheduler.update();
+        Gus.localizer.update();
+        Gus.shooter.updateShooter();
+//        ReadWriteFile.writeFile(file, Double.toString(Gus.localizer.getHeading()));
+
+        follower.update();
+        if (!Gus.intake.isInitialized()) {
+            Gus.intake.updateIntake();
+        }
+        telemetry.addData("Loop Speed: ", loopRateTracker.getLoopRateHz());
+        telemetry.addData("MP: ", follower.getTelemetry());
+        telemetry.update();
+    }
+
+    @Override
+    public void stop() {
+        ReadWriteFile.writeFile(file, Double.toString(Gus.localizer.getHeading()));
+    }
     @NonNull
     private SequentialCommand getSequentialCommand() {
-        SequentialCommand scheduler = new SequentialCommand(
+        scheduler = new SequentialCommand(
                 new RunCommand(()-> Gus.localizer.setPose(startingPose)),
                 new ParallelCommand(
                         new RunCommand(()-> Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle)))
@@ -193,16 +237,22 @@ public class RedGateAuto extends LinearOpMode {
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, spike2intake),
-                        new CollectSpikesV3(follower)
+                        new CollectSpikesV2(follower)
                 ),
 
 
                 new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
-                new ParallelCommand(
-                        new FollowTrajectory(follower, openGatePath),
-                        new CollectBalls(follower, 1.5)
-                ),
+                new FollowTrajectory(follower, openGatePath),
+                new Wait(300),
+                new GateCollect(follower, gateIntakePath, gateIntakePush),
+                new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
+
+                new FollowTrajectory(follower, openGatePath),
+                new Wait(300),
+                new GateCollect(follower, gateIntakePath, gateIntakePush),
+                new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
+
                 new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
 //                new ParallelCommand(
@@ -224,20 +274,18 @@ public class RedGateAuto extends LinearOpMode {
                 new ScoreThreeArtifacts(follower, spike1ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
 
-                new FollowTrajectory(follower, spike3Path),
-                new ParallelCommand(
-                        new FollowTrajectory(follower, spike3intake),
-                        new CollectSpikesV3(follower)
-                ),
-                new ScoreThreeArtifacts(follower, spike3ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
+//                new ParallelCommand(
+//                        new FollowTrajectory(follower, spike3intake),
+//                        new CollectSpikesV3(follower)
+//                ),
+//                new ScoreThreeArtifacts(follower, spike3ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, rotate90),
-                        new RunCommand(()-> Gus.shooter.setTurretTargetPos(0))
+                        new RunCommand(()-> Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(0)))
                 )
 
         );
         return scheduler;
     }
-
 }

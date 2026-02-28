@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.CommandSystem.SequentialCommand;
 import org.firstinspires.ftc.teamcode.Core.Gus;
 
 public class ScoreThreeArtifacts extends SequentialCommand {
-    public ScoreThreeArtifacts(MotionPlanner follower, Bezier path, double flywheelVelocity, int turretPos, double hoodPos) {
+    public ScoreThreeArtifacts(MotionPlanner follower, Bezier path, double flywheelVelocity, double turretPos, double hoodPos) {
         super(
                 new ParallelCommand(
                         new RunCommand(()-> Gus.intake.shootStop()),
@@ -20,6 +20,7 @@ public class ScoreThreeArtifacts extends SequentialCommand {
                 ),
                 new Wait(100),  // Remove later
                 new Shoot(1.2),
+                new RunCommand(()-> follower.forceComplete()),
                 new RunCommand(()-> Gus.shooter.setTargetVelocity(0)),
                 new ParallelCommand(
                         new RunCommand(()-> Gus.intake.closeGate()),

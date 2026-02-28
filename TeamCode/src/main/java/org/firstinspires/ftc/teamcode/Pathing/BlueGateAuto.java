@@ -4,11 +4,14 @@ import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.ReadWriteFile;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.LoopRateTracker;
 import org.firstinspires.ftc.teamcode.AutoUtil.MergedBezier;
@@ -24,8 +27,11 @@ import org.firstinspires.ftc.teamcode.CommandSystem.SequentialCommand;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Core.Gus;
 
+import java.io.File;
+
 @Autonomous
-public class BlueGateAuto extends LinearOpMode {
+public class BlueGateAuto extends OpMode {
+    File file;
     ElapsedTime timer;
     LoopRateTracker loopRateTracker = new LoopRateTracker();
     Bezier shootPath, spike1Path, spike2Path, openGatePath, openGateSpikePath, spike3Path, spike3ToShoot, spike1ToShoot, spike2ToShoot, rotate90, spike2intake, spike3intake;
@@ -48,13 +54,15 @@ public class BlueGateAuto extends LinearOpMode {
 
     int velocity = 163;
     double turretAngle = 134, hoodPos = 0.4;
+    SequentialCommand scheduler;
 
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void init() {
+        file = AppUtil.getInstance().getSettingsFile("Headings.txt");
         timer = new ElapsedTime();
-        shootingPos = new Point(shootingPos.getX(), multiplier* shootingPos.getY());
-        spike1take = new Point(spike1take.getX(), multiplier* spike1take.getY());
+        shootingPos = new Point(shootingPos.getX(), multiplier * shootingPos.getY());
+        spike1take = new Point(spike1take.getX(), multiplier * spike1take.getY());
         Gus.init(hardwareMap, true, false);
         follower = new MotionPlanner(Gus.drivetrain, Gus.localizer, hardwareMap);
         follower.setMovementPower(0.9);
@@ -79,10 +87,10 @@ public class BlueGateAuto extends LinearOpMode {
                 -90,
                 new Bezier(
                         spike2take,
-                        new Point(spike2.getX(), spike2.getY()-13)
+                        new Point(spike2.getX(), spike2.getY() - 13)
                 ),
                 new Bezier(
-                        new Point(spike2.getX(), spike2.getY()-13),
+                        new Point(spike2.getX(), spike2.getY() - 13),
                         openGateSpike
                 )
         );
@@ -95,7 +103,7 @@ public class BlueGateAuto extends LinearOpMode {
                 )
         );
 
-        spike2Path = new Bezier( -90,
+        spike2Path = new Bezier(-90,
                 shootingPos,
                 new Point(spike2.getX(), spike2.getY())
         );
@@ -103,10 +111,10 @@ public class BlueGateAuto extends LinearOpMode {
         spike2intake = new MergedBezier(-90,
                 new Bezier(
                         shootingPos,
-                        new Point(spike2.getX()-6, spike2.getY())
+                        new Point(spike2.getX() - 6, spike2.getY())
                 ),
                 new Bezier(
-                        new Point(spike2.getX()-6, spike2.getY()),
+                        new Point(spike2.getX() - 6, spike2.getY()),
                         spike2take
                 )
         );
@@ -121,10 +129,10 @@ public class BlueGateAuto extends LinearOpMode {
         spike3intake = new MergedBezier(-90,
                 new Bezier(
                         shootingPos,
-                        new Point(spike3.getX()-6, spike3.getY())
+                        new Point(spike3.getX() - 6, spike3.getY())
                 ),
                 new Bezier(
-                        new Point(spike3.getX()-6, spike3.getY()),
+                        new Point(spike3.getX() - 6, spike3.getY()),
                         spike3take
                 )
         );
@@ -158,34 +166,42 @@ public class BlueGateAuto extends LinearOpMode {
                 spike1take
         );
 
-        SequentialCommand scheduler = getSequentialCommand();
+        scheduler = getSequentialCommand();
         scheduler.init();
-        while (opModeInInit()) {
-            Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle));
-            Gus.shooter.updateTurret();
-            Gus.shooter.getTurretAngle();
-        }
+    }
 
-        waitForStart();
-        while (opModeIsActive()) {
-            loopRateTracker.updateLoopRate();
-            scheduler.update();
-            Gus.localizer.update();
-            Gus.shooter.updateShooter();
-            Gus.shooter.updateTurret();
-            follower.update();
-            Gus.shooter.getTurretAngle();
-            Gus.intake.updateIntake();
-            telemetry.addData("Loop Speed: ", loopRateTracker.getLoopRateHz());
-            telemetry.addData("MP: ", follower.getTelemetry());
-            telemetry.update();
-            timer.reset();
-        }
+    @Override
+    public void init_loop() {
+        Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle));
+        Gus.shooter.updateTurret();
+        Gus.shooter.getTurretAngle();
+    }
+
+    @Override
+    public void loop () {
+        loopRateTracker.updateLoopRate();
+        scheduler.update();
+        Gus.localizer.update();
+        Gus.shooter.updateShooter();
+        Gus.shooter.updateTurret();
+        ReadWriteFile.writeFile(file, Double.toString(Gus.localizer.getHeading()));
+        follower.update();
+        Gus.shooter.getTurretAngle();
+        Gus.intake.updateIntake();
+        telemetry.addData("Loop Speed: ", loopRateTracker.getLoopRateHz());
+        telemetry.addData("MP: ", follower.getTelemetry());
+        telemetry.update();
+        timer.reset();
+    }
+
+    @Override
+    public void stop() {
+        ReadWriteFile.writeFile(file, Double.toString(Gus.localizer.getHeading()));
     }
 
     @NonNull
     private SequentialCommand getSequentialCommand() {
-        SequentialCommand scheduler = new SequentialCommand(
+        scheduler = new SequentialCommand(
                 new RunCommand(()-> Gus.localizer.setPose(startingPos)),
                 new ParallelCommand(
                         new RunCommand(()-> Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle)))
