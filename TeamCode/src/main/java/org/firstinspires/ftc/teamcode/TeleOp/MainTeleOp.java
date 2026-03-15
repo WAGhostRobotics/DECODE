@@ -37,13 +37,16 @@ public class MainTeleOp extends LinearOpMode {
     public static double xTranslation = 1.76, yTranslation = 1.3;
     public static double tP = 0.00002, tI = 0.000000, tD = 0;
     public static double tPF = 0.0000, tIF = 0.00000, tDF = 0;
-    public static double turretKStatic = 0.04;
-    public static double fullPowerThreshold = 5000;
-    public static double shootTimeConstant = 1.7;
-    public static double velocityConstant = 0;
+    public static double P = 0.03, I=0.00, D = 0, F = 0.00325, S = 0.06;
+
+    public static int visionDelay = 50;
+    public static int pidTimerDelay =50;
     public static boolean moving = false;
-    public static int targetVelocity;
-    public static double hoodPos;
+    public static int targetVelocity = 0;
+    public static double hoodPos = 0;
+
+    int failsafeTargetVelocity = 163;
+    double failsafeHoodPos = 0.38;
     LoopRateTracker loopRateTracker;
 
     protected Pose2D failSafePose = new Pose2D(DistanceUnit.INCH, 69.03, 83.0, DEGREES, 180);
@@ -58,6 +61,7 @@ public class MainTeleOp extends LinearOpMode {
         loopRateTracker = new LoopRateTracker();
         boolean parking = false;
         boolean full = false;
+        boolean reallyFull = false;
         boolean adjustingHood = false;
         boolean wasEmpty = false;
         boolean shooting = true;
@@ -65,6 +69,10 @@ public class MainTeleOp extends LinearOpMode {
         boolean failsafe = false, initialized = false;
         double delay = 1;
         ElapsedTime shootTimer;
+        ElapsedTime visionTimer;
+        ElapsedTime pidTimer;
+        pidTimer = new ElapsedTime();
+        visionTimer = new ElapsedTime();
         shootTimer = new ElapsedTime();
         ToggleButtonReader imuReader = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.A);
         ToggleButtonReader parkButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
@@ -74,24 +82,28 @@ public class MainTeleOp extends LinearOpMode {
         ToggleButtonReader gateReader = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.X);
         ToggleButtonReader shootButton = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.RIGHT_BUMPER);
         ToggleButtonReader slowMoButton = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.A);
+        ToggleButtonReader stopIntakeButton = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.Y);
 
 
         double prevHeading = Double.parseDouble(ReadWriteFile.readFile(file));
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 
         for (LynxModule hub : allHubs) {
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
+        while (opModeInInit()) {
+            Gus.initCamera(hardwareMap, blue);
+            Gus.limelight.start();
+        }
 
         waitForStart();
         Gus.init(hardwareMap, blue, true);
         Gus.intake.closeGate();
 
         while (opModeIsActive()) {
-            for (LynxModule hub : allHubs) {
-                hub.clearBulkCache();
-            }
+            moving = gamepad2.left_bumper;
+
 
 
             if (!initialized) {
@@ -99,6 +111,7 @@ public class MainTeleOp extends LinearOpMode {
                 Gus.localizer.setHeadingDegrees(prevHeading + 90*multiplier);
             }
             loopRateTracker.updateLoopRate();
+//            Gus.shooter.setPID(P, I, D, F, S);
 //            Gus.limelight.setVelocityConstant(velocityConstant);
 //            Gus.limelight.setShootConstant(shootTimeConstant);
 //            Gus.shooter.setFullPowerThreshold(fullPowerThreshold);
@@ -106,7 +119,7 @@ public class MainTeleOp extends LinearOpMode {
 //            Gus.shooter.setTurretKStatic(turretKStatic);
 //            Gus.shooter.setTurretPID(tP, tI, tD);
 //            Gus.shooter.setShooterThreshold(shooterThreshold);
-            Gus.shooter.setHoodAdjustmentConstant(hoodK);
+//            Gus.shooter.setHoodAdjustmentConstant(hoodK);
 //            Gus.limelight.setXYTranslation(xTranslation, yTranslation);
 
             if (failsafeButton.wasJustReleased()) {
@@ -119,8 +132,9 @@ public class MainTeleOp extends LinearOpMode {
             }
 
             Gus.localizer.update();
-            if (Gus.intake.isOneBallIn()) {
-                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), shooting);
+            if (Gus.intake.isOneBallIn() && visionTimer.milliseconds() > visionDelay) {
+                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), moving);
+                visionTimer.reset();
             }
             double distance = Gus.limelight.getDistance();
             if (distance > 2.0) {
@@ -153,24 +167,26 @@ public class MainTeleOp extends LinearOpMode {
                     if (hoodPos == 0)
                         Gus.shooter.setHood(Gus.shooterLUT.getHoodAngle(distance), adjustingHood);
                     else
+                        Gus.shooter.setHood(hoodPos, adjustingHood);
 
-                        Gus.shooter.setHood(hoodPos);
 
                     Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(Gus.limelight.getTurretAngle()));
                 }
                 else {
                     Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(0));
-                    Gus.shooter.setTargetVelocity(targetVelocity);
-                    Gus.shooter.setHood(hoodPos);
+                    Gus.shooter.setTargetVelocity(failsafeTargetVelocity);
+                    Gus.shooter.setHood(failsafeHoodPos);
                 }
             }
             else {
                 Gus.shooter.setTargetVelocity(0);
                 Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(0));
             }
-            Gus.shooter.updateShooter();
-            Gus.shooter.updateTurret();
 
+            if (pidTimer.milliseconds() > pidTimerDelay) {
+                Gus.shooter.updateShooter();
+                pidTimer.reset();
+            }
 
             Gus.intake.updateIntake();
 
@@ -181,6 +197,7 @@ public class MainTeleOp extends LinearOpMode {
             }
 
             if (gateReader.wasJustReleased()) {
+                gamepad2.rumble(200);
                 full = false;
                 wasEmpty = true;
                 shooting = false;
@@ -220,13 +237,16 @@ public class MainTeleOp extends LinearOpMode {
             heading = Gus.localizer.getHeading() - 180;
             theta = normalizeDegrees(theta - heading);
 
-            Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
+            Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.95);
 
 
 
 
             if (gamepad1.left_trigger>0.3) {
                 Gus.intake.rollerOut();
+            }
+            else if (gamepad1.left_bumper) {
+                Gus.intake.rollerStop();
             }
             else if (gamepad1.right_trigger > 0.2) {
                 Gus.intake.bruteRollerIn();
@@ -264,16 +284,13 @@ public class MainTeleOp extends LinearOpMode {
             }
 
 
-
-            if (Gus.intake.gateOpen) {
-                gamepad1.setLedColor(255, 0, 0, 5);
-            }
-            else {
-                gamepad1.setLedColor(0, 255, 0, 5);
-            }
-
             if (slowMoButton.wasJustPressed()) {
                 slowMo = !slowMo;
+            }
+
+            if (stopIntakeButton.wasJustReleased()) {
+                Gus.intake.setFull();
+                full = true;
             }
 
 
@@ -284,6 +301,7 @@ public class MainTeleOp extends LinearOpMode {
             failsafeButton.readValue();
             parkButton.readValue();
             slowMoButton.readValue();
+            stopIntakeButton.readValue();
 
             if (imuReader.wasJustReleased()) {
                 Gus.limelight.resetInitialized();
@@ -291,15 +309,18 @@ public class MainTeleOp extends LinearOpMode {
             }
 
 
-            telemetry.addData("Turret: ", Gus.shooter.getTurretTelemetry());
-            telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
-            telemetry.addData("Distance: ", Gus.limelight.getTelemetry());
+//            telemetry.addData("Turret: ", Gus.shooter.getTurretTelemetry());
+//            telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
+//            telemetry.addData("Limelight\n", Gus.limelight.getTelemetry());
 //            telemetry.addData("X: ", Gus.localizer.getPosX());
 //            telemetry.addData("Y: ", Gus.localizer.getPosY());
-//            telemetry.addData("Heading: ", Gus.localizer.getHeading());
-            telemetry.addData("Intake: ", Gus.intake.getTelemetry());
+            telemetry.addData("Is Limelight chilling: ", Gus.limelight.isAlive());
+            telemetry.addData("Heading: ", Gus.localizer.getHeading());
+//            telemetry.addData("Intake: ", Gus.intake.getTelemetry());
 //            telemetry.addData("Timer: ", shootTimer.seconds());
+            telemetry.addData("Moving: ", moving);
             telemetry.addData("LoopRate: ", loopRateTracker.getLoopRateHz());
+//            telemetry.addData("ID: ", Gus.limelight.getFiducialID());
             telemetry.update();
 
         }

@@ -19,15 +19,29 @@ public class Bezier implements Path {
     private Point[] curvePoints;
     private Point[] curveDerivatives;
     private double[] curveHeadings;
+    boolean headingFollow;
+    double finalHeading = 0;
 
     static double tIncrement = MotionPlannerOld.tIncrement;
 
 
     public Bezier(double heading, Point... waypoints) {
+        finalHeading = heading;
+        this.waypoints = waypoints;
+        this.heading = normalizeDegrees(heading);
+        generateCurve();
+        headingFollow = false;
+    }
+
+    public Bezier(boolean headingFollow, double heading, Point... waypoints) {
+        finalHeading = heading;
+        this.headingFollow = headingFollow;
         this.waypoints = waypoints;
         this.heading = normalizeDegrees(heading);
         generateCurve();
     }
+
+
 
     public Bezier(){}
 
@@ -62,11 +76,16 @@ public class Bezier implements Path {
     public Point getCurvePoints(int i){return curvePoints[i];}
     public Point getCurveDerivatives(int i){return curveDerivatives[i];}
     public double getCurveHeadings(int i){return curveHeadings[i];}
-    public double getFinalHeading() {return curveHeadings[curveHeadings.length-1];}
+    public double getFinalHeading() {
+        return finalHeading;
+    }
 
 
 
     public double getHeading(double t){
+        if (headingFollow) {
+            return normalizeDegrees(Math.toDegrees(Math.atan2(getDerivative(t).getY(), getDerivative(t).getX())));
+        }
         return heading;
     }
 

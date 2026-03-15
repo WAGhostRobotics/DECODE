@@ -53,12 +53,14 @@ public class SimpleIntake {
     boolean oneBallIn, twoBallIn;
     boolean full;
     ElapsedTime loaderTimer, intakeTimer;
-    double timerThreshold = 0.5;
+    double timerThreshold = 0.3;
     double intakeTimerThreshold = 0.35;
     double antiShootPower = -0.08;
+    HardwareMap hwMap;
 
 
     public SimpleIntake(HardwareMap hardwareMap) {
+        hwMap = hardwareMap;
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         loader = hardwareMap.get(DcMotorEx.class, "loader");
         distance = hardwareMap.get(RevColorSensorV3.class, "distance");
@@ -87,12 +89,17 @@ public class SimpleIntake {
             lowerSensorDistance = intakeDistance.getDistance(DistanceUnit.CM);
             secondLowerSensorDistance = intakeDistanceTwo.getDistance(DistanceUnit.CM);
             midSensorDistance = midDistance.getDistance(DistanceUnit.CM);
+            if (lowerSensorDistance > 15) {
+                intakeDistance = hwMap.get(RevColorSensorV3.class, "intakeDistance");
+            }
             index = (index + 1) % numReadings;
             rampReadings[index] = lowerSensorDistance;
             midReadings[index] = midSensorDistance;
             lastTime = now;
             if (!oneBallIn)
                 highSensorDistance = distance.getDistance(DistanceUnit.CM);
+            else
+                highSensorDistance = 10;
             getMaxAndMin();
             getCurrentDrawLoader();
         }
@@ -171,6 +178,13 @@ public class SimpleIntake {
         intake.setPower(-outPower);
     }
 
+    public void setFull() {
+        oneBallIn = true;
+        twoBallIn = true;
+        full = true;
+        power = 0;
+    }
+
     public void setBallIn(boolean ballIn) {
         oneBallIn = ballIn;
         if (!ballIn) {
@@ -216,17 +230,15 @@ public class SimpleIntake {
 
     public String getTelemetry() {
 
-        return "Power: " + power +
-                "\nCurrent: " + currentLoader +
-                "\nDone: " + oneBallIn +
+        return "Done: " + oneBallIn +
                 "\nTwoBall In: " + twoBallIn +
                 "\nFull: " + full +
+                "\nHigh Distance: " + highSensorDistance +
                 "\nRamp Distance: " + lowerSensorDistance +
                 "\nRamp 2 Distance: " + secondLowerSensorDistance +
-                "\nHigh Distance: " + highSensorDistance +
                 "\nMid Distance: " + midSensorDistance +
-                "\nMid Distance: " + midSensorThreshold +
-                "\nThreshold: " + rampFullThreshold;
+                "\nMid Threshold: " + midSensorThreshold +
+                "\nLow Threshold: " + rampFullThreshold;
     }
 
     public double getCurrentDrawLoader() {

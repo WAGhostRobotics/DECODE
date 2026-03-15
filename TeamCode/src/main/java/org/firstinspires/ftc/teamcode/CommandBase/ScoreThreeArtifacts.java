@@ -18,9 +18,7 @@ public class ScoreThreeArtifacts extends SequentialCommand {
                         new RunCommand(()-> Gus.shooter.setTurretTargetPos(turretPos)),
                         new RunCommand(()-> Gus.shooter.setHood(hoodPos))
                 ),
-                new Wait(100),  // Remove later
-                new Shoot(1.2),
-                new RunCommand(()-> follower.forceComplete()),
+                new Shoot(0.9),
                 new RunCommand(()-> Gus.shooter.setTargetVelocity(0)),
                 new ParallelCommand(
                         new RunCommand(()-> Gus.intake.closeGate()),

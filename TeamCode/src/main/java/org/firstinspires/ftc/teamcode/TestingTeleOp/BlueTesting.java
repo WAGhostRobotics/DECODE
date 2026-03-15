@@ -163,7 +163,7 @@ public class BlueTesting extends LinearOpMode {
             telemetry.addData("Heading: ", Gus.localizer.getHeading());
             telemetry.addData("Intake: ", Gus.intake.getTelemetry());
             telemetry.addData("Timer: ", timer.seconds());
-            telemetry.addData("Intake Current: ", Gus.intake.getCurrentDrawIntake());
+//            telemetry.addData("Intake Current: ", Gus.intake.getCurrentDrawIntake());
             telemetry.update();
 
         }

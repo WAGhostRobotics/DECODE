@@ -84,5 +84,8 @@ public class Gus {
 
     }
 
+    public static void initCamera(HardwareMap hardwareMap, boolean blue) {
+        limelight = new Camera(hardwareMap, blue);
+    }
 
 }

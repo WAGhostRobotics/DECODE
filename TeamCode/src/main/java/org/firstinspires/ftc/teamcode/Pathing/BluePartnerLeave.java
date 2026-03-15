@@ -32,13 +32,14 @@ import org.firstinspires.ftc.teamcode.Core.Gus;
 import java.io.File;
 
 @Autonomous
-public class Blue15Lazer extends OpMode {
+public class BluePartnerLeave extends OpMode {
     File file;
     ElapsedTime timer;
     LoopRateTracker loopRateTracker = new LoopRateTracker();
     Bezier shootPath, spike1Path, spike2Path, openGatePath,
             openGateSpikePath, spike3Path, spike3ToShoot, spike1ToShoot,
-            spike2ToShoot, rotate90, spike2intake, spike3intake, gateIntakePath, gateIntakePush;
+            spike2ToShoot, rotate90, spike2intake, spike3intake, gateIntakePath, gateIntakePush,
+            partnerLeave;
     public static int multiplier=1;
     public static Point shootingPos = new Point(51.3, 11.7);
     public static Point spike1take = new Point(51.3, -21.5);
@@ -53,6 +54,7 @@ public class Blue15Lazer extends OpMode {
     public static Point openGatePrepPoint = new Point(68.5, -23.5);
 
     public static Point openGateSpike = new Point(66, -23.5);
+    public Point partner = new Point(119, 12);
 
 
     MotionPlanner follower;
@@ -145,21 +147,28 @@ public class Blue15Lazer extends OpMode {
                 )
         );
 
+        partnerLeave = new MergedBezier(
+                -90,
+                new Bezier(
+                        shootingPos,
+                        new Point(partner.getX()-3, partner.getY()+14)
+                ),
+                new Bezier(
+                        new Point(partner.getX()-3, partner.getY()+14),
+                        partner
+                )
+        );
+
         spike3Path = new Bezier(-90,
                 shootingPos,
                 spike3
         );
 
 
-        spike3intake = new MergedBezier(-90,
-                new Bezier(
-                        shootingPos,
-                        new Point(spike3.getX() - 6, spike3.getY())
-                ),
-                new Bezier(
-                        new Point(spike3.getX() - 6, spike3.getY()),
-                        spike3take
-                )
+        spike3intake = new Bezier(-90,
+                partner,
+                new Point(spike3.getX()+2, partner.getY()+6),
+                spike3take
         );
 
 
@@ -242,15 +251,15 @@ public class Blue15Lazer extends OpMode {
 
                 new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
-                new FollowTrajectory(follower, openGatePath),
-                new Wait(300),
-                new GateCollect(follower, gateIntakePath, gateIntakePush),
-                new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
-
-                new FollowTrajectory(follower, openGatePath),
-                new Wait(300),
-                new GateCollect(follower, gateIntakePath, gateIntakePush),
-                new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
+//                new FollowTrajectory(follower, openGatePath),
+//                new Wait(300),
+//                new GateCollect(follower, gateIntakePath, gateIntakePush),
+//                new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
+//
+//                new FollowTrajectory(follower, openGatePath),
+//                new Wait(300),
+//                new GateCollect(follower, gateIntakePath, gateIntakePush),
+//                new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
 
                 new ParallelCommand(
@@ -259,12 +268,13 @@ public class Blue15Lazer extends OpMode {
                 ),
                 new ScoreThreeArtifacts(follower, spike1ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
-//
-//                new ParallelCommand(
-//                        new FollowTrajectory(follower, spike3intake),
-//                        new CollectSpikesV3(follower)
-//                ),
-//                new ScoreThreeArtifacts(follower, spike3ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
+                new FollowTrajectory(follower, partnerLeave),
+
+                new ParallelCommand(
+                        new FollowTrajectory(follower, spike3intake),
+                        new CollectSpikesV3(follower)
+                ),
+                new ScoreThreeArtifacts(follower, spike3ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
                 new ParallelCommand(
                         new FollowTrajectory(follower, rotate90),

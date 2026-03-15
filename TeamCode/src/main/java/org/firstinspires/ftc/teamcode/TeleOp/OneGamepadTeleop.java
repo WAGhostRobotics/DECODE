@@ -73,23 +73,11 @@ public class OneGamepadTeleop extends LinearOpMode {
         double prevHeading = Double.parseDouble(ReadWriteFile.readFile(file));
 
 
-        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
-
-        for (LynxModule hub : allHubs) {
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-        }
-
         waitForStart();
         Gus.init(hardwareMap, blue, true);
         Gus.intake.closeGate();
 
         while (opModeIsActive()) {
-            for (LynxModule hub : allHubs) {
-                hub.clearBulkCache();
-            }
-
-
-
             if (!initialized) {
                 initialized = true;
                 Gus.localizer.setHeadingDegrees(prevHeading+90);
@@ -113,7 +101,7 @@ public class OneGamepadTeleop extends LinearOpMode {
 
             Gus.localizer.update();
             if (Gus.intake.isOneBallIn()) {
-                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), shooting);
+                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), moving);
             }
             double distance = Gus.limelight.getDistance();
             if (distance > distanceThreshold) {
@@ -191,7 +179,7 @@ public class OneGamepadTeleop extends LinearOpMode {
             heading = Gus.localizer.getHeading() - 180;
             theta = normalizeDegrees(theta - heading);
 
-            Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
+            Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.95);
 
 
 
@@ -226,9 +214,7 @@ public class OneGamepadTeleop extends LinearOpMode {
             }
 
             if (shootButton.wasJustReleased()) {
-                if (!Gus.limelight.isInitialized()) {
-                    Gus.limelight.setLocalizer(Gus.localizer.getHeading() - 180, Gus.shooter.getTurretAngle());
-                }
+                Gus.limelight.setLocalizer(Gus.localizer.getHeading() - 180, Gus.shooter.getTurretAngle());
             }
 
             if (Gus.intake.gateOpen) {

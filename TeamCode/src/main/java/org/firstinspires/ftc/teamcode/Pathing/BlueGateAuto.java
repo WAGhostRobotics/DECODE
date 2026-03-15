@@ -20,7 +20,9 @@ import org.firstinspires.ftc.teamcode.AutoUtil.Point;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectBalls;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesV3;
 import org.firstinspires.ftc.teamcode.CommandBase.FollowTrajectory;
+import org.firstinspires.ftc.teamcode.CommandBase.GateCollect;
 import org.firstinspires.ftc.teamcode.CommandBase.ScoreThreeArtifacts;
+import org.firstinspires.ftc.teamcode.CommandBase.Wait;
 import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.SequentialCommand;
@@ -34,7 +36,9 @@ public class BlueGateAuto extends OpMode {
     File file;
     ElapsedTime timer;
     LoopRateTracker loopRateTracker = new LoopRateTracker();
-    Bezier shootPath, spike1Path, spike2Path, openGatePath, openGateSpikePath, spike3Path, spike3ToShoot, spike1ToShoot, spike2ToShoot, rotate90, spike2intake, spike3intake;
+    Bezier shootPath, spike1Path, spike2Path, openGatePath,
+            openGateSpikePath, spike3Path, spike3ToShoot, spike1ToShoot,
+            spike2ToShoot, rotate90, spike2intake, spike3intake, gateIntakePath, gateIntakePush;
     public static int multiplier=1;
     public static Point shootingPos = new Point(51.3, 11.7);
     public static Point spike1take = new Point(51.3, -21.5);
@@ -44,6 +48,8 @@ public class BlueGateAuto extends OpMode {
     public static Point spike3take = new Point(98,-28);
 
     public static Point openGate = new Point(75.6, -29.7);
+
+    public static Point gateIntake = new Point(82, -31.5);
     public static Point openGatePrepPoint = new Point(68.5, -23.5);
 
     public static Point openGateSpike = new Point(69, -22.5);
@@ -52,8 +58,8 @@ public class BlueGateAuto extends OpMode {
     MotionPlanner follower;
     private Pose2D startingPos = new Pose2D(DistanceUnit.INCH, 21.69, -23.26, AngleUnit.DEGREES, -90);
 
-    int velocity = 163;
-    double turretAngle = 134, hoodPos = 0.4;
+    int velocity = 157;
+    double turretAngle = 132, hoodPos = 0.48;
     SequentialCommand scheduler;
 
 
@@ -72,7 +78,7 @@ public class BlueGateAuto extends OpMode {
         );
 
         openGatePath = new MergedBezier(
-                -118,
+                -125,
                 new Bezier(
                         shootingPos,
                         new Point(openGatePrepPoint.getX(), 5)
@@ -82,6 +88,26 @@ public class BlueGateAuto extends OpMode {
                         openGate
                 )
         );
+
+        gateIntakePath = new MergedBezier(
+                new Bezier(
+                        -135,
+                        openGate,
+                        new Point(gateIntake.getX(), openGate.getY()-6.5)
+                ),
+                new Bezier(
+                        -135,
+                        new Point(gateIntake.getX(), openGate.getY()-6.5),
+                        gateIntake
+                )
+        );
+
+        gateIntakePush = new Bezier(
+                -180,
+                gateIntake,
+                new Point(gateIntake.getX()-2, gateIntake.getY()-3.5)
+        );
+
 
         openGateSpikePath = new MergedBezier(
                 -90,
@@ -183,15 +209,15 @@ public class BlueGateAuto extends OpMode {
         scheduler.update();
         Gus.localizer.update();
         Gus.shooter.updateShooter();
-        Gus.shooter.updateTurret();
-        ReadWriteFile.writeFile(file, Double.toString(Gus.localizer.getHeading()));
+//        ReadWriteFile.writeFile(file, Double.toString(Gus.localizer.getHeading()));
+
         follower.update();
-        Gus.shooter.getTurretAngle();
-        Gus.intake.updateIntake();
+        if (!Gus.intake.isInitialized()) {
+            Gus.intake.updateIntake();
+        }
         telemetry.addData("Loop Speed: ", loopRateTracker.getLoopRateHz());
         telemetry.addData("MP: ", follower.getTelemetry());
         telemetry.update();
-        timer.reset();
     }
 
     @Override
@@ -217,10 +243,9 @@ public class BlueGateAuto extends OpMode {
 
                 new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
-                new ParallelCommand(
-                        new FollowTrajectory(follower, openGatePath),
-                        new CollectBalls(follower, 1.3)
-                ),
+                new FollowTrajectory(follower, openGatePath),
+                new Wait(300),
+                new GateCollect(follower, gateIntakePath, gateIntakePush),
                 new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
                 new ParallelCommand(

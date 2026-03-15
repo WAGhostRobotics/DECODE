@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.Core.Gus;
 
 public class PinpointLocalizer {
     GoBildaPinpointDriver pinpoint;
@@ -39,14 +40,15 @@ public class PinpointLocalizer {
 
     public void update() {
         long now = System.nanoTime();
-        if (now - lastTime > 33_000_000) {
+        long deltaT = now-lastTime;
+        if (deltaT > 33_000_000) {
+            pinpoint.update();
             double x = getPosX();
             double y = getPosY();
-            xVelocity = (x - lastX)/(now-lastTime) * 1e9;
-            yVelocity = (y - lastY)/(now-lastTime) * 1e9;
+            xVelocity = (x - lastX)/(deltaT) * 1e9;
+            yVelocity = (y - lastY)/(deltaT) * 1e9;
             lastX = x;
             lastY = y;
-            pinpoint.update();
             lastTime = now;
         }
     }

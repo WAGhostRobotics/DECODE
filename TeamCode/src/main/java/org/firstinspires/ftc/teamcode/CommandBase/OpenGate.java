@@ -17,7 +17,7 @@ public class OpenGate extends Command {
 
     @Override
     public void update() {
-        if (follower.isEndOfSpline()) {
+        if (follower.isEndOfSpline() || follower.isFinished()) {
             Gus.intake.rollerStop();
             Gus.intake.openGate();
         }

@@ -39,12 +39,14 @@ public class MotionPlanner {
     private boolean forceComplete;
 
     private ElapsedTime timer;
+    private ElapsedTime stuckTimer;
     private double seconds;
     private double distance;
 
 
     public MotionPlanner(Drivetrain drivetrain, PinpointLocalizer localizer, HardwareMap hwMap) {
         timer = new ElapsedTime();
+        stuckTimer = new ElapsedTime();
         translationalControlX.setIntegrationBounds(-10000000, 10000000);
         translationalControlY.setIntegrationBounds(-10000000, 10000000);
         headingControl.setIntegrationBounds(-10000000, 10000000);
@@ -71,6 +73,7 @@ public class MotionPlanner {
 
     private void reset() {
         timer.reset();
+        stuckTimer.reset();
         lastX = 0;
         lastY = 0;
         currentX = 0;
@@ -85,16 +88,7 @@ public class MotionPlanner {
         currentX = localizer.getPosX();
         currentY = localizer.getPosY();
 
-        if (isEndOfSpline) {
-            distance = Math.hypot((currentX - lastX), (currentY - lastY));
-            lastX = currentX;
-            lastY = currentY;
-            seconds = timer.seconds();
-            currentVelocity = distance / seconds;
-        }
-        else {
-            currentVelocity = 0;
-        }
+        currentVelocity = Math.hypot(Gus.localizer.getXVelocity(), Gus.localizer.getYVelocity());
         timer.reset();
     }
     public void getHeadingError(){
@@ -147,7 +141,7 @@ public class MotionPlanner {
         // All these values are recalculated before calling isFinished
         // to make sure the robot is still updating once it reaches the end of the spline
         // (Lil funky... if you don't get this, its fine just let it be)
-
+        isStuck();
         if (!isFinished()) {
             if (index >= speedThresholdPoint) {        // if nearing the end of the spline
                 isEndOfSpline = true;
@@ -275,6 +269,18 @@ public class MotionPlanner {
         return Math.abs(headingError) < permissibleHeadingError && isEndOfSpline;
     }
 
+    private void isStuck() {
+        // && (magnitude > 0.1 || driveTurn > 0.1)
+        if (stopped()) {
+            if (stuckTimer.seconds()>1.5) {
+                forceComplete = true;
+            }
+        }
+        else {
+            stuckTimer.reset();
+        }
+    }
+
     public boolean isFinished() {
         if (forceComplete) {
             return true;
@@ -333,6 +339,9 @@ public class MotionPlanner {
                 "\nX Error: " + xError +
                 "\nY Error: " + yError +
                 "\nStopped: " + stopped() +
+                "\nMagnitude: " + magnitude +
+                "\nDriveTurn: " + driveTurn +
+                "\nStuck timer: " + stuckTimer.seconds() +
                 "\nHeading Error: " + headingError +
                 "\nX Power: " + xPower +
                 "\nY Power: " + yPower +

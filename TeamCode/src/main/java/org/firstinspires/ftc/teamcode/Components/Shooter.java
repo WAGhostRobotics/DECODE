@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.Core.Gus;
 public class Shooter {
 
     Servo rightHood;
-    double hoodAdjustmentConstant = 0.003;
+    double hoodAdjustmentConstant = 0.0018;
     double hoodPos;
     Servo turret1, turret2, turret3;
     public enum PopperPos {
@@ -34,7 +34,7 @@ public class Shooter {
     }
     DcMotorEx wheel1;
     DcMotorEx wheel2;
-    double P = 0.023, I=0.00, D = 0, F = 0.00325, S = 0.06;
+    double P = 0.03, I=0.00, D = 0, F = 0.00325, S = 0.06;
     double currentVelocity, targetVelocity, shooterError, power;
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
@@ -67,6 +67,7 @@ public class Shooter {
 
         wheel1.setDirection(DcMotorSimple.Direction.REVERSE);
         wheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        wheel1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightHood = hardwareMap.get(Servo.class, "rightHood");
 
         targetVelocity = 0;
@@ -85,12 +86,12 @@ public class Shooter {
 
         wheel1 = hardwareMap.get(DcMotorEx.class, "wheel1");
         wheel2 = hardwareMap.get(DcMotorEx.class, "wheel2");
-        wheel2.setDirection(DcMotorSimple.Direction.REVERSE);
+        wheel2.setDirection(DcMotorSimple.Direction.FORWARD);
         if (!teleop) {
             wheel2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
         wheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        wheel1.setDirection(DcMotorSimple.Direction.REVERSE);
+        wheel1.setDirection(DcMotorSimple.Direction.FORWARD);
         rightHood = hardwareMap.get(Servo.class, "rightHood");
         targetVelocity = 0;
     }

@@ -4,6 +4,7 @@ public class MergedBezier extends Bezier{
 
     Bezier[] curves;
     double heading;
+    double finalHeading;
     boolean constantHeading;
 
     double[] mergePoints;
@@ -20,6 +21,7 @@ public class MergedBezier extends Bezier{
         mergePoints[mergePoints.length-1] = 1;
 
         generateCurve();
+        finalHeading = curves[curves.length-1].getFinalHeading();
     }
 
     public MergedBezier(double heading, Bezier... curves){
@@ -36,6 +38,7 @@ public class MergedBezier extends Bezier{
         mergePoints[mergePoints.length-1] = 1;
 
         generateCurve();
+        finalHeading = heading;
     }
 
     @Override
@@ -99,6 +102,11 @@ public class MergedBezier extends Bezier{
     @Override
     public Point getEndPoint() {
         return curves[curves.length-1].getEndPoint();
+    }
+
+    @Override
+    public double getFinalHeading() {
+        return finalHeading;
     }
 
 

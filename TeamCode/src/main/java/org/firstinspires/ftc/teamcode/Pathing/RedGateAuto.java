@@ -224,6 +224,7 @@ public class RedGateAuto extends OpMode {
     @Override
     public void stop() {
         ReadWriteFile.writeFile(file, Double.toString(Gus.localizer.getHeading()));
+        Gus.limelight.stop();
     }
     @NonNull
     private SequentialCommand getSequentialCommand() {
@@ -253,7 +254,6 @@ public class RedGateAuto extends OpMode {
                 new GateCollect(follower, gateIntakePath, gateIntakePush),
                 new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
-                new ScoreThreeArtifacts(follower, spike2ToShoot, velocity, Shooter.angleToPosition(turretAngle), hoodPos),
 
 //                new ParallelCommand(
 //                        new FollowTrajectory(follower, openGatePath),

@@ -53,10 +53,11 @@ public class Camera {
     ElapsedTime timer = new ElapsedTime(), speedTimer = new ElapsedTime();
     private final int timerThreshold = 2;           // In seconds
     private int motifID = 0;
-    boolean blueAlliance = true;
+    boolean blueAlliance;
     boolean initialized;
     boolean forceStop = false;
     double flywheelVelocity;
+    int id;
 
     public Camera(HardwareMap hardwareMap, boolean blueAlliance) {
         forceStop = false;
@@ -64,9 +65,9 @@ public class Camera {
         limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
         timer.reset();
         speedTimer.reset();
-        limelight3A.start();
         this.blueAlliance = blueAlliance;
-        switchToGoalPipeline();
+        limelight3A.start();
+//        switchToGoalPipeline();
 //        if (blueAlliance) {
 //            limelight3A.pipelineSwitch(0);              // Blue april tag Pipeline
 //            yTranslation *= -1;                               // Flipped bc red is other side
@@ -86,7 +87,16 @@ public class Camera {
         netAngle = heading + turretHeading;
         limelight3A.updateRobotOrientation(netAngle);
         LLResult llResult = limelight3A.getLatestResult();
-        if (llResult != null && llResult.isValid() && !forceStop) {       // If April tag is visible
+        if (llResult != null && llResult.isValid()) {
+            id = llResult.getFiducialResults().get(0).getFiducialId();
+        }
+        else {
+            id = 0;
+        }
+
+
+        if ((id == 20 && blueAlliance) || (id == 24 && !blueAlliance)) {
+            // If April tag is visible
             aprilVisible = true;                    // Just for telemetry purposes
             Pose3D botPose = llResult.getBotpose_MT2();
             aprilHeading = botPose.getOrientation().getYaw(DEGREES);
@@ -115,8 +125,6 @@ public class Camera {
                 setLocalizer(heading, turretHeading);
                 initialized = true;
             }
-
-
         }
         else if (initialized) {
 
@@ -178,7 +186,13 @@ public class Camera {
                 "Target Heading: " + targetHeading + "\n" +
                 "Heading Error: " + headingError + "\n" +
                 "TurretAngle: " + turretAngle + "\n" +
-                "Blue Alliance: " + blueAlliance;
+                "Blue Alliance: " + blueAlliance + "\n" +
+                "ID: " + id + "\n" +
+                "Connection Info" + limelight3A.getConnectionInfo() + "\n" +
+                "Last update: " + limelight3A.getTimeSinceLastUpdate() + "\n" +
+                "Status: " + limelight3A.getStatus().getName() + "\n" +
+                "isConnected: " + limelight3A.isConnected() + "\n" +
+                "isRunning: " + limelight3A.isRunning();
 
 
         return returnString;
@@ -304,18 +318,27 @@ public class Camera {
         return normalizeDegrees(degrees);
     }
 
+    public double getFiducialID() {
+//        LLResult llResult = limelight3A.getLatestResult();
+//        if (llResult != null && llResult.isValid()) {
+//            return llResult.getFiducialResults().get(0).getFiducialId();
+//        }
+        return 0;
+    }
+
 
     public void switchToMotifPipeline() {
         limelight3A.pipelineSwitch(2);
     }
 
     public void switchToGoalPipeline() {
-        if (!blueAlliance) {
-            limelight3A.pipelineSwitch(1);              // Red april tag Pipeline
-        }
-        else {
-            limelight3A.pipelineSwitch(0);              // Blue april tag Pipeline
-        }
+//        if (!blueAlliance) {
+//            limelight3A.pipelineSwitch(1);              // Red april tag Pipeline
+//        }
+//        else {
+//            limelight3A.pipelineSwitch(0);              // Blue april tag Pipeline
+//        }
+        limelight3A.pipelineSwitch(0);
     }
     public void switchToBothGoalPipeline() {
         limelight3A.pipelineSwitch(2);
@@ -347,6 +370,8 @@ public class Camera {
     }
 
     public void resetInitialized() {
+        aprilVisible = false;
+//        switchToGoalPipeline();
         initialized = false;
     }
 
@@ -392,5 +417,17 @@ public class Camera {
 
     public double getFlywheelVelocity() {
         return flywheelVelocity;
+    }
+
+    public void stop() {
+        limelight3A.stop();
+    }
+
+    public void start() {
+        limelight3A.start();
+    }
+
+    public boolean isAlive() {
+        return limelight3A.isConnected();
     }
 }
