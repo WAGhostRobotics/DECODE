@@ -38,6 +38,7 @@ public class ShooterTuner extends OpMode {
         Gus.shooter.setTargetVelocity(targetVelocity);
         telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
         telemetry.addData("Voltage: ", hardwareMap.voltageSensor.iterator().next().getVoltage());
+        telemetry.addLine(Gus.shooter.getVelocities());
         telemetry.update();
     }
 }

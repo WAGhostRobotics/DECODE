@@ -197,6 +197,8 @@ public class RedGateNormal extends OpMode {
         Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle));
         Gus.shooter.updateTurret();
         Gus.shooter.getTurretAngle();
+        telemetry.addData("Is limelight chilling: ", Gus.limelight.isAlive());
+        telemetry.update();
     }
 
     @Override

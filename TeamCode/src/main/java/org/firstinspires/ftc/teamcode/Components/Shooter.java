@@ -44,9 +44,9 @@ public class Shooter {
 
     private ShooterPID pidController;
     private static double ninetyValue = 0.28;
-    private static double zero = 0.5;
+    private static double zero = 0.5124;
     double turretTargetPos;
-    int shooterThreshold = 3;
+    int shooterThreshold = 10;
     ElapsedTime shootTimer;
     ElapsedTime delay;
 
@@ -103,6 +103,12 @@ public class Shooter {
     public double getCurrentVelocity() {
         currentVelocity = wheel1.getVelocity(AngleUnit.RADIANS) * 48; // mm
         return currentVelocity;
+    }
+
+    public String getVelocities() {
+        return "Angular (Radians): " + wheel1.getVelocity(AngleUnit.RADIANS) + "\n" +
+                "Angular (Degrees): " + wheel1.getVelocity(AngleUnit.DEGREES) + "\n" +
+                "Ticks: " + wheel1.getVelocity() + "\n";
     }
 
     public void updateShooter() {

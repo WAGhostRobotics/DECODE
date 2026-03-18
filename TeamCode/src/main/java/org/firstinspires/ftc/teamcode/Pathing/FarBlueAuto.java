@@ -163,6 +163,8 @@ public class FarBlueAuto extends OpMode {
     public void init_loop() {
         Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle));
         timer.reset();
+        telemetry.addData("Is limelight chilling: ", Gus.limelight.isAlive());
+        telemetry.update();
     }
 
 

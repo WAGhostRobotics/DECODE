@@ -133,11 +133,11 @@ public class MainTeleOp extends LinearOpMode {
 
             Gus.localizer.update();
             if (Gus.intake.isOneBallIn() && visionTimer.milliseconds() > visionDelay) {
-                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), moving);
+                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), true);
                 visionTimer.reset();
             }
             double distance = Gus.limelight.getDistance();
-            if (distance > 2.0) {
+            if (distance > 0.5) {
                 adjustingHood = true;
             }
             else {
@@ -237,7 +237,7 @@ public class MainTeleOp extends LinearOpMode {
             heading = Gus.localizer.getHeading() - 180;
             theta = normalizeDegrees(theta - heading);
 
-            Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.95);
+            Gus.drivetrain.drive(magnitude, theta, driveTurn, 1);
 
 
 
