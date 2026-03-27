@@ -311,14 +311,16 @@ public class MainTeleOp extends LinearOpMode {
 
 //            telemetry.addData("Turret: ", Gus.shooter.getTurretTelemetry());
 //            telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
-//            telemetry.addData("Limelight\n", Gus.limelight.getTelemetry());
+            telemetry.addData("Limelight\n", Gus.limelight.getPositions());
+            telemetry.addData("Localizer X: ", Gus.localizer.getPosX());
+            telemetry.addData("Localizer Y: ", Gus.localizer.getPosY());
 //            telemetry.addData("X: ", Gus.localizer.getPosX());
 //            telemetry.addData("Y: ", Gus.localizer.getPosY());
-            telemetry.addData("Is Limelight chilling: ", Gus.limelight.isAlive());
+//            telemetry.addData("Is Limelight chilling: ", Gus.limelight.isAlive());
             telemetry.addData("Heading: ", Gus.localizer.getHeading());
 //            telemetry.addData("Intake: ", Gus.intake.getTelemetry());
 //            telemetry.addData("Timer: ", shootTimer.seconds());
-            telemetry.addData("Moving: ", moving);
+//            telemetry.addData("Moving: ", moving);
             telemetry.addData("LoopRate: ", loopRateTracker.getLoopRateHz());
 //            telemetry.addData("ID: ", Gus.limelight.getFiducialID());
             telemetry.update();

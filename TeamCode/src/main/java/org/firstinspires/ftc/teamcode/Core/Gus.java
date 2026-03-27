@@ -70,7 +70,8 @@ public class Gus {
         shooter.init(hardwareMap, teleop);
         Gus.hardwareMap = hardwareMap;
         drivetrain = new MecanumDrive(hardwareMap);
-        localizer = new PinpointLocalizer(hardwareMap);
+        if (teleop)
+            localizer = new PinpointLocalizer(hardwareMap);
         movementPower = 0.8;
         intake = new SimpleIntake(hardwareMap);
         limelight = new Camera(hardwareMap, blueAlliance);

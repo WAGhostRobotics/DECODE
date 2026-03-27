@@ -1,17 +1,20 @@
 package org.firstinspires.ftc.teamcode.CommandBase;
 
+import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
+import org.firstinspires.ftc.teamcode.AutoUtil.PedroUtil;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
 import org.firstinspires.ftc.teamcode.Core.Gus;
 
-public class CollectBalls extends Command {
+public class GateCyclePedro extends Command {
     ElapsedTime timer;
-    MotionPlanner follower;
+    Follower follower;
     boolean finished;
     double seconds;
-    public CollectBalls(double seconds) {
+    public GateCyclePedro(Follower follower, double seconds) {
+        this.follower = follower;
         this.seconds = seconds;
         timer = new ElapsedTime();
     }
@@ -28,7 +31,7 @@ public class CollectBalls extends Command {
 
     @Override
     public void update() {
-        if (follower.isFinished()) {
+        if (PedroUtil.isFinished(follower)) {
             finished = true;
         }
         if (!finished) {
@@ -43,7 +46,7 @@ public class CollectBalls extends Command {
         if (timer.seconds() >= seconds || Gus.intake.isFull()) {
             if (Gus.intake.isFull()) {
                 Gus.intake.rollerStop();
-                follower.forceComplete();
+                follower.breakFollowing();
             }
             Gus.intake.loaderStop();
             return true;
@@ -56,4 +59,3 @@ public class CollectBalls extends Command {
 
     }
 }
-

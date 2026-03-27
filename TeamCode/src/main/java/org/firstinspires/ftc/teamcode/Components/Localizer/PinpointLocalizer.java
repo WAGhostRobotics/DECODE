@@ -6,36 +6,37 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.Core.Gus;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 
 public class PinpointLocalizer {
     GoBildaPinpointDriver pinpoint;
     long lastTime = System.nanoTime();
-    private final double xOffset = -110;
-    private final double yOffset = -100;
+    public final static double xOffset = -4.06;
+    public final static double yOffset = -3.70;
+    // -4, -3.8
     private double lastX = 0, lastY = 0, xVelocity, yVelocity;
 
     public PinpointLocalizer(HardwareMap hardwareMap) {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
-        pinpoint.setOffsets(xOffset, yOffset);
+        pinpoint.setOffsets(xOffset, yOffset, DistanceUnit.INCH);
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.resetPosAndIMU();
-
     }
 
     public void resetHeading() {
         pinpoint.resetPosAndIMU();
     }
     public double getPosX() {
-        return pinpoint.getPosX();
+        return pinpoint.getPosX(DistanceUnit.INCH);
     }
 
     public double getPosY() {
-        return pinpoint.getPosY();
+        return pinpoint.getPosY(DistanceUnit.INCH);
     }
 
     public double getHeading() {
-        return pinpoint.getHeading();
+        return pinpoint.getHeading(AngleUnit.DEGREES);
     }
 
     public void update() {
@@ -66,7 +67,8 @@ public class PinpointLocalizer {
     }
 
     public void setPositionOnly(Pose2D pose) {
-        pinpoint.setPositionOnly(pose);
+        pinpoint.setPosX(pose.getX(DistanceUnit.INCH), DistanceUnit.INCH);
+        pinpoint.setPosY(pose.getY(DistanceUnit.INCH), DistanceUnit.INCH);
     }
 
     public void setHeadingDegrees(double heading) {
@@ -79,6 +81,10 @@ public class PinpointLocalizer {
     }
     public double getYVelocity() {
         return yVelocity;
+    }
+
+    public void setOffsets(double x, double y) {
+        pinpoint.setOffsets(x, y, DistanceUnit.INCH);
     }
 
 }

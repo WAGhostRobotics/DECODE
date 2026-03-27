@@ -198,6 +198,12 @@ public class Camera {
         return returnString;
     }
 
+    public String getPositions() {
+        return "April X (In): " + aprilXInches + "\n" +
+                "April Y (In): " + aprilYInches;
+
+    }
+
 
     // For distance function and Shooter velocity function explanation check Desmos link:
     // https://www.desmos.com/calculator/ffcaewmxtr

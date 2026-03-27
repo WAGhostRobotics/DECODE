@@ -46,7 +46,6 @@ public class RedGateAuto extends OpMode {
             openGateSpikePath, spike3Path, spike3ToShoot, spike1ToShoot,
             spike2ToShoot, rotate90, spike2intake, spike3intake, gateIntakePath, gateIntakePush;
     public int multiplier=1;
-    public Point shootingPos = new Point(48.5, -13.6);
     public Point farShootingPos = new Point(-125.7, 20.28);
     public Point spike1take = new Point(48.5, 21);
     public Point spike2 = new Point(72, -2); // **
@@ -62,6 +61,8 @@ public class RedGateAuto extends OpMode {
 
     MotionPlanner follower;
     Pose2D startingPose = new Pose2D(DistanceUnit.INCH, 20.51, 22.50, AngleUnit.DEGREES, 90);
+    public Point shootingPos = new Point(48.5, -13.6);
+
     int velocity = 160;
     double turretAngle = -134, hoodPos = 0.45;
     DataLogger logger;
