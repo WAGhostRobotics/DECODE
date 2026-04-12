@@ -2,28 +2,30 @@ package org.firstinspires.ftc.teamcode.TestingTeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.Components.LedLights;
 import org.firstinspires.ftc.teamcode.Core.Gus;
 
 @TeleOp
 public class LightTest extends LinearOpMode {
-    boolean red = true;
+
     @Override
     public void runOpMode() throws InterruptedException {
         Gus.init(hardwareMap, false, false);
         waitForStart();
         while (opModeIsActive()) {
-            if (gamepad1.a) {
-                red = true;
+            if (gamepad1.aWasPressed()) {
+                Gus.ledLights.blueColor();
             }
-            else if (gamepad1.b) {
-                red = false;
+            if (gamepad1.bWasReleased()){
+                Gus.ledLights.redColor();
             }
-            if (red) {
-                Gus.ledLights.orange();
+            if (gamepad1.xWasPressed()){
+                Gus.ledLights.pinkColor();
             }
-            else {
-                Gus.ledLights.green();
+            if (gamepad1.yWasPressed()){
+                Gus.ledLights.sparkle();
             }
         }
     }

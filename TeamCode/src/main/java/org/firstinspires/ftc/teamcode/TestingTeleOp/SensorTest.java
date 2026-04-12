@@ -15,6 +15,7 @@ public class SensorTest extends LinearOpMode {
         RevColorSensorV3 ds = hardwareMap.get(RevColorSensorV3.class, "distance");
         RevColorSensorV3 intakeDistance = hardwareMap.get(RevColorSensorV3.class, "intakeDistance");
         RevColorSensorV3 midDistance = hardwareMap.get(RevColorSensorV3.class, "midDistance");
+        RevColorSensorV3 intakeDistanceTwo = hardwareMap.get(RevColorSensorV3.class, "intakeDistanceTwo");
 
         waitForStart();
 
@@ -31,9 +32,10 @@ public class SensorTest extends LinearOpMode {
             telemetry.addData("Color is: ", red);
             telemetry.addData("Color is: ", green);
             telemetry.addData("Color is: ", blue);
-            telemetry.addData("Distance is: ", ds.getDistance(DistanceUnit.CM));
-            telemetry.addData("Distance is: ", intakeDistance.getDistance(DistanceUnit.CM));
+            telemetry.addData("high is: ", ds.getDistance(DistanceUnit.CM));
+            telemetry.addData("low is: ", intakeDistance.getDistance(DistanceUnit.CM));
             telemetry.addData("Mid distance: ", midDistance.getDistance(DistanceUnit.CM));
+            telemetry.addData("Low 2 distance: ", intakeDistanceTwo.getDistance(DistanceUnit.CM));
             telemetry.update();
 
         }

@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.TestingTeleOp;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ReadWriteFile;
@@ -10,6 +12,7 @@ import com.qualcomm.robotcore.util.ReadWriteFile;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,14 +20,20 @@ import java.io.File;
 
 @TeleOp
 @Config
-public class PositionFinder extends OpMode {
-    private static final Logger log = LoggerFactory.getLogger(PositionFinder.class);
-    File file;
-    PinpointLocalizer localizer;
+public class PedroLocalizerTest extends OpMode {
+    Follower follower;
+    Pose startingPose = new Pose(54.5, 113.0,Math.toRadians(180));
 
     @Override
     public void init() {
-        localizer = new PinpointLocalizer(hardwareMap);
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(startingPose);
+        follower.update();
+    }
+
+    @Override
+    public void init_loop() {
+        follower.update();
     }
 
     @Override
@@ -34,15 +43,15 @@ public class PositionFinder extends OpMode {
         double driveTurn = gamepad1.right_stick_x;
         double magnitude = Math.hypot(x, y);
         double theta = Math.toDegrees(Math.atan2(y, x));
-        localizer.update();
+        follower.update();
 
 //        ReadWriteFile.writeFile(file, Double.toString(Gus.localizer.getHeading()));
 
 
 
-        telemetry.addData("X: ", localizer.getPosX());
-        telemetry.addData("Y: ", localizer.getPosY());
-        telemetry.addData("Heading: ", localizer.getHeading());
+        telemetry.addData("X: ", follower.getPose().getX());
+        telemetry.addData("Y: ", follower.getPose().getY());
+        telemetry.addData("Heading: ", Math.toDegrees(follower.getHeading()));
         telemetry.update();
     }
 

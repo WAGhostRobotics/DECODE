@@ -37,7 +37,7 @@ public class Gus {
         intake = new SimpleIntake(hardwareMap);
         limelight = new Camera(hardwareMap);
         shooter.setHood(0);
-        ledLights = new LedLights(hardwareMap);
+//        ledLights = new LedLights(hardwareMap);
 
 
     }
@@ -55,7 +55,7 @@ public class Gus {
         intake = new SimpleIntake(hardwareMap);
         limelight = new Camera(hardwareMap, blueAlliance);
         shooter.setHood(0);
-        ledLights = new LedLights(hardwareMap);
+//        ledLights = new LedLights(hardwareMap);
 
 
 

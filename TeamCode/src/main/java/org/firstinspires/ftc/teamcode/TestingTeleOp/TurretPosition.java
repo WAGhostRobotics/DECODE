@@ -25,7 +25,7 @@ public class TurretPosition extends OpMode {
 
     @Override
     public void loop() {
-        pos = Shooter.angleToPosition(angle);
+//        pos = Shooter.angleToPosition(angle);
         turret1.setPosition(pos);
         turret2.setPosition(pos);
 

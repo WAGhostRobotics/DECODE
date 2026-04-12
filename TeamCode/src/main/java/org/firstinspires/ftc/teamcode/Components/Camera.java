@@ -46,7 +46,7 @@ public class Camera {
     private double targetHeading, headingError, turretAngle = 0, hoodAngle;
 
     private double xTranslation = 1.76;
-    private double yTranslation = 1.3;
+    private double yTranslation = 1.25;
 
     // Translational constant from the april Tag to the actual backboard
 

@@ -8,11 +8,12 @@ import org.firstinspires.ftc.teamcode.CommandSystem.Command;
 import org.firstinspires.ftc.teamcode.Core.Gus;
 
 public class BangBangBang extends Command {
-    final double shootTime = 0.5; //Seconds
+    final double shootTime = 0.4; //Seconds
     Follower follower;
     double threshold;
     int targetVelocity;
     ElapsedTime timer;
+    boolean ready;
     public BangBangBang(Follower follower, double threshold, int targetVelocity) {
         timer = new ElapsedTime();
         this.follower = follower;
@@ -23,6 +24,7 @@ public class BangBangBang extends Command {
 
     @Override
     public void init() {
+        ready = false;
         timer.reset();
         Gus.shooter.setTargetVelocity(targetVelocity);
     }
@@ -32,8 +34,11 @@ public class BangBangBang extends Command {
         if (follower.getCurrentTValue() >= threshold) {
             Gus.intake.openGate();
         }
+        if (Gus.shooter.reachedVelocity()) {
+            ready = true;
+        }
 
-        if (PedroUtil.isFinished(follower)) {
+        if (PedroUtil.isFinished(follower) && ready) {
             Gus.intake.shoot();
         }
         else {

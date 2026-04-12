@@ -34,7 +34,7 @@ public class MainTeleOp extends LinearOpMode {
     public static int shooterThreshold = 3;
     public static double antiShootPower = -0.12;
     public static double hoodK = 0.002;
-    public static double xTranslation = 1.76, yTranslation = 1.3;
+    public static double xTranslation = 1.76, yTranslation = 1.25;
     public static double tP = 0.00002, tI = 0.000000, tD = 0;
     public static double tPF = 0.0000, tIF = 0.00000, tDF = 0;
     public static double P = 0.03, I=0.00, D = 0, F = 0.00325, S = 0.06;
@@ -67,7 +67,7 @@ public class MainTeleOp extends LinearOpMode {
         boolean shooting = true;
         double magnitude, theta, driveTurn, x, y, heading, targetX = 0, targetY = 0, targetHeading = 0;
         boolean failsafe = false, initialized = false;
-        double delay = 1;
+        double delay = 0.3;
         ElapsedTime shootTimer;
         ElapsedTime visionTimer;
         ElapsedTime pidTimer;
@@ -102,7 +102,7 @@ public class MainTeleOp extends LinearOpMode {
         Gus.intake.closeGate();
 
         while (opModeIsActive()) {
-            moving = gamepad2.left_bumper;
+//            moving = gamepad2.left_bumper;
 
 
 
@@ -119,8 +119,8 @@ public class MainTeleOp extends LinearOpMode {
 //            Gus.shooter.setTurretKStatic(turretKStatic);
 //            Gus.shooter.setTurretPID(tP, tI, tD);
 //            Gus.shooter.setShooterThreshold(shooterThreshold);
-//            Gus.shooter.setHoodAdjustmentConstant(hoodK);
-//            Gus.limelight.setXYTranslation(xTranslation, yTranslation);
+            Gus.shooter.setHoodAdjustmentConstant(hoodK);
+            Gus.limelight.setXYTranslation(xTranslation, yTranslation);
 
             if (failsafeButton.wasJustReleased()) {
                 Gus.limelight.turnOff();
@@ -133,28 +133,29 @@ public class MainTeleOp extends LinearOpMode {
 
             Gus.localizer.update();
             if (Gus.intake.isOneBallIn() && visionTimer.milliseconds() > visionDelay) {
-                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), true);
+                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), moving);
                 visionTimer.reset();
             }
             double distance = Gus.limelight.getDistance();
-            if (distance > 0.5) {
+            if (distance > 2.0) {
                 adjustingHood = true;
             }
             else {
                 adjustingHood = false;
             }
 
-            if (Gus.intake.isOneBallIn()) {
-                if (wasEmpty) {
-                    shootTimer.reset();
-                    wasEmpty = false;
-                } else if (shootTimer.seconds() > 0.5) {
-                    Gus.intake.openGate();
-                }
-            }
-            else {
+            if (Gus.intake.isOneBallIn() && !shooting) {
+//                if (wasEmpty) {
+//                    shootTimer.reset();
+//                    wasEmpty = false;
+//                } else if (shootTimer.seconds() > 0.5) {
+//                    //
+//                }
                 shootTimer.reset();
             }
+//            else {
+//                shootTimer.reset();
+//            }
 
 
             if (Gus.intake.isOneBallIn()) {
@@ -188,14 +189,6 @@ public class MainTeleOp extends LinearOpMode {
                 pidTimer.reset();
             }
 
-            Gus.intake.updateIntake();
-
-            if (Gus.intake.isFull() && !full) {
-                full = true;
-                gamepad1.rumble(200);
-//                Gus.shooter.resetTurret();
-            }
-
             if (gateReader.wasJustReleased()) {
                 gamepad2.rumble(200);
                 full = false;
@@ -206,7 +199,19 @@ public class MainTeleOp extends LinearOpMode {
                 Gus.shooter.resetTurret();
                 Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(0));
                 Gus.intake.setRampFullThreshold();
+                Gus.ledLights.redColor();
             }
+
+
+            Gus.intake.updateIntake();
+
+            if (Gus.intake.isFull() && !full) {
+                full = true;
+                gamepad1.rumble(200);
+                Gus.ledLights.blueColor();
+//                Gus.shooter.resetTurret();
+            }
+
 
             x = -gamepad1.left_stick_y;
             y = -gamepad1.left_stick_x;
@@ -221,10 +226,10 @@ public class MainTeleOp extends LinearOpMode {
 
             if (parkButton.wasJustPressed()) {
                 if (blue) {
-                    Gus.ledLights.blue();
+                    Gus.ledLights.redColor();
                 }
                 else {
-                    Gus.ledLights.red();
+                    Gus.ledLights.blueColor();
                 }
                 parking = true;
             }
@@ -255,6 +260,7 @@ public class MainTeleOp extends LinearOpMode {
                 if (shootButton.wasJustPressed()) {
                     shooting = true;
                     Gus.intake.rollerStop();
+                    Gus.intake.loaderStop();
                     Gus.intake.setBallIn(true);
                     Gus.intake.openGate();
                 }
@@ -310,17 +316,18 @@ public class MainTeleOp extends LinearOpMode {
 
 
 //            telemetry.addData("Turret: ", Gus.shooter.getTurretTelemetry());
-//            telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
+            telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
+//            telemetry.addData("Shooter Timer: ", shootTimer.seconds());
             telemetry.addData("Limelight\n", Gus.limelight.getPositions());
             telemetry.addData("Localizer X: ", Gus.localizer.getPosX());
             telemetry.addData("Localizer Y: ", Gus.localizer.getPosY());
 //            telemetry.addData("X: ", Gus.localizer.getPosX());
 //            telemetry.addData("Y: ", Gus.localizer.getPosY());
-//            telemetry.addData("Is Limelight chilling: ", Gus.limelight.isAlive());
+            telemetry.addData("Is Limelight chilling: ", Gus.limelight.isAlive());
             telemetry.addData("Heading: ", Gus.localizer.getHeading());
-//            telemetry.addData("Intake: ", Gus.intake.getTelemetry());
+            telemetry.addData("Intake: ", Gus.intake.getTelemetry());
 //            telemetry.addData("Timer: ", shootTimer.seconds());
-//            telemetry.addData("Moving: ", moving);
+            telemetry.addData("Lim: ", Gus.limelight.getTelemetry());
             telemetry.addData("LoopRate: ", loopRateTracker.getLoopRateHz());
 //            telemetry.addData("ID: ", Gus.limelight.getFiducialID());
             telemetry.update();

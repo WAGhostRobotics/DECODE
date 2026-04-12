@@ -5,21 +5,22 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.teamcode.Core.Gus;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 
 public class PinpointLocalizer {
     GoBildaPinpointDriver pinpoint;
     long lastTime = System.nanoTime();
-    public final static double xOffset = -4.06;
-    public final static double yOffset = -3.70;
+    public final static double xOffset = -3.69;
+    public final static double yOffset = -1.879;
     // -4, -3.8
     private double lastX = 0, lastY = 0, xVelocity, yVelocity;
 
     public PinpointLocalizer(HardwareMap hardwareMap) {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
         pinpoint.setOffsets(xOffset, yOffset, DistanceUnit.INCH);
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.resetPosAndIMU();
     }
@@ -85,6 +86,10 @@ public class PinpointLocalizer {
 
     public void setOffsets(double x, double y) {
         pinpoint.setOffsets(x, y, DistanceUnit.INCH);
+    }
+
+    public double getAngularVelocity() {
+        return pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES);
     }
 
 }

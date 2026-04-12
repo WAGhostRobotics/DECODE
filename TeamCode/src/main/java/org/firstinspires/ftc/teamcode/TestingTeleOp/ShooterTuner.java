@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.Core.Gus;
 @Config
 public class ShooterTuner extends OpMode {
     public static int targetVelocity = 0;
-    public static double hoodPos = 0.5;
+    public static double hoodPos = 0.6;
     public static double P = 0.01, I=0.00, D = 0, F = 0.003475, S = 0.02;
 
     @Override

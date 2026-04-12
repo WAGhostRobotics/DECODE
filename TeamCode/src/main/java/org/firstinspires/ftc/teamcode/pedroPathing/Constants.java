@@ -19,7 +19,7 @@ public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(13.4)
             .headingPIDFCoefficients(new PIDFCoefficients(1.3, 0, 0.07, 0.02))
-            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.07, 0.0959625346, 0.0015838))
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.07, 0.05668410036, 0.001644959736))
             .centripetalScaling(0)
             .turnHeadingErrorThreshold(0.012);
 
@@ -47,7 +47,7 @@ public class Constants {
             .hardwareMapName("odo")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
-            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
+            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
 
     public static Follower createFollower(HardwareMap hardwareMap) {

@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.Core.Gus;
 public class Shooter {
 
     Servo rightHood;
-    double hoodAdjustmentConstant = 0.0018;
+    double hoodAdjustmentConstant = 0.004;
     double hoodPos;
     Servo turret1, turret2, turret3;
     public enum PopperPos {
@@ -34,7 +34,7 @@ public class Shooter {
     }
     DcMotorEx wheel1;
     DcMotorEx wheel2;
-    double P = 0.03, I=0.00, D = 0, F = 0.00325, S = 0.06;
+    double P = 0.035, I=0.00, D = 0, F = 0.00565, S = 0.05;
     double currentVelocity, targetVelocity, shooterError, power;
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
@@ -44,9 +44,9 @@ public class Shooter {
 
     private ShooterPID pidController;
     private static double ninetyValue = 0.28;
-    private static double zero = 0.5124;
+    private static double zero = 0.505;
     double turretTargetPos;
-    int shooterThreshold = 10;
+    int shooterThreshold = 3;
     ElapsedTime shootTimer;
     ElapsedTime delay;
 
@@ -61,6 +61,7 @@ public class Shooter {
 
         turret1 = hardwareMap.get(Servo.class, "turret1");
         turret2 = hardwareMap.get(Servo.class, "turret2");
+
         wheel1 = hardwareMap.get(DcMotorEx.class, "wheel1");
         wheel2 = hardwareMap.get(DcMotorEx.class, "wheel2");
         wheel2.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -86,14 +87,15 @@ public class Shooter {
 
         wheel1 = hardwareMap.get(DcMotorEx.class, "wheel1");
         wheel2 = hardwareMap.get(DcMotorEx.class, "wheel2");
-        wheel2.setDirection(DcMotorSimple.Direction.FORWARD);
+        wheel2.setDirection(DcMotorSimple.Direction.REVERSE);
         if (!teleop) {
             wheel2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
         wheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        wheel1.setDirection(DcMotorSimple.Direction.FORWARD);
+        wheel1.setDirection(DcMotorSimple.Direction.REVERSE);
         rightHood = hardwareMap.get(Servo.class, "rightHood");
         targetVelocity = 0;
+
     }
 
     public boolean reachedVelocity() {
@@ -122,8 +124,8 @@ public class Shooter {
         shooterError = targetVelocity - currentVelocity;
         power = pidController.calculate(currentVelocity, targetVelocity);
         power = Range.clip(power, -1, 1);
-        wheel1.setPower(power);
-        wheel2.setPower(-power);
+        wheel1.setPower(-power);
+        wheel2.setPower(power);
     }
 
     public void standBy() {
@@ -179,6 +181,7 @@ public class Shooter {
         }
         velocity = Range.clip(velocity, 0, 250);
         targetVelocity = velocity;
+        shooterError = targetVelocity - currentVelocity;
     }
 
     public double getTargetVelocity() {
@@ -239,6 +242,11 @@ public class Shooter {
         return (turretTargetPos-zero)*90/ninetyValue;
     }
 
+    public void lose() {
+        turret1.getController().pwmDisable();
+        turret2.getController().pwmDisable();
+    }
+
     public double getPosition() {
         return turretTargetPos;
     }
@@ -252,8 +260,8 @@ public class Shooter {
         if (Double.isNaN(pos)) {
             return;
         }
-        hoodPos = Range.clip(pos, 0, 1);
-        rightHood.setPosition(1-pos);
+        hoodPos = Range.clip(pos, 0.3, 1);
+        rightHood.setPosition(1-hoodPos);
     }
 
     public void setHood(double pos, boolean adjusting) {

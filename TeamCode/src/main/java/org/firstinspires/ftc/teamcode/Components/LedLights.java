@@ -1,32 +1,37 @@
 package org.firstinspires.ftc.teamcode.Components;
 
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.Prism.Color;
+import org.firstinspires.ftc.teamcode.Prism.GoBildaPrismDriver;
+import org.firstinspires.ftc.teamcode.Prism.PrismAnimations;
+
 public class LedLights {
-    RevBlinkinLedDriver ledDriver;
+    GoBildaPrismDriver prism;
 
-    public LedLights(HardwareMap hardwareMap) {
-        ledDriver = hardwareMap.get(RevBlinkinLedDriver.class, "ledDriver");
+    public LedLights(HardwareMap hwmap){
+        prism = hwmap.get(GoBildaPrismDriver.class, "prism");
+        prism.setStripLength(24);
     }
 
-    public void turnOff() {
-        ledDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.ORANGE);
+    public void blueColor(){
+        prism.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_0, new PrismAnimations.Solid(Color.CYAN));
     }
 
-    public void orange() {
-        ledDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED_ORANGE);
+    public void redColor(){
+        prism.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_0, new PrismAnimations.Solid(Color.WHITE));
     }
 
-    public void green() {
-        ledDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE_GREEN);
+    public void greenColor(){
+        prism.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_0, new PrismAnimations.Solid(Color.GREEN));
     }
 
-    public void red() {
-        ledDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.LIGHT_CHASE_RED);
+    public void pinkColor(){
+        prism.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_0, new PrismAnimations.Solid(Color.PINK));
     }
-    public void blue() {
-        ledDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.LIGHT_CHASE_BLUE);
+
+    public void sparkle(){
+        prism.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_0, new PrismAnimations.Sparkle(Color.PINK, Color.CYAN));
     }
 
 }

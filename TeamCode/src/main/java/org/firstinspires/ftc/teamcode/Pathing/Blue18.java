@@ -26,16 +26,16 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.io.File;
 
 @Autonomous
-public class Red18 extends OpMode {
+public class Blue18 extends OpMode {
     File file;
     LoopRateTracker loopRateTracker = new LoopRateTracker();
     public Follower follower;
-    Pose startingPose = new Pose(126.5, 113,0);
-    Pose shootingPose = new Pose(85.314, 84.857);
-    Pose spike2 = new Pose(131.314, 58.5000);
-    Pose gateIntake = new Pose(131.5, 59);
-    Pose spike1 = new Pose(127.0, 83.514);
-    Pose spike3 = new Pose(129.543, 39.786);
+    Pose startingPose = new Pose(17.5, 113.0, Math.toRadians(180));
+    Pose shootingPose = new Pose(58.686, 84.857);
+    Pose spike2 = new Pose(12.686, 58.5000);
+    Pose gateIntake = new Pose(12.5, 59.8);
+    Pose spike1 = new Pose(17, 83.514);
+    Pose spike3 = new Pose(14.457, 40.0);
     SequentialCommand scheduler;
 
     public PathChain preloadScore;
@@ -54,7 +54,7 @@ public class Red18 extends OpMode {
 
 
     int velocity = 95;
-    double turretAngle = -137, hoodPos = 0.48;
+    double turretAngle = 137.7, hoodPos = 0.48;
 
 
 
@@ -63,6 +63,7 @@ public class Red18 extends OpMode {
         file = AppUtil.getInstance().getSettingsFile("Headings.txt");
         Gus.init(hardwareMap, false, false);
         follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(startingPose);
         follower.update();
 
         preloadScore = follower.pathBuilder()
@@ -72,18 +73,18 @@ public class Red18 extends OpMode {
                                 shootingPose
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         spike2Path = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
                                 shootingPose,
-                                new Pose(90.257, 57.0),
+                                new Pose(53.743, 58.514),
                                 spike2
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         spike2ToShoot = follower.pathBuilder()
@@ -93,30 +94,30 @@ public class Red18 extends OpMode {
                                 shootingPose
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         gateIntakePath = new Path(
-                    new BezierCurve(
-                            shootingPose,
-                            new Pose(95, 65),
-                            gateIntake
-                    ));
-        gateIntakePath.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(30));
+                new BezierCurve(
+                        shootingPose,
+                        new Pose(49, 65),
+                        gateIntake
+                ));
+        gateIntakePath.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(150));
 
         gateIntakePush = new Path(
                 new BezierLine(
                         gateIntake,
-                        new Pose(gateIntake.getX()+2.2, gateIntake.getY()-6)
+                        new Pose(gateIntake.getX()-2.2, gateIntake.getY()-6)
                 ));
-        gateIntakePush.setConstantHeadingInterpolation(Math.toRadians(55));
+        gateIntakePush.setConstantHeadingInterpolation(Math.toRadians(125));
         gateIntakePush.setTValueConstraint(0.73);
         gateIntakePush.setTranslationalConstraint(5);
 
         gateIntakeRotate = new Path(
                 new BezierLine(
                         gateIntake,
-                        new Pose(gateIntake.getX()-1.5, gateIntake.getY()-6)
+                        new Pose(gateIntake.getX()+1.5, gateIntake.getY()-6)
                 ));
         gateIntakeRotate.setConstantHeadingInterpolation(Math.toRadians(90));
         gateIntakeRotate.setTranslationalConstraint(5);
@@ -126,11 +127,11 @@ public class Red18 extends OpMode {
                 .addPath(
                         new BezierCurve(
                                 gateIntake,
-                                new Pose(95, 61),
+                                new Pose(49, 61),
                                 shootingPose
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(25), Math.toRadians(0))
+                .setLinearHeadingInterpolation(Math.toRadians(155), Math.toRadians(180))
                 .build();
 
 
@@ -159,8 +160,8 @@ public class Red18 extends OpMode {
                 .addPath(
                         new BezierCurve(
                                 shootingPose,
-                                new Pose(95.857, 38.386),
-                                new Pose(95.186, 40.786),
+                                new Pose(52, 45.386),
+                                new Pose(52, 42.786),
                                 spike3
 
                         )
@@ -186,10 +187,9 @@ public class Red18 extends OpMode {
                                 spike1
                         )
                 )
-                .setLinearHeadingInterpolation(spike3ToShoot.getFinalHeadingGoal(), 0)
+                .setLinearHeadingInterpolation(spike3ToShoot.getFinalHeadingGoal(), Math.toRadians(180))
                 .build();
 
-        follower.setStartingPose(startingPose);
         scheduler = getCommand();
         scheduler.init();
 
@@ -211,7 +211,7 @@ public class Red18 extends OpMode {
         Gus.shooter.updateTurret();
         loopRateTracker.updateLoopRate();
         double heading = Math.toDegrees(follower.getHeading());
-        Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle - heading));
+        Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle - heading + 180));
         follower.update();
         scheduler.update();
         Gus.shooter.updateShooter();
@@ -254,8 +254,8 @@ public class Red18 extends OpMode {
                 ),
 
                 new ParallelCommand(
-                    new FollowPedro(follower, spike2ToShoot),
-                    new BangBangBang(follower, 0.6, velocity)
+                        new FollowPedro(follower, spike2ToShoot),
+                        new BangBangBang(follower, 0.6, velocity)
                 ),
 
                 new GateCollectPedro(1.8, follower, gateIntakePath),

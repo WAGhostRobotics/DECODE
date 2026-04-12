@@ -226,7 +226,12 @@ public class RedGateAuto extends OpMode {
 
     @Override
     public void stop() {
-        ReadWriteFile.writeFile(file, Double.toString(Gus.localizer.getHeading()));
+        ReadWriteFile.writeFile(
+                file,
+                Double.toString(
+                        Gus.localizer.getHeading()
+                )
+        );
         Gus.limelight.stop();
     }
     @NonNull

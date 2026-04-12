@@ -54,7 +54,7 @@ public class SimpleIntake {
     boolean full;
     ElapsedTime loaderTimer, intakeTimer;
     double timerThreshold = 0.3;
-    double intakeTimerThreshold = 0.35;
+    double intakeTimerThreshold = 0.8;
     double antiShootPower = -0.08;
     HardwareMap hwMap;
 
@@ -89,9 +89,6 @@ public class SimpleIntake {
             lowerSensorDistance = intakeDistance.getDistance(DistanceUnit.CM);
             secondLowerSensorDistance = intakeDistanceTwo.getDistance(DistanceUnit.CM);
             midSensorDistance = midDistance.getDistance(DistanceUnit.CM);
-            if (lowerSensorDistance > 15) {
-                intakeDistance = hwMap.get(RevColorSensorV3.class, "intakeDistance");
-            }
             index = (index + 1) % numReadings;
             rampReadings[index] = lowerSensorDistance;
             midReadings[index] = midSensorDistance;
@@ -120,12 +117,12 @@ public class SimpleIntake {
             if (intakeTimer.seconds() > intakeTimerThreshold) {
                 full = true;
                 power = 0;
-                Gus.ledLights.green();
+//                Gus.ledLights.green();
             }
         }
         else if (minReading >= rampFullThreshold) {
             power = 1;
-            Gus.ledLights.orange();
+//            Gus.ledLights.orange();
             intakeTimer.reset();
         }
         else {
@@ -162,7 +159,7 @@ public class SimpleIntake {
 
     public void setRampFullThreshold() {
         initialized = true;
-        rampFullThreshold = avgReading-0.65;
+        rampFullThreshold = avgReading-0.5;
         midSensorThreshold = avgReadingMid-1.3;
     }
 
@@ -192,7 +189,7 @@ public class SimpleIntake {
             power = 1;
             full = false;
             twoBallIn = false;
-            Gus.ledLights.orange();
+//            Gus.ledLights.orange();
         }
     }
 
@@ -218,13 +215,13 @@ public class SimpleIntake {
     }
 
     public void openGate() {
-        gate.setPosition(0);
+        gate.setPosition(0.35);
         gateOpen = true;
         oneBallIn = true;
     }
 
     public void closeGate() {
-        gate.setPosition(0.76);
+        gate.setPosition(0.1517);
         gateOpen = false;
     }
 
@@ -234,11 +231,12 @@ public class SimpleIntake {
                 "\nTwoBall In: " + twoBallIn +
                 "\nFull: " + full +
                 "\nHigh Distance: " + highSensorDistance +
-                "\nRamp Distance: " + lowerSensorDistance +
-                "\nRamp 2 Distance: " + secondLowerSensorDistance +
+                "\nLow Ramp Distance: " + lowerSensorDistance +
+                "\nLow Ramp Distance (Second): " + secondLowerSensorDistance +
                 "\nMid Distance: " + midSensorDistance +
                 "\nMid Threshold: " + midSensorThreshold +
-                "\nLow Threshold: " + rampFullThreshold;
+                "\nLow Threshold: " + rampFullThreshold +
+                "\nTimer: " + loaderTimer.seconds();
     }
 
     public double getCurrentDrawLoader() {
