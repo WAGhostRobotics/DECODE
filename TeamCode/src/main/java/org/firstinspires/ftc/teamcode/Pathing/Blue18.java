@@ -274,6 +274,15 @@ public class Blue18 extends OpMode {
                         new BangBangBang(follower, 0.6, velocity)
                 ),
 
+                new GateCollectPedro(1.8, follower, gateIntakePath),
+
+                new ParallelCommand(
+                        new RunCommand(()-> Gus.intake.rollerStop()),
+                        new FollowPedro(follower, gateToShoot),
+                        new BangBangBang(follower, 0.6, velocity)
+                ),
+
+
 //                new GateCollectPedro(1, follower, gateIntakePath, gateIntakePush),
 //
 //                new ParallelCommand(
@@ -292,15 +301,15 @@ public class Blue18 extends OpMode {
                         new BangBangBang(follower, 0.7, velocity)
                 ),
 
-                new ParallelCommand(
-                        new FollowPedro(follower, spike3Path),
-                        new CollectSpikesPedro(follower)
-                ),
-
-                new ParallelCommand(
-                        new FollowPedro(follower, spike3ToShoot),
-                        new BangBangBang(follower, 0.7, velocity)
-                ),
+//                new ParallelCommand(
+//                        new FollowPedro(follower, spike3Path),
+//                        new CollectSpikesPedro(follower)
+//                ),
+//
+//                new ParallelCommand(
+//                        new FollowPedro(follower, spike3ToShoot),
+//                        new BangBangBang(follower, 0.7, velocity)
+//                ),
 
                 new ParallelCommand(
                         new FollowPedro(follower, leave),
