@@ -133,7 +133,7 @@ public class MainTeleOp extends LinearOpMode {
 
             Gus.localizer.update();
             if (Gus.intake.isOneBallIn() && visionTimer.milliseconds() > visionDelay) {
-                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), moving);
+                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), true);
                 visionTimer.reset();
             }
             double distance = Gus.limelight.getDistance();
@@ -198,7 +198,6 @@ public class MainTeleOp extends LinearOpMode {
                 Gus.intake.closeGate();
                 Gus.shooter.resetTurret();
                 Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(0));
-                Gus.intake.setRampFullThreshold();
                 Gus.ledLights.redColor();
             }
 
@@ -315,19 +314,19 @@ public class MainTeleOp extends LinearOpMode {
             }
 
 
-//            telemetry.addData("Turret: ", Gus.shooter.getTurretTelemetry());
-            telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
+            telemetry.addData("Turret: ", Gus.shooter.getTurretTelemetry());
+//            telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
 //            telemetry.addData("Shooter Timer: ", shootTimer.seconds());
-            telemetry.addData("Limelight\n", Gus.limelight.getPositions());
-            telemetry.addData("Localizer X: ", Gus.localizer.getPosX());
-            telemetry.addData("Localizer Y: ", Gus.localizer.getPosY());
+//            telemetry.addData("Limelight\n", Gus.limelight.getPositions());
+//            telemetry.addData("Localizer X: ", Gus.localizer.getPosX());
+//            telemetry.addData("Localizer Y: ", Gus.localizer.getPosY());
 //            telemetry.addData("X: ", Gus.localizer.getPosX());
 //            telemetry.addData("Y: ", Gus.localizer.getPosY());
-            telemetry.addData("Is Limelight chilling: ", Gus.limelight.isAlive());
-            telemetry.addData("Heading: ", Gus.localizer.getHeading());
-            telemetry.addData("Intake: ", Gus.intake.getTelemetry());
+//            telemetry.addData("Is Limelight chilling: ", Gus.limelight.isAlive());
+//            telemetry.addData("Heading: ", Gus.localizer.getHeading());
+//            telemetry.addData("Intake: ", Gus.intake.getTelemetry());
 //            telemetry.addData("Timer: ", shootTimer.seconds());
-            telemetry.addData("Lim: ", Gus.limelight.getTelemetry());
+//            telemetry.addData("Lim: ", Gus.limelight.getTelemetry());
             telemetry.addData("LoopRate: ", loopRateTracker.getLoopRateHz());
 //            telemetry.addData("ID: ", Gus.limelight.getFiducialID());
             telemetry.update();

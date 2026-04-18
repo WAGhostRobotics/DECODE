@@ -17,9 +17,9 @@ import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(13.4)
+            .mass(13.7)
             .headingPIDFCoefficients(new PIDFCoefficients(1.3, 0, 0.07, 0.02))
-            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.07, 0.05668410036, 0.001644959736))
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.07, 0.039754557966792385, 0.0024021600974326314))
             .centripetalScaling(0)
             .turnHeadingErrorThreshold(0.012);
 

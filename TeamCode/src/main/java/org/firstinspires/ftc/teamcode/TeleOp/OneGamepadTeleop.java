@@ -120,7 +120,7 @@ public class OneGamepadTeleop extends LinearOpMode {
 
             Gus.localizer.update();
             if (Gus.intake.isOneBallIn() && visionTimer.milliseconds() > visionDelay) {
-                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), false);
+                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), true);
                 visionTimer.reset();
             }
             double distance = Gus.limelight.getDistance();

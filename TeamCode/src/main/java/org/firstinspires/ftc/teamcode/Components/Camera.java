@@ -82,8 +82,14 @@ public class Camera {
     public Camera(HardwareMap hardwareMap) {
         this(hardwareMap, true);               // Just calls the constructor (defaults to blue alliance)
     }
+
     public void trackAprilTag(double heading, double turretHeading, boolean moving) {
-        getLocalizerValues();
+        trackAprilTag(heading, turretHeading, moving, true);
+    }
+
+    public void trackAprilTag(double heading, double turretHeading, boolean moving, boolean toInitialize) {
+        if (toInitialize)
+            getLocalizerValues();
         netAngle = heading + turretHeading;
         limelight3A.updateRobotOrientation(netAngle);
         LLResult llResult = limelight3A.getLatestResult();
@@ -121,7 +127,7 @@ public class Camera {
 
             distance = Math.hypot(newX / meterToInches, newY / meterToInches) * Math.cos(Math.toRadians(19));
 
-            if (!initialized) {
+            if (!initialized && toInitialize) {
                 setLocalizer(heading, turretHeading);
                 initialized = true;
             }

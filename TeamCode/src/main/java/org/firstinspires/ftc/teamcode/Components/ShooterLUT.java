@@ -38,24 +38,24 @@ public class ShooterLUT {
         hoodAngle.createLUT();
 
         speeds.add(0,0);
-        speeds.add(0.6, 75);//
-        speeds.add(0.8, 79);//
-        speeds.add(1.0, 82);//
-        speeds.add(1.2, 83);//
-        speeds.add(1.4, 87);//
-        speeds.add(1.60, 94);//
-        speeds.add(1.80, 98);//
-        speeds.add(2.0, 103); //
-        speeds.add(2.2, 108);
-        speeds.add(2.4, 110);
-        speeds.add(2.6, 115);
-        speeds.add(2.8, 118);
-        speeds.add(3.0, 120);
-        speeds.add(3.2, 122);
+        speeds.add(0.6, 108);//
+        speeds.add(0.8, 113);//
+        speeds.add(1.0, 119);//
+        speeds.add(1.2, 120);//
+        speeds.add(1.4, 125);//
+        speeds.add(1.60, 135);//
+        speeds.add(1.80, 142);//
+        speeds.add(2.0, 149); //
+        speeds.add(2.2, 162);
+        speeds.add(2.4, 164);
+        speeds.add(2.6, 172);
+        speeds.add(2.8, 177);
+        speeds.add(3.0, 179);
+        speeds.add(3.2, 182);
 
-        speeds.add(3.4, 124);
-        speeds.add(3.6, 128); // 0.14 203
-        speeds.add(3.8, 133);
+        speeds.add(3.4, 186);
+        speeds.add(3.6, 191); // 0.14 203
+        speeds.add(3.8, 199);
 //        speeds.add(4.0, 212);
 //        speeds.add(4.2, 221);
 //        speeds.add(4.4, 224);

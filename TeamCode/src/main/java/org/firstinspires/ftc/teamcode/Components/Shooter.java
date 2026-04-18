@@ -34,7 +34,7 @@ public class Shooter {
     }
     DcMotorEx wheel1;
     DcMotorEx wheel2;
-    double P = 0.035, I=0.00, D = 0, F = 0.00565, S = 0.05;
+    double P = 0.045, I=0.00, D = 0, F = 0.0045, S = 0.05;
     double currentVelocity, targetVelocity, shooterError, power;
     public static double shootSpeed = 187;
     public static double farShootSpeed = 230;
@@ -44,7 +44,9 @@ public class Shooter {
 
     private ShooterPID pidController;
     private static double ninetyValue = 0.28;
-    private static double zero = 0.505;
+    public static double backlashIncrement = 0.005;
+
+    private static double zero = 0.495;
     double turretTargetPos;
     int shooterThreshold = 3;
     ElapsedTime shootTimer;
@@ -99,7 +101,7 @@ public class Shooter {
     }
 
     public boolean reachedVelocity() {
-        return targetVelocity != 0 && Math.abs(shooterError)<6;
+        return targetVelocity != 0 && Math.abs(shooterError)<2;
     }
 
     public double getCurrentVelocity() {
@@ -220,15 +222,18 @@ public class Shooter {
         if (Double.isNaN(position)) {
             return;
         }
+        if (Math.abs(turretTargetPos-position) <= ninetyValue/90.0)
+            return;
+
         position = Range.clip(position, 0, 1);
         turretTargetPos = position;
-        turret1.setPosition(turretTargetPos);
-        turret2.setPosition(turretTargetPos);
+        turret1.setPosition(turretTargetPos+backlashIncrement);
+        turret2.setPosition(turretTargetPos-backlashIncrement);
     }
 
     public void updateTurret() {
-        turret1.setPosition(turretTargetPos);
-        turret2.setPosition(turretTargetPos);
+        turret1.setPosition(turretTargetPos+backlashIncrement);
+        turret2.setPosition(turretTargetPos-backlashIncrement);
     }
 
     public void setFullPowerThreshold(double k) {

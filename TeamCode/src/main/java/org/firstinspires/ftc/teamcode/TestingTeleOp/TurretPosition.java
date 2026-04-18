@@ -15,6 +15,7 @@ public class TurretPosition extends OpMode {
     Servo turret1;
     Servo turret2;
     public static double pos = 0.5;
+    public static double backlashIncrement = 0;
     public static double angle = 0;
     @Override
     public void init() {
@@ -26,8 +27,8 @@ public class TurretPosition extends OpMode {
     @Override
     public void loop() {
 //        pos = Shooter.angleToPosition(angle);
-        turret1.setPosition(pos);
-        turret2.setPosition(pos);
+        turret1.setPosition(pos + backlashIncrement);
+        turret2.setPosition(pos - backlashIncrement);
 
         telemetry.addData("Position: ", pos);
         telemetry.update();

@@ -8,10 +8,11 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.util.ReadWriteFile;
 
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.AutoUtil.LoopRateTracker;
 import org.firstinspires.ftc.teamcode.CommandBase.BangBangBang;
-import org.firstinspires.ftc.teamcode.CommandBase.BangBangBangSOTM;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesPedro;
 import org.firstinspires.ftc.teamcode.CommandBase.FollowPedro;
 import org.firstinspires.ftc.teamcode.CommandBase.GateCollectPedro;
@@ -22,14 +23,17 @@ import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Core.Gus;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+import java.io.File;
+
 @Autonomous
 public class Red21 extends OpMode {
+    File file;
     LoopRateTracker loopRateTracker = new LoopRateTracker();
     public Follower follower;
     Pose startingPose = new Pose(126.5, 113,0);
     Pose shootingPose = new Pose(85.314, 84.857);
-    Pose spike2 = new Pose(129.314, 59.5000);
-    Pose gateIntake = new Pose(131, 59.829);
+    Pose spike2 = new Pose(131.314, 60.0);
+    Pose gateIntake = new Pose(131.5, 58.3);
     Pose spike1 = new Pose(127.0, 83.514);
     Pose spike3 = new Pose(129.543, 39.786);
     SequentialCommand scheduler;
@@ -49,16 +53,17 @@ public class Red21 extends OpMode {
 
 
 
-    int velocity = 155;
-    int sotmVelocity = 170;
-    double turretAngle = -136, hoodPos = 0.57;
+    int velocity = 140;
+    double turretAngle = -139, hoodPos = 0.48;
 
 
 
     @Override
     public void init() {
+        file = AppUtil.getInstance().getSettingsFile("Headings.txt");
         Gus.init(hardwareMap, false, false);
         follower = Constants.createFollower(hardwareMap);
+        follower.update();
 
         preloadScore = follower.pathBuilder()
                 .addPath(
@@ -74,7 +79,7 @@ public class Red21 extends OpMode {
                 .addPath(
                         new BezierCurve(
                                 shootingPose,
-                                new Pose(90.257, 58.514),
+                                new Pose(90.257, 58.5),
                                 spike2
                         )
                 )
@@ -88,21 +93,22 @@ public class Red21 extends OpMode {
                                 shootingPose
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                .setTangentHeadingInterpolation()
+                .setReversed()
                 .build();
 
         gateIntakePath = new Path(
-                new BezierCurve(
-                        shootingPose,
-                        new Pose(95, 65),
-                        gateIntake
-                ));
+                    new BezierCurve(
+                            shootingPose,
+                            new Pose(95, 65),
+                            gateIntake
+                    ));
         gateIntakePath.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(30));
 
         gateIntakePush = new Path(
                 new BezierLine(
                         gateIntake,
-                        new Pose(gateIntake.getX()+2.2, gateIntake.getY()-5.5)
+                        new Pose(gateIntake.getX()+2.2, gateIntake.getY()-6)
                 ));
         gateIntakePush.setConstantHeadingInterpolation(Math.toRadians(55));
         gateIntakePush.setTValueConstraint(0.73);
@@ -119,13 +125,13 @@ public class Red21 extends OpMode {
 
         gateToShoot = follower.pathBuilder()
                 .addPath(
-                        new BezierCurve(
+                        new BezierLine(
                                 gateIntake,
-                                new Pose(95, 61),
                                 shootingPose
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(40), Math.toRadians(0))
+                .setTangentHeadingInterpolation()
+                .setReversed()
                 .build();
 
 
@@ -181,7 +187,7 @@ public class Red21 extends OpMode {
                                 spike1
                         )
                 )
-                .setLinearHeadingInterpolation(spike3ToShoot.getFinalHeadingGoal(), 0)
+                .setLinearHeadingInterpolation(spike1ToShoot.getFinalHeadingGoal(), 0)
                 .build();
 
         follower.setStartingPose(startingPose);
@@ -202,36 +208,41 @@ public class Red21 extends OpMode {
 
     @Override
     public void loop() {
+        Gus.shooter.setTargetVelocity(velocity);
         Gus.shooter.updateTurret();
         loopRateTracker.updateLoopRate();
         double heading = Math.toDegrees(follower.getHeading());
         Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle - heading));
-        Gus.shooter.setHood(hoodPos, true);
         follower.update();
         scheduler.update();
         Gus.shooter.updateShooter();
-        if (!Gus.intake.isInitialized()) {
-            Gus.intake.updateIntake();
-        }
-//        telemetry.addData("Heading: ", heading);
-//        telemetry.addData("Parametric end: ", follower.atParametricEnd());
-//        telemetry.addData("Heading error: ", follower.getCurrentPath().getPathEndHeadingConstraint());
-//        telemetry.addData("T-Value: ", follower.getCurrentTValue());
-//        telemetry.addData("Target: ", follower.getCurrentPath().endPose().getPose());
-//        telemetry.addData("Pose: ", follower.poseTracker.getPose());
-//        telemetry.addData("X: ", follower.isBusy());
-        telemetry.addData("Vel: ", Gus.shooter.getTelemetry());
+        telemetry.addData("Heading: ", heading);
+        telemetry.addData("Parametric end: ", follower.atParametricEnd());
+        telemetry.addData("Heading error: ", follower.getCurrentPath().getPathEndHeadingConstraint());
+        telemetry.addData("T-Value: ", follower.getCurrentTValue());
+        telemetry.addData("Target: ", follower.getCurrentPath().endPose().getPose());
+        telemetry.addData("Pose: ", follower.poseTracker.getPose());
+        telemetry.addData("X: ", follower.isBusy());
         telemetry.update();
+    }
+
+    @Override
+    public void stop() {
+        ReadWriteFile.writeFile(
+                file,
+                Double.toString(
+                        Math.toDegrees(follower.getHeading())
+                )
+        );
+        Gus.limelight.stop();
     }
 
     public SequentialCommand getCommand() {
         return new SequentialCommand(
                 new ParallelCommand(
                         new FollowPedro(follower, preloadScore),
-                        new BangBangBangSOTM(follower, 0.4, sotmVelocity)
+                        new BangBangBang(follower, 0.6, velocity)
                 ),
-
-                new RunCommand(()-> Gus.intake.setRampFullThreshold()),
 
                 new ParallelCommand(
                         new FollowPedro(follower, spike2Path),
@@ -239,11 +250,11 @@ public class Red21 extends OpMode {
                 ),
 
                 new ParallelCommand(
-                        new FollowPedro(follower, spike2ToShoot),
-                        new BangBangBang(follower, 0.6, velocity)
+                    new FollowPedro(follower, spike2ToShoot),
+                    new BangBangBang(follower, 0.6, velocity)
                 ),
 
-                new GateCollectPedro(0.8, follower, gateIntakePath, gateIntakePush),
+                new GateCollectPedro(1.2, follower, gateIntakePath),
 
                 new ParallelCommand(
                         new RunCommand(()-> Gus.intake.rollerStop()),
@@ -251,41 +262,63 @@ public class Red21 extends OpMode {
                         new BangBangBang(follower, 0.6, velocity)
                 ),
 
-                new GateCollectPedro(1, follower, gateIntakePath, gateIntakePush),
+                new GateCollectPedro(1.7, follower, gateIntakePath),
 
                 new ParallelCommand(
                         new RunCommand(()-> Gus.intake.rollerStop()),
                         new FollowPedro(follower, gateToShoot),
                         new BangBangBang(follower, 0.6, velocity)
                 ),
+
+                new GateCollectPedro(1.7, follower, gateIntakePath),
+
+                new ParallelCommand(
+                        new RunCommand(()-> Gus.intake.rollerStop()),
+                        new FollowPedro(follower, gateToShoot),
+                        new BangBangBang(follower, 0.6, velocity)
+                ),
+                new GateCollectPedro(1.7, follower, gateIntakePath),
+
+                new ParallelCommand(
+                        new RunCommand(()-> Gus.intake.rollerStop()),
+                        new FollowPedro(follower, gateToShoot),
+                        new BangBangBang(follower, 0.6, velocity)
+                ),
+
+
+
+
+//                new GateCollectPedro(1, follower, gateIntakePath, gateIntakePush),
+//
+//                new ParallelCommand(
+//                        new RunCommand(()-> Gus.intake.rollerStop()),
+//                        new FollowPedro(follower, gateToShoot),
+//                        new BangBangBang(follower, 0.6, velocity)
+//                ),
 
                 new ParallelCommand(
                         new FollowPedro(follower, spike1Path),
                         new CollectSpikesPedro(follower)
                 ),
 
+
+
                 new ParallelCommand(
                         new FollowPedro(follower, spike1ToShoot),
                         new BangBangBang(follower, 0.7, velocity)
                 ),
 
-                new GateCollectPedro(0.8, follower, gateIntakePath, gateIntakePush),
 
-                new ParallelCommand(
-                        new RunCommand(()-> Gus.intake.rollerStop()),
-                        new FollowPedro(follower, gateToShoot),
-                        new BangBangBang(follower, 0.6, velocity)
-                ),
-
-                new ParallelCommand(
-                        new FollowPedro(follower, spike3Path),
-                        new CollectSpikesPedro(follower)
-                ),
-
-                new ParallelCommand(
-                        new FollowPedro(follower, spike3ToShoot),
-                        new BangBangBang(follower, 0.7, velocity)
-                ),
+//
+//                new ParallelCommand(
+//                        new FollowPedro(follower, spike3Path),
+//                        new CollectSpikesPedro(follower)
+//                ),
+//
+//                new ParallelCommand(
+//                        new FollowPedro(follower, spike3ToShoot),
+//                        new BangBangBang(follower, 0.7, velocity)
+//                ),
 
                 new ParallelCommand(
                         new FollowPedro(follower, leave),
