@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Components;
 
 
-import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -10,8 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +47,7 @@ public class SimpleIntake {
     double avgReadingMid;
     private final int numReadings = 5;
     private int index = 0;
-    public static final double currentThresholdLoader = 5.0;
+    public static final double currentThresholdLoader = 6.0;
     public static final double currentThresholdIntake = 4.0;
     boolean oneBallIn, twoBallIn;
     boolean full;
@@ -58,6 +56,7 @@ public class SimpleIntake {
     double intakeTimerThreshold = 0.2;
     double antiShootPower = -0.08;
     HardwareMap hwMap;
+    boolean highState, midState, lowOneState, lowTwoState;
 
 
     public SimpleIntake(HardwareMap hardwareMap) {
@@ -85,7 +84,7 @@ public class SimpleIntake {
     }
 
     public void updateIntake() {
-        long now = System.nanoTime();
+//        long now = System.nanoTime();
 //        if (now - lastTime > 33_000_000) {
 //            lowerSensorDistance = intakeDistance.getDistance(DistanceUnit.CM);
 //            secondLowerSensorDistance = intakeDistanceTwo.getDistance(DistanceUnit.CM);
@@ -101,28 +100,43 @@ public class SimpleIntake {
 //            getMaxAndMin();
 //            getCurrentDrawLoader();
 //        }
-//        getCurrentDrawLoader();
 
-        if (!oneBallIn && distance.getState()) {
+        long now = System.nanoTime();
+        if (now - lastTime > 15_000_000) {
+            getCurrentDrawLoader();
+            highState = distance.getState();
+            midState = midDistance.getState();
+            lowOneState = intakeDistance.getState();
+            lowTwoState = intakeDistanceTwo.getState();
+            lastTime = now;
+
+        }
+
+
+        if (!oneBallIn && (highState || currentLoader > currentThresholdLoader)) {
             oneBallIn = true;
             loaderStop();
         }
 
-        if (oneBallIn && (midDistance.getState())) {
+        if (!midState) {
+            twoBallIn = false;
+        }
+
+        if (oneBallIn && (midState)) {
             twoBallIn = true;
         }
         if (!twoBallIn) {
             full = false;
         }
 
-        if (twoBallIn && (intakeDistance.getState() || (intakeDistanceTwo.getState()))) {
+        if (twoBallIn && (lowOneState || (lowTwoState))) {
             if (intakeTimer.seconds() > intakeTimerThreshold) {
                 full = true;
                 power = 0;
 //                Gus.ledLights.green();
             }
         }
-        else if (!intakeDistance.getState() && !intakeDistanceTwo.getState()) {
+        else if (!lowOneState && !lowTwoState) {
             power = 1;
             full = false;
 //            Gus.ledLights.orange();
@@ -218,7 +232,7 @@ public class SimpleIntake {
     }
 
     public void openGate() {
-        gate.setPosition(0.35);
+        gate.setPosition(0.34);
         gateOpen = true;
         oneBallIn = true;
     }
@@ -237,7 +251,8 @@ public class SimpleIntake {
                 "\nLow Ramp Distance: " + intakeDistance.getState() +
                 "\nLow Ramp Distance (Second): " + intakeDistanceTwo.getState() +
                 "\nMid Distance: " + midDistance.getState() +
-                "\nTimer: " + loaderTimer.seconds();
+                "\nTimer: " + loaderTimer.seconds() +
+                "\nLoader: " + currentLoader;
     }
 
     public double getCurrentDrawLoader() {
@@ -251,7 +266,7 @@ public class SimpleIntake {
     }
 
     public void updateGate() {
-        if (Gus.shooter.reachedVelocity()) {
+        if (Walt.shooter.reachedVelocity()) {
             openGate();
         }
     }

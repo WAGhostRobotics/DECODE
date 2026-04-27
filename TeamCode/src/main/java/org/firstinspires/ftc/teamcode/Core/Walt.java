@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Core;
 
-import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Components.LedLights;
@@ -11,9 +10,7 @@ import org.firstinspires.ftc.teamcode.Components.DriveTrain.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Components.ShooterLUT;
 import org.firstinspires.ftc.teamcode.Components.SimpleIntake;
 
-import java.util.List;
-
-public class Gus {
+public class Walt {
     public static ShooterLUT shooterLUT;
     public static HardwareMap hardwareMap;
     public static MecanumDrive drivetrain;
@@ -30,7 +27,7 @@ public class Gus {
         shooterLUT.init();
         shooter = new Shooter();
         shooter.init(hardwareMap);
-        Gus.hardwareMap = hardwareMap;
+        Walt.hardwareMap = hardwareMap;
         drivetrain = new MecanumDrive(hardwareMap);
         localizer = new PinpointLocalizer(hardwareMap);
         movementPower = 0.8;
@@ -48,7 +45,7 @@ public class Gus {
 
         shooter = new Shooter();
         shooter.init(hardwareMap);
-        Gus.hardwareMap = hardwareMap;
+        Walt.hardwareMap = hardwareMap;
         drivetrain = new MecanumDrive(hardwareMap);
         localizer = new PinpointLocalizer(hardwareMap);
         movementPower = 0.8;
@@ -68,7 +65,7 @@ public class Gus {
 
         shooter = new Shooter();
         shooter.init(hardwareMap, teleop);
-        Gus.hardwareMap = hardwareMap;
+        Walt.hardwareMap = hardwareMap;
         drivetrain = new MecanumDrive(hardwareMap);
         if (teleop)
             localizer = new PinpointLocalizer(hardwareMap);
@@ -78,7 +75,7 @@ public class Gus {
         shooter.setHood(0);
         ledLights = new LedLights(hardwareMap);
         if (teleop) {
-            Gus.intake.openGate();
+            Walt.intake.openGate();
         }
 
 

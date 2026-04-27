@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 import java.io.File;
 
@@ -13,7 +13,7 @@ import java.io.File;
 public class FileTester extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        Gus.init(hardwareMap, false, false);
+        Walt.init(hardwareMap, false, false);
         File file = AppUtil.getInstance().getSettingsFile("Headings.txt");
         String headings = ReadWriteFile.readFile(file);
         waitForStart();

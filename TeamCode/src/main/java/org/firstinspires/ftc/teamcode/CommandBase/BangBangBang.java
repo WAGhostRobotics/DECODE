@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.AutoUtil.PedroUtil;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 public class BangBangBang extends Command {
     final double shootTime = 0.4; //Seconds
@@ -26,20 +26,23 @@ public class BangBangBang extends Command {
     public void init() {
         ready = false;
         timer.reset();
-        Gus.shooter.setTargetVelocity(targetVelocity);
+        Walt.shooter.setTargetVelocity(targetVelocity);
     }
 
     @Override
     public void update() {
-        if (follower.getCurrentTValue() >= threshold) {
-            Gus.intake.openGate();
+        if (follower.getCurrentTValue() >= (threshold -0.15)) {
+            Walt.intake.rollerStop();
         }
-        if (Gus.shooter.reachedVelocity()) {
+        if (follower.getCurrentTValue() >= threshold) {
+            Walt.intake.openGate();
+        }
+        if (Walt.shooter.reachedVelocity()) {
             ready = true;
         }
 
         if (PedroUtil.isFinished(follower) && ready) {
-            Gus.intake.shoot();
+            Walt.intake.shoot();
         }
         else {
             timer.reset();
@@ -51,10 +54,10 @@ public class BangBangBang extends Command {
     public boolean isFinished() {
         if (timer.seconds() > shootTime)
         {
-            Gus.shooter.setTargetVelocity(0);
-            Gus.shooter.stop();
-            Gus.intake.rollerStop();
-            Gus.intake.closeGate();
+            Walt.shooter.setTargetVelocity(0);
+            Walt.shooter.stop();
+            Walt.intake.rollerStop();
+            Walt.intake.closeGate();
             return true;
         }
         return false;

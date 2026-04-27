@@ -19,7 +19,7 @@ public class LedLights {
     }
 
     public void redColor(){
-        prism.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_0, new PrismAnimations.Solid(Color.WHITE));
+        prism.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_0, new PrismAnimations.Solid(new Color(255, 60, 0)));
     }
 
     public void greenColor(){

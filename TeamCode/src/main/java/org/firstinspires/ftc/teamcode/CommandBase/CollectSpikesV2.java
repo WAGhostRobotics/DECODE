@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.CommandBase;
 
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 public class CollectSpikesV2 extends Command {
     MotionPlanner follower;
@@ -13,21 +13,21 @@ public class CollectSpikesV2 extends Command {
 
     @Override
     public void init() {
-        Gus.intake.closeGate();
-        Gus.intake.setBallIn(false);
-        Gus.intake.rollerIn();
+        Walt.intake.closeGate();
+        Walt.intake.setBallIn(false);
+        Walt.intake.rollerIn();
     }
 
     @Override
     public void update() {
-        Gus.intake.rollerIn();
+        Walt.intake.rollerIn();
     }
 
     @Override
     public boolean isFinished() {
         if (follower.isFinished()) {
             follower.forceComplete();
-            Gus.intake.rollerStop();
+            Walt.intake.rollerStop();
             return true;
         }
         return false;
@@ -35,7 +35,7 @@ public class CollectSpikesV2 extends Command {
 
     @Override
     public void stop() {
-        Gus.intake.rollerStop();
+        Walt.intake.rollerStop();
     }
 }
 

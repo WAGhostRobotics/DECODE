@@ -19,7 +19,7 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.AutoUtil.LoopRateTracker;
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 import java.io.File;
 import java.util.List;
@@ -88,13 +88,13 @@ public class OneGamepadTeleop extends LinearOpMode {
         }
 
         while (opModeInInit()) {
-            Gus.initCamera(hardwareMap, blue);
-            Gus.limelight.start();
+            Walt.initCamera(hardwareMap, blue);
+            Walt.limelight.start();
         }
 
         waitForStart();
-        Gus.init(hardwareMap, blue, true);
-        Gus.intake.closeGate();
+        Walt.init(hardwareMap, blue, true);
+        Walt.intake.closeGate();
 
         while (opModeIsActive()) {
             moving = gamepad1.left_bumper;
@@ -103,7 +103,7 @@ public class OneGamepadTeleop extends LinearOpMode {
 
             if (!initialized) {
                 initialized = true;
-                Gus.localizer.setHeadingDegrees(prevHeading + 90*multiplier);
+                Walt.localizer.setHeadingDegrees(prevHeading + 90*multiplier);
             }
             loopRateTracker.updateLoopRate();
 //            Gus.shooter.setPID(P, I, D, F, S);
@@ -118,12 +118,12 @@ public class OneGamepadTeleop extends LinearOpMode {
 //            Gus.limelight.setXYTranslation(xTranslation, yTranslation);
 
 
-            Gus.localizer.update();
-            if (Gus.intake.isOneBallIn() && visionTimer.milliseconds() > visionDelay) {
-                Gus.limelight.trackAprilTag(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle(), true);
+            Walt.localizer.update();
+            if (Walt.intake.isOneBallIn() && visionTimer.milliseconds() > visionDelay) {
+                Walt.limelight.trackAprilTag(Walt.localizer.getHeading()-180, Walt.shooter.getTurretAngle(), true);
                 visionTimer.reset();
             }
-            double distance = Gus.limelight.getDistance();
+            double distance = Walt.limelight.getDistance();
             if (distance > 0.5) {
                 adjustingHood = true;
             }
@@ -131,12 +131,12 @@ public class OneGamepadTeleop extends LinearOpMode {
                 adjustingHood = false;
             }
 
-            if (Gus.intake.isOneBallIn()) {
+            if (Walt.intake.isOneBallIn()) {
                 if (wasEmpty) {
                     shootTimer.reset();
                     wasEmpty = false;
                 } else if (shootTimer.seconds() > 0.5) {
-                    Gus.intake.openGate();
+                    Walt.intake.openGate();
                 }
             }
             else {
@@ -144,40 +144,40 @@ public class OneGamepadTeleop extends LinearOpMode {
             }
 
 
-            if (Gus.intake.isOneBallIn()) {
+            if (Walt.intake.isOneBallIn()) {
                 if (!failsafe) {
                     if (targetVelocity == 0)
-                        Gus.shooter.setTargetVelocity(Gus.limelight.getFlywheelVelocity());
+                        Walt.shooter.setTargetVelocity(Walt.limelight.getFlywheelVelocity());
                     else
-                        Gus.shooter.setTargetVelocity(targetVelocity);
+                        Walt.shooter.setTargetVelocity(targetVelocity);
 
                     if (hoodPos == 0)
-                        Gus.shooter.setHood(Gus.shooterLUT.getHoodAngle(distance), adjustingHood);
+                        Walt.shooter.setHood(Walt.shooterLUT.getHoodAngle(distance), adjustingHood);
                     else
-                        Gus.shooter.setHood(hoodPos, adjustingHood);
+                        Walt.shooter.setHood(hoodPos, adjustingHood);
 
 
-                    Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(Gus.limelight.getTurretAngle()));
+                    Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(Walt.limelight.getTurretAngle()));
                 }
                 else {
-                    Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(0));
-                    Gus.shooter.setTargetVelocity(failsafeTargetVelocity);
-                    Gus.shooter.setHood(failsafeHoodPos);
+                    Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(0));
+                    Walt.shooter.setTargetVelocity(failsafeTargetVelocity);
+                    Walt.shooter.setHood(failsafeHoodPos);
                 }
             }
             else {
-                Gus.shooter.setTargetVelocity(0);
-                Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(0));
+                Walt.shooter.setTargetVelocity(0);
+                Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(0));
             }
 
             if (pidTimer.milliseconds() > pidTimerDelay) {
-                Gus.shooter.updateShooter();
+                Walt.shooter.updateShooter();
                 pidTimer.reset();
             }
 
-            Gus.intake.updateIntake();
+            Walt.intake.updateIntake();
 
-            if (Gus.intake.isFull() && !full) {
+            if (Walt.intake.isFull() && !full) {
                 full = true;
                 gamepad1.rumble(200);
 //                Gus.shooter.resetTurret();
@@ -188,11 +188,11 @@ public class OneGamepadTeleop extends LinearOpMode {
                 full = false;
                 wasEmpty = true;
                 shooting = false;
-                Gus.intake.setBallIn(false);
-                Gus.intake.closeGate();
-                Gus.shooter.resetTurret();
-                Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(0));
-                Gus.intake.setRampFullThreshold();
+                Walt.intake.setBallIn(false);
+                Walt.intake.closeGate();
+                Walt.shooter.resetTurret();
+                Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(0));
+                Walt.intake.setRampFullThreshold();
             }
 
             x = -gamepad1.left_stick_y;
@@ -209,53 +209,53 @@ public class OneGamepadTeleop extends LinearOpMode {
 
             magnitude = Math.hypot(x, y);
             theta = Math.toDegrees(Math.atan2(y, x));
-            heading = Gus.localizer.getHeading() - 180;
+            heading = Walt.localizer.getHeading() - 180;
             theta = normalizeDegrees(theta - heading);
 
-            Gus.drivetrain.drive(magnitude, theta, driveTurn, 1);
+            Walt.drivetrain.drive(magnitude, theta, driveTurn, 1);
 
 
 
 
             if (gamepad1.left_trigger>0.3) {
-                Gus.intake.rollerOut();
+                Walt.intake.rollerOut();
             }
             else if (gamepad1.left_bumper) {
-                Gus.intake.rollerStop();
+                Walt.intake.rollerStop();
             }
             else if (gamepad1.right_trigger > 0.2) {
-                Gus.intake.bruteRollerIn();
+                Walt.intake.bruteRollerIn();
             }
             else if (gamepad1.right_bumper) {
                 if (shootButton.wasJustPressed()) {
                     shooting = true;
-                    Gus.intake.rollerStop();
-                    Gus.intake.setBallIn(true);
-                    Gus.intake.openGate();
+                    Walt.intake.rollerStop();
+                    Walt.intake.setBallIn(true);
+                    Walt.intake.openGate();
                 }
                 else if (shootTimer.seconds() > delay) {
                     if (!slowMo) {
-                        Gus.shooter.shoot();
+                        Walt.shooter.shoot();
                     }
                     else {
-                        Gus.shooter.shootSlowMotion();
+                        Walt.shooter.shootSlowMotion();
                     }
                 }
                 else {
-                    Gus.intake.rollerStop();
-                    Gus.shooter.stop();
+                    Walt.intake.rollerStop();
+                    Walt.shooter.stop();
                 }
             }
             else {
                 if (!shooting)
-                    Gus.intake.rollerIn();
+                    Walt.intake.rollerIn();
                 else {
-                    Gus.intake.rollerStop();
+                    Walt.intake.rollerStop();
                 }
             }
 
             if (shootButton.wasJustReleased()) {
-                Gus.limelight.setLocalizer(Gus.localizer.getHeading()-180, Gus.shooter.getTurretAngle());
+                Walt.limelight.setLocalizer(Walt.localizer.getHeading()-180, Walt.shooter.getTurretAngle());
             }
 
 
@@ -266,20 +266,20 @@ public class OneGamepadTeleop extends LinearOpMode {
             imuReader.readValue();
 
             if (imuReader.wasJustReleased()) {
-                Gus.limelight.resetInitialized();
-                Gus.localizer.setHeadingDegrees(180);
+                Walt.limelight.resetInitialized();
+                Walt.localizer.setHeadingDegrees(180);
             }
 
 
 //            telemetry.addData("Turret: ", Gus.shooter.getTurretTelemetry());
-            telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
+            telemetry.addData("Shooter: ", Walt.shooter.getTelemetry());
 //            telemetry.addData("Limelight\n", Gus.limelight.getPositions());
 //            telemetry.addData("Localizer X: ", Gus.localizer.getPosX());
 //            telemetry.addData("Localizer Y: ", Gus.localizer.getPosY());
 //            telemetry.addData("X: ", Gus.localizer.getPosX());
 //            telemetry.addData("Y: ", Gus.localizer.getPosY());
-            telemetry.addData("Is Limelight chilling: ", Gus.limelight.isAlive());
-            telemetry.addData("Heading: ", Gus.localizer.getHeading());
+            telemetry.addData("Is Limelight chilling: ", Walt.limelight.isAlive());
+            telemetry.addData("Heading: ", Walt.localizer.getHeading());
 //            telemetry.addData("Intake: ", Gus.intake.getTelemetry());
 //            telemetry.addData("Timer: ", shootTimer.seconds());
 //            telemetry.addData("Moving: ", moving);

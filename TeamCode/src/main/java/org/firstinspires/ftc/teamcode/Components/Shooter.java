@@ -2,9 +2,6 @@ package org.firstinspires.ftc.teamcode.Components;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
 
-import com.arcrobotics.ftclib.controller.PIDController;
-import com.arcrobotics.ftclib.controller.PIDFController;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -15,8 +12,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.AutoUtil.ShooterPID;
-import org.firstinspires.ftc.teamcode.AutoUtil.TurretPID;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 public class Shooter {
 
@@ -44,7 +40,7 @@ public class Shooter {
 
     private ShooterPID pidController;
     private static double ninetyValue = 0.28;
-    public static double backlashIncrement = 0.005;
+    public static double backlashIncrement = 0.006;
 
     private static double zero = 0.495;
     double turretTargetPos;
@@ -136,7 +132,7 @@ public class Shooter {
 
     public void stop() {
         ready = false;
-        Gus.intake.shootStop();
+        Walt.intake.shootStop();
     }
 
     public void shoot() {
@@ -144,10 +140,10 @@ public class Shooter {
             ready = true;
         }
         if (ready) {
-            Gus.intake.shoot();
+            Walt.intake.shoot();
         }
         else {
-            Gus.intake.loaderStop();
+            Walt.intake.loaderStop();
         }
     }
 
@@ -157,19 +153,19 @@ public class Shooter {
         }
         if (ready) {
             if (shootTimer.seconds() < shootTime) {
-                Gus.intake.shoot();
+                Walt.intake.shoot();
                 delay.reset();
             }
             else if (delay.seconds() < delayTime) {
-                Gus.intake.shootStop();
-                Gus.intake.rollerStop();
+                Walt.intake.shootStop();
+                Walt.intake.rollerStop();
             }
             else {
                 shootTimer.reset();
             }
         }
         else {
-            Gus.intake.loaderStop();
+            Walt.intake.loaderStop();
         }
     }
 
@@ -222,8 +218,8 @@ public class Shooter {
         if (Double.isNaN(position)) {
             return;
         }
-        if (Math.abs(turretTargetPos-position) <= ninetyValue/90.0)
-            return;
+//        if (Math.abs(turretTargetPos-position) <= ninetyValue/90.0)
+//            return;
 
         position = Range.clip(position, 0, 1);
         turretTargetPos = position;

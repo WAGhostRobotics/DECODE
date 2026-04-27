@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 /**
  * This file includes code to automatically shoot at goal
@@ -45,18 +45,21 @@ public class Camera {
 
     private double targetHeading, headingError, turretAngle = 0, hoodAngle;
 
-    private double xTranslation = 1.76;
+    private double xTranslation = 1.7;
     private double yTranslation = 1.25;
 
     // Translational constant from the april Tag to the actual backboard
 
     ElapsedTime timer = new ElapsedTime(), speedTimer = new ElapsedTime();
+    ElapsedTime localizerTimer = new ElapsedTime();
     private final int timerThreshold = 2;           // In seconds
     private int motifID = 0;
     boolean blueAlliance;
+    double velocity = 0;
     boolean initialized;
     boolean forceStop = false;
     double flywheelVelocity;
+    double defaultVel = 140;
     int id;
 
     public Camera(HardwareMap hardwareMap, boolean blueAlliance) {
@@ -84,21 +87,18 @@ public class Camera {
     }
 
     public void trackAprilTag(double heading, double turretHeading, boolean moving) {
-        trackAprilTag(heading, turretHeading, moving, true);
-    }
-
-    public void trackAprilTag(double heading, double turretHeading, boolean moving, boolean toInitialize) {
-        if (toInitialize)
-            getLocalizerValues();
+        getLocalizerValues();
         netAngle = heading + turretHeading;
         limelight3A.updateRobotOrientation(netAngle);
         LLResult llResult = limelight3A.getLatestResult();
-        if (llResult != null && llResult.isValid()) {
+        if (Math.abs(velocity) < 15 && llResult != null && llResult.isValid()) {
             id = llResult.getFiducialResults().get(0).getFiducialId();
         }
         else {
             id = 0;
         }
+
+
 
 
         if ((id == 20 && blueAlliance) || (id == 24 && !blueAlliance)) {
@@ -125,12 +125,15 @@ public class Camera {
                 getLeadPose();
             }
 
-            distance = Math.hypot(newX / meterToInches, newY / meterToInches) * Math.cos(Math.toRadians(19));
-
-            if (!initialized && toInitialize) {
+            if (!initialized || Math.abs(velocity)<3) {
                 setLocalizer(heading, turretHeading);
                 initialized = true;
             }
+
+
+            distance = Math.hypot(newX / meterToInches, newY / meterToInches) * Math.cos(Math.toRadians(19));
+
+
         }
         else if (initialized) {
 
@@ -153,7 +156,7 @@ public class Camera {
         }
 
         targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(newY, newX))-180);
-        flywheelVelocity = Gus.shooterLUT.getSpeed(distance);
+        flywheelVelocity = Walt.shooterLUT.getSpeed(distance);
 
 
 
@@ -214,15 +217,16 @@ public class Camera {
     // For distance function and Shooter velocity function explanation check Desmos link:
     // https://www.desmos.com/calculator/ffcaewmxtr
     private void getLocalizerValues() {
-        localizerHeading = normalizeDegrees(Gus.localizer.getHeading());
-        localizerY = Gus.localizer.getPosY();
-        localizerX = Gus.localizer.getPosX();
+        localizerHeading = normalizeDegrees(Walt.localizer.getHeading());
+        localizerY = Walt.localizer.getPosY();
+        localizerX = Walt.localizer.getPosX();
+        velocity = Math.hypot(Walt.localizer.getXVelocity(), Walt.localizer.getYVelocity());
     }
 
     private void getLeadPose() {
-        double velX = Gus.localizer.getXVelocity();
-        double velY = Gus.localizer.getYVelocity();
-        airTime = Gus.shooterLUT.getAirTime(distance);
+        double velX = Walt.localizer.getXVelocity();
+        double velY = Walt.localizer.getYVelocity();
+        airTime = Walt.shooterLUT.getAirTime(distance);
         seconds = speedTimer.seconds();
 
         if (airTime > 0 ) {
@@ -321,7 +325,7 @@ public class Camera {
             aprilVisible = true;                    // Just for telemetry purposes
             Pose3D botPose = llResult.getBotpose();
             aprilHeading = botPose.getOrientation().getYaw(DEGREES)-180;
-            Gus.localizer.setPose(new Pose2D(DistanceUnit.INCH, localizerX, localizerY, DEGREES, normalizeDegrees(aprilHeading-90)));
+            Walt.localizer.setPose(new Pose2D(DistanceUnit.INCH, localizerX, localizerY, DEGREES, normalizeDegrees(aprilHeading-90)));
 
         }
     }
@@ -408,9 +412,10 @@ public class Camera {
 //            Gus.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, heading));
 //            initialized = true;
 //        }
-        if (isVisible() && !forceStop) {
+        if (isVisible() && !forceStop && localizerTimer.seconds()>0.1) {
+            localizerTimer.reset();
             initialized = true;
-            Gus.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
+            Walt.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
         }
 
     }
@@ -428,6 +433,9 @@ public class Camera {
     }
 
     public double getFlywheelVelocity() {
+        if (!initialized && !aprilVisible) {
+            return defaultVel;
+        }
         return flywheelVelocity;
     }
 

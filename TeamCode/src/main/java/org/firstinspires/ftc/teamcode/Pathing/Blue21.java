@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Pathing;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
@@ -26,15 +28,15 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.io.File;
 
 @Autonomous
-public class Blue18 extends OpMode {
+public class Blue21 extends OpMode {
     File file;
     LoopRateTracker loopRateTracker = new LoopRateTracker();
     public Follower follower;
     Pose startingPose = new Pose(17.5, 113.0, Math.toRadians(180));
     Pose shootingPose = new Pose(58.686, 84.857);
     Pose spike2 = new Pose(12.686, 58.5000);
-    Pose gateIntake = new Pose(12.5, 59.8);
-    Pose spike1 = new Pose(17, 83.514);
+    Pose gateIntake = new Pose(12.5, 60.0);
+    Pose spike1 = new Pose(18, 83.514);
     Pose spike3 = new Pose(14.457, 40.0);
     SequentialCommand scheduler;
 
@@ -53,7 +55,7 @@ public class Blue18 extends OpMode {
 
 
 
-    int velocity = 95;
+    int velocity = 140;
     double turretAngle = 137.7, hoodPos = 0.48;
 
 
@@ -63,7 +65,6 @@ public class Blue18 extends OpMode {
         file = AppUtil.getInstance().getSettingsFile("Headings.txt");
         Walt.init(hardwareMap, false, false);
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(startingPose);
         follower.update();
 
         preloadScore = follower.pathBuilder()
@@ -94,7 +95,8 @@ public class Blue18 extends OpMode {
                                 shootingPose
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(180))
+                .setTangentHeadingInterpolation()
+                .setReversed()
                 .build();
 
         gateIntakePath = new Path(
@@ -108,16 +110,16 @@ public class Blue18 extends OpMode {
         gateIntakePush = new Path(
                 new BezierLine(
                         gateIntake,
-                        new Pose(gateIntake.getX()-2.2, gateIntake.getY()-6)
+                        new Pose(gateIntake.getX()+2.2, gateIntake.getY()-6)
                 ));
-        gateIntakePush.setConstantHeadingInterpolation(Math.toRadians(125));
+        gateIntakePush.setConstantHeadingInterpolation(Math.toRadians(55));
         gateIntakePush.setTValueConstraint(0.73);
         gateIntakePush.setTranslationalConstraint(5);
 
         gateIntakeRotate = new Path(
                 new BezierLine(
                         gateIntake,
-                        new Pose(gateIntake.getX()+1.5, gateIntake.getY()-6)
+                        new Pose(gateIntake.getX()-1.5, gateIntake.getY()-6)
                 ));
         gateIntakeRotate.setConstantHeadingInterpolation(Math.toRadians(90));
         gateIntakeRotate.setTranslationalConstraint(5);
@@ -125,13 +127,13 @@ public class Blue18 extends OpMode {
 
         gateToShoot = follower.pathBuilder()
                 .addPath(
-                        new BezierCurve(
+                        new BezierLine(
                                 gateIntake,
-                                new Pose(49, 61),
                                 shootingPose
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(155), Math.toRadians(180))
+                .setTangentHeadingInterpolation()
+                .setReversed()
                 .build();
 
 
@@ -160,8 +162,8 @@ public class Blue18 extends OpMode {
                 .addPath(
                         new BezierCurve(
                                 shootingPose,
-                                new Pose(52, 45.386),
-                                new Pose(52, 42.786),
+                                new Pose(52, 45.4),
+                                new Pose(52, 42.8),
                                 spike3
 
                         )
@@ -187,9 +189,10 @@ public class Blue18 extends OpMode {
                                 spike1
                         )
                 )
-                .setLinearHeadingInterpolation(spike3ToShoot.getFinalHeadingGoal(), Math.toRadians(180))
+                .setLinearHeadingInterpolation(spike1ToShoot.getFinalHeadingGoal(), Math.toRadians(180))
                 .build();
 
+        follower.setStartingPose(startingPose);
         scheduler = getCommand();
         scheduler.init();
 
@@ -211,13 +214,20 @@ public class Blue18 extends OpMode {
         Walt.shooter.updateTurret();
         loopRateTracker.updateLoopRate();
         double heading = Math.toDegrees(follower.getHeading());
-        Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle - heading + 180));
+        double calcTurretAngle;
+        if (follower != null && follower.getCurrentPath() != null && follower.getCurrentPathChain() != null) {
+            calcTurretAngle = turretAngle -
+                    (Math.toDegrees(follower.getCurrentPathChain().getFinalHeadingGoal()) - 180);
+        }
+        else {
+            calcTurretAngle = turretAngle - heading - 180;
+
+        }
+        calcTurretAngle = normalizeDegrees(calcTurretAngle);
+        Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(calcTurretAngle));
         follower.update();
         scheduler.update();
         Walt.shooter.updateShooter();
-        if (!Walt.intake.isInitialized()) {
-            Walt.intake.updateIntake();
-        }
         telemetry.addData("Heading: ", heading);
         telemetry.addData("Parametric end: ", follower.atParametricEnd());
         telemetry.addData("Heading error: ", follower.getCurrentPath().getPathEndHeadingConstraint());
@@ -246,8 +256,6 @@ public class Blue18 extends OpMode {
                         new BangBangBang(follower, 0.6, velocity)
                 ),
 
-                new RunCommand(()-> Walt.intake.setRampFullThreshold()),
-
                 new ParallelCommand(
                         new FollowPedro(follower, spike2Path),
                         new CollectSpikesPedro(follower)
@@ -258,29 +266,34 @@ public class Blue18 extends OpMode {
                         new BangBangBang(follower, 0.6, velocity)
                 ),
 
-                new GateCollectPedro(1.8, follower, gateIntakePath),
+                new GateCollectPedro(1.2, follower, gateIntakePath),
 
                 new ParallelCommand(
-                        new RunCommand(()-> Walt.intake.rollerStop()),
                         new FollowPedro(follower, gateToShoot),
                         new BangBangBang(follower, 0.6, velocity)
                 ),
 
-                new GateCollectPedro(1.8, follower, gateIntakePath),
+                new GateCollectPedro(1.7, follower, gateIntakePath),
 
                 new ParallelCommand(
-                        new RunCommand(()-> Walt.intake.rollerStop()),
                         new FollowPedro(follower, gateToShoot),
                         new BangBangBang(follower, 0.6, velocity)
                 ),
 
-                new GateCollectPedro(1.8, follower, gateIntakePath),
+                new GateCollectPedro(1.7, follower, gateIntakePath),
 
                 new ParallelCommand(
-                        new RunCommand(()-> Walt.intake.rollerStop()),
                         new FollowPedro(follower, gateToShoot),
                         new BangBangBang(follower, 0.6, velocity)
                 ),
+                new GateCollectPedro(1.7, follower, gateIntakePath),
+
+                new ParallelCommand(
+                        new FollowPedro(follower, gateToShoot),
+                        new BangBangBang(follower, 0.6, velocity)
+                ),
+
+
 
 
 //                new GateCollectPedro(1, follower, gateIntakePath, gateIntakePush),
@@ -296,11 +309,15 @@ public class Blue18 extends OpMode {
                         new CollectSpikesPedro(follower)
                 ),
 
+
+
                 new ParallelCommand(
                         new FollowPedro(follower, spike1ToShoot),
                         new BangBangBang(follower, 0.7, velocity)
                 ),
 
+
+//
 //                new ParallelCommand(
 //                        new FollowPedro(follower, spike3Path),
 //                        new CollectSpikesPedro(follower)

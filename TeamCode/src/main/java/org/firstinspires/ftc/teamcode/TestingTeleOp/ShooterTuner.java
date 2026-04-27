@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 @TeleOp
 @Config
@@ -15,30 +15,30 @@ public class ShooterTuner extends OpMode {
 
     @Override
     public void init() {
-        Gus.init(hardwareMap, true, false);
-        Gus.intake.openGate();
+        Walt.init(hardwareMap, true, false);
+        Walt.intake.openGate();
     }
 
     @Override
     public void loop() {
-        Gus.shooter.setHood(hoodPos);
+        Walt.shooter.setHood(hoodPos);
         if (gamepad1.right_bumper) {
-            Gus.intake.shoot();     // No velocity control
+            Walt.intake.shoot();     // No velocity control
         }
         else if (gamepad1.right_trigger > 0.1) {
-            Gus.shooter.shoot();
+            Walt.shooter.shoot();
         }
         else {
-            Gus.intake.rollerStop();
-            Gus.shooter.stop();
+            Walt.intake.rollerStop();
+            Walt.shooter.stop();
         }
 
-        Gus.shooter.setPID(P, I, D, F, S);
-        Gus.shooter.updateShooter();
-        Gus.shooter.setTargetVelocity(targetVelocity);
-        telemetry.addData("Shooter: ", Gus.shooter.getTelemetry());
+        Walt.shooter.setPID(P, I, D, F, S);
+        Walt.shooter.updateShooter();
+        Walt.shooter.setTargetVelocity(targetVelocity);
+        telemetry.addData("Shooter: ", Walt.shooter.getTelemetry());
         telemetry.addData("Voltage: ", hardwareMap.voltageSensor.iterator().next().getVoltage());
-        telemetry.addLine(Gus.shooter.getVelocities());
+        telemetry.addLine(Walt.shooter.getVelocities());
         telemetry.update();
     }
 }

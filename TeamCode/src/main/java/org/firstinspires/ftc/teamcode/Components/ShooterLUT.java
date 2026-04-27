@@ -1,9 +1,8 @@
 package org.firstinspires.ftc.teamcode.Components;
 
 import com.arcrobotics.ftclib.util.InterpLUT;
-import com.arcrobotics.ftclib.util.LUT;
 
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 public class ShooterLUT {
     public  InterpLUT speeds;
@@ -19,19 +18,20 @@ public class ShooterLUT {
         hoodAngle.add(0.8, 0.85);
         hoodAngle.add(1.0, 0.78);
         hoodAngle.add(1.2, 0.65);
-        hoodAngle.add(1.4, 0.6);
-        hoodAngle.add(1.6, 0.53);
+        hoodAngle.add(1.4, 0.615);
+        hoodAngle.add(1.6, 0.55);
         hoodAngle.add(1.80, 0.48);
-        hoodAngle.add(2.0, 0.45);
-        hoodAngle.add(2.2, 0.43);
+        hoodAngle.add(2.0, 0.47);
+        hoodAngle.add(2.2, 0.415);
         hoodAngle.add(2.40, 0.43);
         hoodAngle.add(2.60, 0.4);//
-        hoodAngle.add(2.80, 0.38);
-        hoodAngle.add(3.0, 0.38);
-        hoodAngle.add(3.2, 0.38);
-        hoodAngle.add(3.4, 0.34);//
-        hoodAngle.add(3.6, 0.32);
-        hoodAngle.add(3.8, 0.32);//
+        hoodAngle.add(2.80, 0.4);
+        hoodAngle.add(3.0, 0.425);
+        hoodAngle.add(3.2, 0.415);
+        hoodAngle.add(3.3, 0.41);
+        hoodAngle.add(3.4, 0.41);//66
+        hoodAngle.add(3.6, 0.37);
+        hoodAngle.add(3.8, 0.36);//
 //        hoodAngle.add(4.0, 0.1);
 //        hoodAngle.add(4.2, 0.1);
 //        hoodAngle.add(4.4, 0.1);
@@ -42,20 +42,22 @@ public class ShooterLUT {
         speeds.add(0.8, 113);//
         speeds.add(1.0, 119);//
         speeds.add(1.2, 120);//
-        speeds.add(1.4, 125);//
-        speeds.add(1.60, 135);//
-        speeds.add(1.80, 142);//
-        speeds.add(2.0, 149); //
-        speeds.add(2.2, 162);
-        speeds.add(2.4, 164);
-        speeds.add(2.6, 172);
-        speeds.add(2.8, 177);
-        speeds.add(3.0, 179);
-        speeds.add(3.2, 182);
+        speeds.add(1.4, 126);//
+        speeds.add(1.60, 137);//
+        speeds.add(1.80, 144);//
+        speeds.add(2.0, 148); //
+        speeds.add(2.2, 155);
 
-        speeds.add(3.4, 186);
-        speeds.add(3.6, 191); // 0.14 203
-        speeds.add(3.8, 199);
+        speeds.add(2.4, 164);
+        speeds.add(2.6, 166);
+        speeds.add(2.8, 177);
+        speeds.add(3.0, 177);
+        speeds.add(3.2, 181);
+        speeds.add(3.3, 184);
+        speeds.add(3.4, 185);
+        speeds.add(3.5, 193);
+        speeds.add(3.6, 195); // 0.14 203
+        speeds.add(3.8, 197);
 //        speeds.add(4.0, 212);
 //        speeds.add(4.2, 221);
 //        speeds.add(4.4, 224);
@@ -97,7 +99,7 @@ public class ShooterLUT {
             if (distance >= 3.8) {
                 return 133;
             }
-            return (int) Gus.shooter.getTargetVelocity();
+            return (int) Walt.shooter.getTargetVelocity();
         }
         return (int) speeds.get(distance);
     }

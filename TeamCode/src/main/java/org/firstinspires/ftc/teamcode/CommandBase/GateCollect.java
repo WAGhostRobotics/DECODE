@@ -1,11 +1,9 @@
 package org.firstinspires.ftc.teamcode.CommandBase;
 
-import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 public class GateCollect extends Command {
     MotionPlanner follower;
@@ -34,14 +32,14 @@ public class GateCollect extends Command {
                 follower.startFollowingPath(paths[i]);
             }
         }
-        Gus.intake.updateIntake();
-        Gus.intake.rollerIn();
+        Walt.intake.updateIntake();
+        Walt.intake.rollerIn();
     }
 
     @Override
     public boolean isFinished() {
-        if (Gus.intake.isFull() || (follower.isFinished() && i >= paths.length)) {
-            Gus.intake.loaderStop();
+        if (Walt.intake.isFull() || (follower.isFinished() && i >= paths.length)) {
+            Walt.intake.loaderStop();
             return true;
         }
         return false;

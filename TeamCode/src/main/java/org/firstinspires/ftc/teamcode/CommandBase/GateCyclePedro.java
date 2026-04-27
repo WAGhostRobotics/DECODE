@@ -3,10 +3,9 @@ package org.firstinspires.ftc.teamcode.CommandBase;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.AutoUtil.PedroUtil;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 public class GateCyclePedro extends Command {
     ElapsedTime timer;
@@ -24,9 +23,9 @@ public class GateCyclePedro extends Command {
     public void init() {
         finished = false;
         timer.reset();
-        Gus.intake.closeGate();
-        Gus.intake.setBallIn(false);
-        Gus.intake.rollerIn();
+        Walt.intake.closeGate();
+        Walt.intake.setBallIn(false);
+        Walt.intake.rollerIn();
     }
 
     @Override
@@ -37,18 +36,18 @@ public class GateCyclePedro extends Command {
         if (!finished) {
             timer.reset();
         }
-        Gus.intake.rollerIn();
-        Gus.intake.updateIntake();
+        Walt.intake.rollerIn();
+        Walt.intake.updateIntake();
     }
 
     @Override
     public boolean isFinished() {
-        if (timer.seconds() >= seconds || Gus.intake.isFull()) {
-            if (Gus.intake.isFull()) {
-                Gus.intake.rollerStop();
+        if (timer.seconds() >= seconds || Walt.intake.isFull()) {
+            if (Walt.intake.isFull()) {
+                Walt.intake.rollerStop();
                 follower.breakFollowing();
             }
-            Gus.intake.loaderStop();
+            Walt.intake.loaderStop();
             return true;
         }
         return false;

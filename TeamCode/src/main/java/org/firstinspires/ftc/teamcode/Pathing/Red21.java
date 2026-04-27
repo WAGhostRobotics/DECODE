@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.SequentialCommand;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.io.File;
@@ -53,15 +53,15 @@ public class Red21 extends OpMode {
 
 
 
-    int velocity = 140;
-    double turretAngle = -139, hoodPos = 0.48;
+    int velocity = 139;
+    double turretAngle = -137.5, hoodPos = 0.48;
 
 
 
     @Override
     public void init() {
         file = AppUtil.getInstance().getSettingsFile("Headings.txt");
-        Gus.init(hardwareMap, false, false);
+        Walt.init(hardwareMap, false, false);
         follower = Constants.createFollower(hardwareMap);
         follower.update();
 
@@ -198,24 +198,33 @@ public class Red21 extends OpMode {
 
     @Override
     public void init_loop() {
-        Gus.shooter.setHood(hoodPos);
-        Gus.shooter.updateTurret();
-        Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle));
-        telemetry.addData("Is limelight chilling: ", Gus.limelight.isAlive());
+        Walt.shooter.setHood(hoodPos);
+        Walt.shooter.updateTurret();
+        Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle));
+        telemetry.addData("Is limelight chilling: ", Walt.limelight.isAlive());
         telemetry.update();
 
     }
 
     @Override
     public void loop() {
-        Gus.shooter.setTargetVelocity(velocity);
-        Gus.shooter.updateTurret();
+        Walt.shooter.setTargetVelocity(velocity);
+        Walt.shooter.updateTurret();
         loopRateTracker.updateLoopRate();
         double heading = Math.toDegrees(follower.getHeading());
-        Gus.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle - heading));
+        double calcTurretAngle;
+        if (follower != null && follower.getCurrentPath() != null && follower.getCurrentPathChain() != null) {
+            calcTurretAngle = turretAngle -
+                    (Math.toDegrees(follower.getCurrentPathChain().getFinalHeadingGoal())) ;
+        }
+        else {
+            calcTurretAngle = turretAngle - heading;
+
+        }
+        Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(calcTurretAngle));
         follower.update();
         scheduler.update();
-        Gus.shooter.updateShooter();
+        Walt.shooter.updateShooter();
         telemetry.addData("Heading: ", heading);
         telemetry.addData("Parametric end: ", follower.atParametricEnd());
         telemetry.addData("Heading error: ", follower.getCurrentPath().getPathEndHeadingConstraint());
@@ -234,7 +243,7 @@ public class Red21 extends OpMode {
                         Math.toDegrees(follower.getHeading())
                 )
         );
-        Gus.limelight.stop();
+        Walt.limelight.stop();
     }
 
     public SequentialCommand getCommand() {
@@ -257,7 +266,6 @@ public class Red21 extends OpMode {
                 new GateCollectPedro(1.2, follower, gateIntakePath),
 
                 new ParallelCommand(
-                        new RunCommand(()-> Gus.intake.rollerStop()),
                         new FollowPedro(follower, gateToShoot),
                         new BangBangBang(follower, 0.6, velocity)
                 ),
@@ -265,7 +273,6 @@ public class Red21 extends OpMode {
                 new GateCollectPedro(1.7, follower, gateIntakePath),
 
                 new ParallelCommand(
-                        new RunCommand(()-> Gus.intake.rollerStop()),
                         new FollowPedro(follower, gateToShoot),
                         new BangBangBang(follower, 0.6, velocity)
                 ),
@@ -273,14 +280,12 @@ public class Red21 extends OpMode {
                 new GateCollectPedro(1.7, follower, gateIntakePath),
 
                 new ParallelCommand(
-                        new RunCommand(()-> Gus.intake.rollerStop()),
                         new FollowPedro(follower, gateToShoot),
                         new BangBangBang(follower, 0.6, velocity)
                 ),
                 new GateCollectPedro(1.7, follower, gateIntakePath),
 
                 new ParallelCommand(
-                        new RunCommand(()-> Gus.intake.rollerStop()),
                         new FollowPedro(follower, gateToShoot),
                         new BangBangBang(follower, 0.6, velocity)
                 ),

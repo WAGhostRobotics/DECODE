@@ -1,18 +1,13 @@
 package org.firstinspires.ftc.teamcode.CommandBase;
 
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.AutoUtil.Bezier;
-import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.AutoUtil.PedroUtil;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 public class GateCollectPedro extends Command {
     Follower follower;
@@ -31,7 +26,7 @@ public class GateCollectPedro extends Command {
 
     @Override
     public void init() {
-        Gus.intake.setBallIn(false);
+        Walt.intake.setBallIn(false);
         finished = false;
         follower.followPath(paths[0], true);
     }
@@ -60,14 +55,14 @@ public class GateCollectPedro extends Command {
         else {
             timer.reset();
         }
-        Gus.intake.updateIntake();
-        Gus.intake.rollerIn();
+        Walt.intake.updateIntake();
+        Walt.intake.rollerIn();
     }
 
     @Override
     public boolean isFinished() {
-        if (Gus.intake.isFull() || (finished)) {
-            Gus.intake.loaderStop();
+        if (Walt.intake.isFull() || (finished)) {
+            Walt.intake.loaderStop();
             return true;
         }
         return false;

@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.CommandBase;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 public class Shoot extends Command {
     ElapsedTime timer;
@@ -18,16 +18,16 @@ public class Shoot extends Command {
     public void init() {
         timer.reset();
         ready = false;
-        Gus.intake.openGate();
+        Walt.intake.openGate();
     }
 
     @Override
     public void update() {
-        if (Gus.shooter.reachedVelocity()) {
+        if (Walt.shooter.reachedVelocity()) {
             ready = true;
         }
         if (ready) {
-            Gus.intake.shoot();
+            Walt.intake.shoot();
         }
         else {
             timer.reset();
@@ -37,8 +37,8 @@ public class Shoot extends Command {
     @Override
     public boolean isFinished() {
         if (timer.seconds() >= seconds) {
-            Gus.shooter.stop();
-            Gus.intake.rollerStop();
+            Walt.shooter.stop();
+            Walt.intake.rollerStop();
             return true;
         }
         return false;

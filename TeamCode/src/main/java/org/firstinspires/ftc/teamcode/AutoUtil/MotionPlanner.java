@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Components.DriveTrain.Drivetrain;
 import org.firstinspires.ftc.teamcode.Components.Constants;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 public class MotionPlanner {
     private Path spline;                    // Path to be followed (Can be Bezier, Merged or anything else)
@@ -88,7 +88,7 @@ public class MotionPlanner {
         currentX = localizer.getPosX();
         currentY = localizer.getPosY();
 
-        currentVelocity = Math.hypot(Gus.localizer.getXVelocity(), Gus.localizer.getYVelocity());
+        currentVelocity = Math.hypot(Walt.localizer.getXVelocity(), Walt.localizer.getYVelocity());
         timer.reset();
     }
     public void getHeadingError(){
@@ -352,9 +352,9 @@ public class MotionPlanner {
     }
 
     public static void holdPosition(double targetX, double targetY, double heading) {
-        double xError = targetX - Gus.localizer.getPosX();
-        double yError = targetY - Gus.localizer.getPosY();
-        double currentHeading = Gus.localizer.getHeading();
+        double xError = targetX - Walt.localizer.getPosX();
+        double yError = targetY - Walt.localizer.getPosY();
+        double currentHeading = Walt.localizer.getHeading();
         double headingError = heading - currentHeading;
 
         double translationalError = Math.hypot(xError, yError);
@@ -372,12 +372,12 @@ public class MotionPlanner {
         double driveTurn = headingControl.calculate(0, headingError);
         driveTurn =  (Math.abs(headingError)>1) ? (driveTurn + Math.signum(driveTurn) * kStaticTurn) : 0;
 
-        Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
+        Walt.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
     }
 
     public static double holdHeading(double heading) {
 
-        double currentHeading = normalizeDegrees(Gus.localizer.getHeading());
+        double currentHeading = normalizeDegrees(Walt.localizer.getHeading());
         double headingError = heading - currentHeading;
 
         double driveTurn = headingControl.calculate(0, headingError);

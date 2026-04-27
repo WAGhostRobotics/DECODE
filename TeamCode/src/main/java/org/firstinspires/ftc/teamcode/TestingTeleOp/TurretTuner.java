@@ -9,7 +9,7 @@ import com.arcrobotics.ftclib.gamepad.ToggleButtonReader;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 @TeleOp
 @Config
@@ -21,9 +21,9 @@ public class TurretTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Gus.init(hardwareMap, false, false);
+        Walt.init(hardwareMap, false, false);
         ToggleButtonReader switchReader = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.B);
-        Gus.limelight.switchToGoalPipeline();
+        Walt.limelight.switchToGoalPipeline();
         waitForStart();
         while (opModeIsActive()) {
             double x = -gamepad1.left_stick_y;
@@ -31,36 +31,36 @@ public class TurretTuner extends LinearOpMode {
             double driveTurn = gamepad1.right_stick_x;
             double magnitude = Math.hypot(x, y);
             double theta = Math.toDegrees(Math.atan2(y, x));
-            Gus.localizer.update();
-            double heading = Gus.localizer.getHeading();
+            Walt.localizer.update();
+            double heading = Walt.localizer.getHeading();
             theta = normalizeDegrees(theta - heading);
-            Gus.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
+            Walt.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
 
-            Gus.localizer.update();
-            Gus.limelight.trackAprilTag(Gus.localizer.getHeading(), Gus.shooter.getTurretAngle(), true);
+            Walt.localizer.update();
+            Walt.limelight.trackAprilTag(Walt.localizer.getHeading(), Walt.shooter.getTurretAngle(), true);
 
             if (switchReader.wasJustReleased()) {
-                Gus.limelight.switchToGoalPipeline();
+                Walt.limelight.switchToGoalPipeline();
             }
 
-            Gus.shooter.setTurretTargetPos(targetPosition);
+            Walt.shooter.setTurretTargetPos(targetPosition);
 
             if (gamepad1.a) {
-                targetPosition = Gus.shooter.getPosition() - 0.0001;
+                targetPosition = Walt.shooter.getPosition() - 0.0001;
             }
             else if (gamepad1.b) {
-                targetPosition = Gus.shooter.getPosition() - 0.0001;
+                targetPosition = Walt.shooter.getPosition() - 0.0001;
             }
 
-            if (Gus.limelight.isVisible()) {
+            if (Walt.limelight.isVisible()) {
 //                Bob.shooter.setTurretTargetPos(Shooter.angleToPosition(Bob.limelight.getTurretAngle()));
             }
 
             switchReader.readValue();
-            telemetry.addData("Turret: ", Gus.shooter.getTurretTelemetry());
-            telemetry.addData("Position: ", Gus.shooter.getPosition());
+            telemetry.addData("Turret: ", Walt.shooter.getTurretTelemetry());
+            telemetry.addData("Position: ", Walt.shooter.getPosition());
 //            telemetry.addData("error: ", error);
-            telemetry.addData("Camera: ", Gus.limelight.getTelemetry());
+            telemetry.addData("Camera: ", Walt.limelight.getTelemetry());
             telemetry.update();
         }
     }

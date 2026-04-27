@@ -5,11 +5,8 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.norm
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.ReadWriteFile;
 
-import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
-import org.firstinspires.ftc.teamcode.Core.Gus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +40,7 @@ public class PositionFinder extends OpMode {
         telemetry.addData("X: ", localizer.getPosX());
         telemetry.addData("Y: ", localizer.getPosY());
         telemetry.addData("Heading: ", localizer.getHeading());
+        telemetry.addData("Velocity: ", Math.hypot(localizer.getXVelocity(), localizer.getYVelocity()));
         telemetry.update();
     }
 

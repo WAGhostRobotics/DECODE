@@ -3,9 +3,8 @@ package org.firstinspires.ftc.teamcode.CommandBase;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.AutoUtil.PedroUtil;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 public class BangBangBangSOTM extends Command {
     final double shootTime = 0.5; //Seconds
@@ -23,15 +22,15 @@ public class BangBangBangSOTM extends Command {
 
     @Override
     public void init() {
-        Gus.intake.openGate();
+        Walt.intake.openGate();
         timer.reset();
-        Gus.shooter.setTargetVelocity(targetVelocity);
+        Walt.shooter.setTargetVelocity(targetVelocity);
     }
 
     @Override
     public void update() {
         if (follower.getCurrentTValue() >= threshold) {
-            Gus.intake.shoot();
+            Walt.intake.shoot();
         }
         else {
             timer.reset();
@@ -44,10 +43,10 @@ public class BangBangBangSOTM extends Command {
         if (follower.getCurrentTValue() >= threshold && timer.seconds() > shootTime)
         {
             follower.breakFollowing();
-            Gus.shooter.setTargetVelocity(0);
-            Gus.shooter.stop();
-            Gus.intake.rollerStop();
-            Gus.intake.closeGate();
+            Walt.shooter.setTargetVelocity(0);
+            Walt.shooter.stop();
+            Walt.intake.rollerStop();
+            Walt.intake.closeGate();
             return true;
         }
         return false;

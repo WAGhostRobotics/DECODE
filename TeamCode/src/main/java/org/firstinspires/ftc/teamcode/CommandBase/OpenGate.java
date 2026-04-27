@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.CommandBase;
 
 import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.CommandSystem.Command;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 public class OpenGate extends Command {
     MotionPlanner follower;
@@ -18,8 +18,8 @@ public class OpenGate extends Command {
     @Override
     public void update() {
         if (follower.isEndOfSpline() || follower.isFinished()) {
-            Gus.intake.rollerStop();
-            Gus.intake.openGate();
+            Walt.intake.rollerStop();
+            Walt.intake.openGate();
         }
     }
 

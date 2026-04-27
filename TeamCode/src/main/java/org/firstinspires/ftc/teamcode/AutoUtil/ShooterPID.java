@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.AutoUtil;
 
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 /**
  * This is a PID controller (https://en.wikipedia.org/wiki/PID_controller)
@@ -186,7 +186,7 @@ public class ShooterPID {
      * @return the value produced by u(t).
      */
     public double calculate(double pv) {
-        vCur = Gus.hardwareMap.voltageSensor.iterator().next().getVoltage();
+        vCur = Walt.hardwareMap.voltageSensor.iterator().next().getVoltage();
         prevErrorVal = errorVal_p;
 
         double currentTimeStamp = (double) System.nanoTime() / 1E9;

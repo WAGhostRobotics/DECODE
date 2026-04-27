@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Components.Constants;
-import org.firstinspires.ftc.teamcode.Core.Gus;
+import org.firstinspires.ftc.teamcode.Core.Walt;
 
 //@TeleOp
 @Config
@@ -37,8 +37,8 @@ public class Tuner extends OpMode {
         path = new Bezier(0,
                 new Point(targetX, targetY)
         );
-        Gus.init(hardwareMap);
-        follower = new MotionPlanner(Gus.drivetrain, Gus.localizer, hardwareMap);
+        Walt.init(hardwareMap);
+        follower = new MotionPlanner(Walt.drivetrain, Walt.localizer, hardwareMap);
         follower.setMovementPower(0.9);
     }
 
@@ -53,8 +53,8 @@ public class Tuner extends OpMode {
     @Override
     public void loop() {
         loopRateTracker.updateLoopRate();
-        double x = Gus.localizer.getPosX();
-        double y = Gus.localizer.getPosY();
+        double x = Walt.localizer.getPosX();
+        double y = Walt.localizer.getPosY();
 
         follower.setXPID(xP, xI, xD);
         follower.setYPID(yP, yI, yD);
@@ -74,7 +74,7 @@ public class Tuner extends OpMode {
         }
         startPath.readValue();
         follower.update();
-        Gus.localizer.update();
+        Walt.localizer.update();
         telemetry.addData("", follower.getTelemetry());
         telemetry.addData("Loop Speed: ", loopRateTracker.getLoopRateHz());
         telemetry.update();

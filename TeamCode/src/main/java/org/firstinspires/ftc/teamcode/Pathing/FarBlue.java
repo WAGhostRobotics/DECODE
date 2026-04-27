@@ -9,6 +9,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
@@ -16,11 +17,9 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.AutoUtil.LoopRateTracker;
 import org.firstinspires.ftc.teamcode.AutoUtil.PedroUtil;
 import org.firstinspires.ftc.teamcode.CommandBase.BangBangBang;
-import org.firstinspires.ftc.teamcode.CommandBase.CollectHP;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesPedro;
 import org.firstinspires.ftc.teamcode.CommandBase.FollowPedro;
 import org.firstinspires.ftc.teamcode.CommandBase.Shoot;
-import org.firstinspires.ftc.teamcode.CommandBase.Wait;
 import org.firstinspires.ftc.teamcode.CommandSystem.ParallelCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.RunCommand;
 import org.firstinspires.ftc.teamcode.CommandSystem.SequentialCommand;
@@ -31,17 +30,18 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.io.File;
 
 @Autonomous
-public class FarRed extends OpMode {
+public class FarBlue extends OpMode {
     File file;
     LoopRateTracker loopRateTracker = new LoopRateTracker();
     public Follower follower;
-    Pose startingPose = new Pose(88.0, 8.0,0);
-    Pose shootingPose = new Pose(88.0, 11.0);
-    Pose spike3 = new Pose(128.114, 35.800);
-    Pose humanPlayer = new Pose(130.0, 8.6);
-    Pose tunnelPoint = new Pose(130.971, 37.771);
+    Pose startingPose = new Pose(56.0, 8.0, Math.toRadians(180));
+    Pose shootingPose = new Pose(56.0, 11.0);
+    Pose spike3 = new Pose(15.886, 35.629);
+    Pose humanPlayer = new Pose(13.0, 8.6);
+    Pose tunnelPoint = new Pose(11.0, 37.771);
 
     SequentialCommand scheduler;
+    ElapsedTime timer;
 
     public PathChain spike3Path;
     public PathChain humanPlayerPath;
@@ -55,7 +55,7 @@ public class FarRed extends OpMode {
 
 
     int velocity = 186;
-    double defaultTurretAngle = -109.7, hoodPos = 0.38;
+    double defaultTurretAngle = 112.7, hoodPos = 0.38;
 
 
     @Override
@@ -64,6 +64,7 @@ public class FarRed extends OpMode {
         Walt.init(hardwareMap, false, false);
         follower = Constants.createFollower(hardwareMap);
         follower.update();
+        timer = new ElapsedTime();
 
         shoot = follower.pathBuilder()
                 .addPath(
@@ -72,18 +73,18 @@ public class FarRed extends OpMode {
                                 shootingPose
                         )
                 )
-                .setLinearHeadingInterpolation(0, 0)
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                 .build();
 
         humanPlayerPath = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
                                 shootingPose,
-                                new Pose(134.229, 19.800),
+                                new Pose(9.771, 19.800),
                                 humanPlayer
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                 .build();
 
         humanPlayerToShoot = follower.pathBuilder()
@@ -100,19 +101,19 @@ public class FarRed extends OpMode {
         spike3Path = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                startingPose,
-                                new Pose(93.857, 30.643),
+                                shootingPose,
+                                new Pose(50.143, 30.643),
                                 spike3
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         spikeToShoot = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
                                 spike3,
-                                new Pose(97.571, 13.114),
+                                new Pose(46.429, 13.114),
                                 shootingPose
                         )
                 )
@@ -124,11 +125,11 @@ public class FarRed extends OpMode {
                 .addPath(
                         new BezierCurve(
                                 shootingPose,
-                                new Pose(106.457, 7.714),
-                                new Pose(113.529, 15.857),
-                                new Pose(134.914, 0.400),
-                                new Pose(128.315, 14.400),
-                                new Pose(131.129, 26.085),
+                                new Pose(37.543, 7.714),
+                                new Pose(30.471, 15.857),
+                                new Pose(9.086, 0.400),
+                                new Pose(15.685, 14.400),
+                                new Pose(12.971, 26.085),
                                 tunnelPoint
 
                         )
@@ -140,7 +141,7 @@ public class FarRed extends OpMode {
                 .addPath(
                         new BezierCurve(
                                 tunnelPoint,
-                                new Pose(97.571, 13.114),
+                                new Pose(46.429, 13.114),
                                 shootingPose
                         )
                 )
@@ -161,6 +162,7 @@ public class FarRed extends OpMode {
         Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(defaultTurretAngle));
         telemetry.addData("Is limelight chilling: ", Walt.limelight.isAlive());
         telemetry.update();
+        timer.reset();
 
     }
 
@@ -170,20 +172,21 @@ public class FarRed extends OpMode {
         Walt.shooter.setTargetVelocity(velocity);
         Walt.shooter.updateTurret();
         loopRateTracker.updateLoopRate();
-        double heading = Math.toDegrees(follower.getHeading());
-//        double turretAngle = Walt.limelight.getTurretAngle();
         double turretAngle = 0;
+        double heading = Math.toDegrees(follower.getHeading());
+
+//        double turretAngle = Walt.limelight.getTurretAngle();
         if (follower != null && follower.getCurrentPath() != null && follower.getCurrentPathChain() != null) {
             turretAngle = defaultTurretAngle -
-                    (Math.toDegrees(follower.getCurrentPathChain().getFinalHeadingGoal())) ;
+                    (Math.toDegrees(follower.getCurrentPathChain().getFinalHeadingGoal()) - 180) ;
         }
         else {
-            turretAngle = defaultTurretAngle - heading;
+            turretAngle = defaultTurretAngle - heading - 180;
 
         }
 
         turretAngle = normalizeDegrees(turretAngle);
-        turretAngle = Range.clip(turretAngle, -135, -90);
+        turretAngle = Range.clip(turretAngle, 90, 135);
         Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle));
         follower.update();
         scheduler.update();
@@ -219,7 +222,15 @@ public class FarRed extends OpMode {
         return new SequentialCommand(
                 new RunCommand(()-> Walt.shooter.setTargetVelocity(velocity)),
                 new Shoot(0.5),
+                new ParallelCommand(
+                        new FollowPedro(follower, humanPlayerPath),
+                        new CollectSpikesPedro(follower)
+                ),
 
+                new ParallelCommand(
+                        new FollowPedro(follower, humanPlayerToShoot),
+                        new BangBangBang(follower, 0.6, velocity)
+                ),
 
                 new ParallelCommand(
                         new FollowPedro(follower, spike3Path),
@@ -230,15 +241,6 @@ public class FarRed extends OpMode {
                         new FollowPedro(follower, spikeToShoot),
                         new BangBangBang(follower, 0.7, velocity)
                 ),
-                new ParallelCommand(
-                        new FollowPedro(follower, humanPlayerPath),
-                        new CollectHP(follower, 0.5)
-                ),
-
-                new ParallelCommand(
-                        new FollowPedro(follower, humanPlayerToShoot),
-                        new BangBangBang(follower, 0.6, velocity)
-                ),
 
                 new ParallelCommand(
                         new FollowPedro(follower, tunnel),
@@ -284,9 +286,16 @@ public class FarRed extends OpMode {
                         new BangBangBang(follower, 0.7, velocity)
                 ),
                 new ParallelCommand(
-                        new FollowPedro(follower, humanPlayerPath),
+                        new FollowPedro(follower, tunnel),
                         new CollectSpikesPedro(follower)
+                ),
+
+
+                new ParallelCommand(
+                        new FollowPedro(follower, tunnelToShoot),
+                        new BangBangBang(follower, 0.7, velocity)
                 )
+
 
         );
     }
