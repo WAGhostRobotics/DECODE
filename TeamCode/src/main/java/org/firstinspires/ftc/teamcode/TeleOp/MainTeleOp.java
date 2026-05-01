@@ -42,6 +42,8 @@ public class MainTeleOp extends LinearOpMode {
     public static double hoodPos = 0;
 
     int failsafeTargetVelocity = 163;
+    public static double limelightVelThreshold = 0.5;
+    public static double relocalizeVelThreshold = 2;
     double failsafeHoodPos = 0.38;
     double gateTimerThreshold = 0.45;
     LoopRateTracker loopRateTracker;
@@ -126,6 +128,8 @@ public class MainTeleOp extends LinearOpMode {
             loopRateTracker.updateLoopRate();
 //            Gus.shooter.setShooterThreshold(shooterThreshold);
 //            Walt.shooter.setHoodAdjustmentConstant(hoodK);
+            Walt.limelight.setLimelightVelocityThreshold(limelightVelThreshold);
+            Walt.limelight.setRelocalizeVelocityThreshold(relocalizeVelThreshold);
             Walt.limelight.setXYTranslation(xTranslation, yTranslation);
 
             if (failsafeButton.wasJustReleased()) {
@@ -306,8 +310,8 @@ public class MainTeleOp extends LinearOpMode {
                 }
             }
 
-            if (shootButton.wasJustReleased()) {
-                Walt.limelight.setLocalizer(Walt.localizer.getHeading()-180, Walt.shooter.getTurretAngle());
+            if (shootButton.wasJustPressed()) {
+                Walt.limelight.setLocalizer(Walt.localizer.getHeading()-180, Walt.shooter.getTurretAngle(), true);
             }
 
 
@@ -333,19 +337,19 @@ public class MainTeleOp extends LinearOpMode {
 
 
 //            telemetry.addData("Turret: ", Gus.shooter.getTurretTelemetry());
-            telemetry.addData("Shooter: ", Walt.shooter.getTelemetry());
+//            telemetry.addData("Shooter: ", Walt.shooter.getTelemetry());
 //            telemetry.addData("Shooter Timer: ", shootTimer.seconds());
-//            telemetry.addData("Limelight\n", Gus.limelight.getPositions());
+            telemetry.addData("Limelight\n", Walt.limelight.getPositions());
 //            telemetry.addData("Localizer X: ", Gus.localizer.getPosX());
 //            telemetry.addData("Localizer Y: ", Gus.localizer.getPosY());
-//            telemetry.addData("X: ", Gus.localizer.getPosX());
-//            telemetry.addData("Y: ", Gus.localizer.getPosY());
+            telemetry.addData("X: ", Walt.localizer.getPosX());
+            telemetry.addData("Y: ", Walt.localizer.getPosY());
 //            telemetry.addData("Is Limelight chilling: ", Gus.limelight.isAlive());
-            telemetry.addData("Heading: ", Walt.localizer.getHeading());
-            telemetry.addData("Initialized: ", initialized);
-            telemetry.addData("Intake: ", Walt.intake.getTelemetry());
+//            telemetry.addData("Heading: ", Walt.localizer.getHeading());
+//            telemetry.addData("Initialized: ", initialized);
+//            telemetry.addData("Intake: ", Walt.intake.getTelemetry());
 //            telemetry.addData("Timer: ", shootTimer.seconds());
-            telemetry.addData("Lim: ", Walt.limelight.getDistance());
+//            telemetry.addData("Lim: ", Walt.limelight.getDistance());
             telemetry.addData("LoopRate: ", loopRateTracker.getLoopRateHz());
 //            telemetry.addData("ID: ", Gus.limelight.getFiducialID());
             telemetry.update();

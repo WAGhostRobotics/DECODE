@@ -56,10 +56,12 @@ public class Camera {
     private int motifID = 0;
     boolean blueAlliance;
     double velocity = 0;
-    boolean initialized;
+    boolean initialized, fullyInitialized;
     boolean forceStop = false;
     double flywheelVelocity;
     double defaultVel = 140;
+    public double limelightVelocityThreshsold = 15;
+    public double relocalizeVelocityThreshold = 15;
     int id;
 
     public Camera(HardwareMap hardwareMap, boolean blueAlliance) {
@@ -87,11 +89,21 @@ public class Camera {
     }
 
     public void trackAprilTag(double heading, double turretHeading, boolean moving) {
+        double limelightThreshold;
+        double relocalizeThresh;
+        if (!initialized) {
+            limelightThreshold = limelightVelocityThreshsold;
+            relocalizeThresh = relocalizeVelocityThreshold;
+        }
+        else {
+            limelightThreshold = 50;
+            relocalizeThresh = 50;
+        }
         getLocalizerValues();
         netAngle = heading + turretHeading;
         limelight3A.updateRobotOrientation(netAngle);
         LLResult llResult = limelight3A.getLatestResult();
-        if (Math.abs(velocity) < 15 && llResult != null && llResult.isValid()) {
+        if (Math.abs(velocity) < limelightThreshold && llResult != null && llResult.isValid()) {
             id = llResult.getFiducialResults().get(0).getFiducialId();
         }
         else {
@@ -125,8 +137,8 @@ public class Camera {
                 getLeadPose();
             }
 
-            if (!initialized || Math.abs(velocity)<3) {
-                setLocalizer(heading, turretHeading);
+            if (!initialized && Math.abs(velocity)< relocalizeThresh) {
+                setLocalizer(heading, turretHeading, false);
                 initialized = true;
             }
 
@@ -153,6 +165,22 @@ public class Camera {
         }
         else {
             aprilVisible = false;
+        }
+
+        if (fullyInitialized) {
+            aprilVisible = false;
+
+            estimatedX = localizerX;
+            estimatedY = localizerY;
+
+            newX = estimatedX;
+            newY = estimatedY;
+
+            if (moving) {
+                getLeadPose();
+            }
+
+            distance = Math.hypot(newX/meterToInches, newY/meterToInches) * Math.cos(Math.toRadians(19));
         }
 
         targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(newY, newX))-180);
@@ -391,7 +419,7 @@ public class Camera {
         initialized = false;
     }
 
-    public void setLocalizer(double heading, double turretHeading) {
+    public void setLocalizer(double heading, double turretHeading, boolean settingI) {
 //        netAngle = heading + turretHeading;
 //        limelight3A.updateRobotOrientation(netAngle);
 //        LLResult llResult = limelight3A.getLatestResult();
@@ -412,9 +440,10 @@ public class Camera {
 //            Gus.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, heading));
 //            initialized = true;
 //        }
-        if (isVisible() && !forceStop && localizerTimer.seconds()>0.1) {
-            localizerTimer.reset();
-            initialized = true;
+        if (isVisible() && !forceStop) {
+            if (settingI) {
+                fullyInitialized = true;
+            }
             Walt.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
         }
 
@@ -449,5 +478,13 @@ public class Camera {
 
     public boolean isAlive() {
         return limelight3A.isConnected();
+    }
+
+    public void setLimelightVelocityThreshold(double vel) {
+        limelightVelocityThreshsold = vel;
+    }
+
+    public void setRelocalizeVelocityThreshold(double vel) {
+        relocalizeVelocityThreshold = vel;
     }
 }

@@ -29,7 +29,7 @@ public class ShooterLUT {
         hoodAngle.add(3.0, 0.425);
         hoodAngle.add(3.2, 0.415);
         hoodAngle.add(3.3, 0.41);
-        hoodAngle.add(3.4, 0.41);//66
+        hoodAngle.add(3.4, 0.42);//66
         hoodAngle.add(3.6, 0.37);
         hoodAngle.add(3.8, 0.36);//
 //        hoodAngle.add(4.0, 0.1);
@@ -52,7 +52,7 @@ public class ShooterLUT {
         speeds.add(2.6, 166);
         speeds.add(2.8, 177);
         speeds.add(3.0, 177);
-        speeds.add(3.2, 181);
+        speeds.add(3.2, 182);
         speeds.add(3.3, 184);
         speeds.add(3.4, 185);
         speeds.add(3.5, 193);

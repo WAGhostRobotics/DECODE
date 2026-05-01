@@ -286,14 +286,8 @@ public class FarBlue extends OpMode {
                         new BangBangBang(follower, 0.7, velocity)
                 ),
                 new ParallelCommand(
-                        new FollowPedro(follower, tunnel),
+                        new FollowPedro(follower, humanPlayerPath),
                         new CollectSpikesPedro(follower)
-                ),
-
-
-                new ParallelCommand(
-                        new FollowPedro(follower, tunnelToShoot),
-                        new BangBangBang(follower, 0.7, velocity)
                 )
 
 

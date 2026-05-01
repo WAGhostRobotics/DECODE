@@ -42,7 +42,7 @@ public class Shooter {
     private static double ninetyValue = 0.28;
     public static double backlashIncrement = 0.006;
 
-    private static double zero = 0.495;
+    private static double zero = 0.498;
     double turretTargetPos;
     int shooterThreshold = 3;
     ElapsedTime shootTimer;

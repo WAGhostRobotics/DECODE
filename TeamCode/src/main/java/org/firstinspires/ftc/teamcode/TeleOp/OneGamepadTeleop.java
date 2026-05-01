@@ -255,7 +255,7 @@ public class OneGamepadTeleop extends LinearOpMode {
             }
 
             if (shootButton.wasJustReleased()) {
-                Walt.limelight.setLocalizer(Walt.localizer.getHeading()-180, Walt.shooter.getTurretAngle());
+                Walt.limelight.setLocalizer(Walt.localizer.getHeading()-180, Walt.shooter.getTurretAngle(), true);
             }
 
 
