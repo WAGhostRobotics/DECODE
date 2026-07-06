@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.Core.Walt;
 public class Shooter {
 
     Servo rightHood;
-    double hoodAdjustmentConstant = 0.004;
+    double hoodAdjustmentConstant = 0.002;
     double hoodPos;
     Servo turret1, turret2, turret3;
     public enum PopperPos {
@@ -42,7 +42,7 @@ public class Shooter {
     private static double ninetyValue = 0.28;
     public static double backlashIncrement = 0.006;
 
-    private static double zero = 0.498;
+    private static double zero = 0.499;
     double turretTargetPos;
     int shooterThreshold = 3;
     ElapsedTime shootTimer;
@@ -126,6 +126,25 @@ public class Shooter {
         wheel2.setPower(power);
     }
 
+    public void updateShooterBangBang() {
+        if (targetVelocity == 0) {
+            pidController.reset();
+            wheel1.setPower(0);
+            wheel2.setPower(0);
+            return;
+        }
+        getCurrentVelocity();
+        shooterError = targetVelocity - currentVelocity;
+        if (currentVelocity >= targetVelocity) {
+            power = 0;
+        }
+        else {
+            power = 1;
+        }
+        wheel1.setPower(-power);
+        wheel2.setPower(power);
+    }
+
     public void standBy() {
         setTargetVelocity(standByVelocity);
     }
@@ -141,6 +160,18 @@ public class Shooter {
         }
         if (ready) {
             Walt.intake.shoot();
+        }
+        else {
+            Walt.intake.loaderStop();
+        }
+    }
+
+    public void shootAdaptive(boolean isFar) {
+        if (!ready && Math.abs(shooterError) < shooterThreshold) {
+            ready = true;
+        }
+        if (ready) {
+            Walt.intake.shootAdaptive(isFar);
         }
         else {
             Walt.intake.loaderStop();
@@ -221,7 +252,7 @@ public class Shooter {
 //        if (Math.abs(turretTargetPos-position) <= ninetyValue/90.0)
 //            return;
 
-        position = Range.clip(position, 0, 1);
+        position = Range.clip(position, 0.05, 0.95);
         turretTargetPos = position;
         turret1.setPosition(turretTargetPos+backlashIncrement);
         turret2.setPosition(turretTargetPos-backlashIncrement);

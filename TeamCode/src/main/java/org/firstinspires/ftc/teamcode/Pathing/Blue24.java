@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Pathing;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeDegrees;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
@@ -13,6 +15,7 @@ import com.qualcomm.robotcore.util.ReadWriteFile;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.AutoUtil.LoopRateTracker;
 import org.firstinspires.ftc.teamcode.CommandBase.BangBangBang;
+import org.firstinspires.ftc.teamcode.CommandBase.BangBangBangQuick;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesPedro;
 import org.firstinspires.ftc.teamcode.CommandBase.FollowPedro;
 import org.firstinspires.ftc.teamcode.CommandBase.GateCollectPedro;
@@ -28,16 +31,16 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 @Autonomous
-public class Red21 extends OpMode {
+public class Blue24 extends OpMode {
     File file;
     LoopRateTracker loopRateTracker = new LoopRateTracker();
     public Follower follower;
-    Pose startingPose = new Pose(126.5, 113,0);
-    Pose shootingPose = new Pose(85.314, 84.857);
-    Pose spike2 = new Pose(131.314, 60.0);
-    Pose gateIntake = new Pose(131.5, 58.3);
-    Pose spike1 = new Pose(127.0, 83.514);
-    Pose spike3 = new Pose(129.543, 39.786);
+    Pose startingPose = new Pose(17.5, 113.0, Math.toRadians(180));
+    Pose shootingPose = new Pose(58.686, 74.857);
+    Pose spike2 = new Pose(12.686, 58.5000);
+    Pose gateIntake = new Pose(12.5, 60.0);
+    Pose spike1 = new Pose(18, 83.514);
+    Pose spike3 = new Pose(14.457, 40.0);
     SequentialCommand scheduler;
 
     public PathChain preloadScore;
@@ -55,8 +58,8 @@ public class Red21 extends OpMode {
 
 
 
-    int velocity = 139;
-    double turretAngle = -137.5, hoodPos = 0.48;
+    int velocity = 143;
+    double turretAngle = 136, hoodPos = 0.48;
 
 
 
@@ -74,18 +77,18 @@ public class Red21 extends OpMode {
                                 shootingPose
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         spike2Path = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
                                 shootingPose,
-                                new Pose(90.257, 58.5),
+                                new Pose(53.743, 58.514),
                                 spike2
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         spike2ToShoot = follower.pathBuilder()
@@ -100,12 +103,12 @@ public class Red21 extends OpMode {
                 .build();
 
         gateIntakePath = new Path(
-                    new BezierCurve(
-                            shootingPose,
-                            new Pose(95, 65),
-                            gateIntake
-                    ));
-        gateIntakePath.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(30));
+                new BezierCurve(
+                        shootingPose,
+                        new Pose(49, 65),
+                        gateIntake
+                ));
+        gateIntakePath.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(150));
 
         gateIntakePush = new Path(
                 new BezierLine(
@@ -162,8 +165,8 @@ public class Red21 extends OpMode {
                 .addPath(
                         new BezierCurve(
                                 shootingPose,
-                                new Pose(95.857, 38.386),
-                                new Pose(95.186, 40.786),
+                                new Pose(52, 45.4),
+                                new Pose(52, 42.8),
                                 spike3
 
                         )
@@ -189,7 +192,7 @@ public class Red21 extends OpMode {
                                 spike1
                         )
                 )
-                .setLinearHeadingInterpolation(spike1ToShoot.getFinalHeadingGoal(), 0)
+                .setLinearHeadingInterpolation(spike1ToShoot.getFinalHeadingGoal(), Math.toRadians(180))
                 .build();
 
         follower.setStartingPose(startingPose);
@@ -217,12 +220,13 @@ public class Red21 extends OpMode {
         double calcTurretAngle;
         if (follower != null && follower.getCurrentPath() != null && follower.getCurrentPathChain() != null) {
             calcTurretAngle = turretAngle -
-                    (Math.toDegrees(follower.getCurrentPathChain().getFinalHeadingGoal())) ;
+                    (Math.toDegrees(follower.getCurrentPathChain().getFinalHeadingGoal()) - 180);
         }
         else {
-            calcTurretAngle = turretAngle - heading;
+            calcTurretAngle = turretAngle - heading - 180;
 
         }
+        calcTurretAngle = normalizeDegrees(calcTurretAngle);
         Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(calcTurretAngle));
         follower.update();
         scheduler.update();
@@ -239,9 +243,9 @@ public class Red21 extends OpMode {
 
     @Override
     public void stop() {
-        double x = 144 - follower.getPose().getX();
-        double y = 144 - follower.getPose().getY();
-        String pose = x + "," + y + "," + (Math.toDegrees(follower.getHeading())+180);
+        double x = follower.getPose().getX();
+        double y = -(144 - follower.getPose().getY());
+        String pose = x + "," + y + "," + (Math.toDegrees(follower.getHeading()));
 
         ReadWriteFile.writeFile(
                 file,
@@ -254,7 +258,7 @@ public class Red21 extends OpMode {
         return new SequentialCommand(
                 new ParallelCommand(
                         new FollowPedro(follower, preloadScore),
-                        new BangBangBang(follower, 0.6, velocity)
+                        new BangBangBangQuick(follower, 0.4, velocity, 0.9)
                 ),
 
                 new ParallelCommand(
@@ -263,35 +267,42 @@ public class Red21 extends OpMode {
                 ),
 
                 new ParallelCommand(
-                    new FollowPedro(follower, spike2ToShoot),
-                    new BangBangBang(follower, 0.6, velocity)
+                        new FollowPedro(follower, spike2ToShoot),
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.94)
                 ),
 
-                new GateCollectPedro(1.2, follower, gateIntakePath),
+                new GateCollectPedro(1.0, follower, gateIntakePath),
 
                 new ParallelCommand(
                         new FollowPedro(follower, gateToShoot),
-                        new BangBangBang(follower, 0.6, velocity)
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.94)
                 ),
 
-                new GateCollectPedro(1.7, follower, gateIntakePath),
+                new GateCollectPedro(1.0, follower, gateIntakePath),
 
                 new ParallelCommand(
                         new FollowPedro(follower, gateToShoot),
-                        new BangBangBang(follower, 0.6, velocity)
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.94)
                 ),
 
-                new GateCollectPedro(1.7, follower, gateIntakePath),
+                new GateCollectPedro(1.0, follower, gateIntakePath),
 
                 new ParallelCommand(
                         new FollowPedro(follower, gateToShoot),
-                        new BangBangBang(follower, 0.6, velocity)
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.94)
                 ),
-                new GateCollectPedro(1.7, follower, gateIntakePath),
+                new GateCollectPedro(1.0, follower, gateIntakePath),
 
                 new ParallelCommand(
                         new FollowPedro(follower, gateToShoot),
-                        new BangBangBang(follower, 0.6, velocity)
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.94)
+                ),
+
+                new GateCollectPedro(1.0, follower, gateIntakePath),
+
+                new ParallelCommand(
+                        new FollowPedro(follower, gateToShoot),
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.94)
                 ),
 
 
@@ -314,7 +325,7 @@ public class Red21 extends OpMode {
 
                 new ParallelCommand(
                         new FollowPedro(follower, spike1ToShoot),
-                        new BangBangBang(follower, 0.7, velocity)
+                        new BangBangBangQuick(follower, 0.7, velocity, 0.9)
                 ),
 
 

@@ -11,6 +11,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -21,28 +22,32 @@ import org.firstinspires.ftc.teamcode.AutoUtil.MotionPlanner;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
 import org.firstinspires.ftc.teamcode.Core.Walt;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.List;
 
 @Config
 @TeleOp
-public class OneGamepadTeleop extends LinearOpMode {
+public class Apple extends LinearOpMode {
+    public static int multiplier = 1;
+    public double turretAngle = 0;
+    public static double turretAngleIncrement = 0.5;
     public static double airTime = 0;
 
     public static boolean blue = false;
     boolean initialized = false;
     public static double hoodK = 0.004;
     public static double xTranslation = 1.74, yTranslation = 1.2;
-    public static int visionDelay = 0;
+    public static double tP = 0.00002, tI = 0.000000, tD = 0;
+
+    public static int visionDelay = 50;
     public static int pidTimerDelay = 10;
-    public static boolean moving = true;
+    public static boolean moving = false;
     public static int targetVelocity = 0;
     public static double hoodPos = 0;
 
     int failsafeTargetVelocity = 163;
+    public static double limelightVelThreshold = 0.5;
+    public static double relocalizeVelThreshold = 2;
     double failsafeHoodPos = 0.38;
     double gateTimerThreshold = 0.45;
     LoopRateTracker loopRateTracker;
@@ -51,9 +56,8 @@ public class OneGamepadTeleop extends LinearOpMode {
     double parkHeading = 0;
     File file;
     boolean slowMo = false;
+    double newHeading = 0;
     ElapsedTime initializedTimer = new ElapsedTime();
-    public static double distConstant = 0.23;
-    public static double liftPos = 0;
 
 
     @Override
@@ -62,13 +66,13 @@ public class OneGamepadTeleop extends LinearOpMode {
         loopRateTracker = new LoopRateTracker();
         boolean parking = false;
         boolean full = false;
-        boolean isFar = false;
+        boolean adjustingHood = false;
         boolean wasEmpty = false;
         boolean readyToShoot = false;
         boolean shooting = true;
         double magnitude, theta, driveTurn, x, y, heading, targetX = 0, targetY = 0, targetHeading = 0;
         boolean failsafe = false, initialized = false;
-        double delay = 0.18;
+        double delay = 0.3;
         ElapsedTime shootTimer;
         ElapsedTime visionTimer;
         ElapsedTime pidTimer;
@@ -78,62 +82,65 @@ public class OneGamepadTeleop extends LinearOpMode {
         visionTimer = new ElapsedTime();
         shootTimer = new ElapsedTime();
         ToggleButtonReader imuReader = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.A);
-//        ToggleButtonReader parkButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
-        ToggleButtonReader localizeButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.DPAD_UP);
-        ToggleButtonReader extremeFailsafe = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.START);
-        ToggleButtonReader gateReader = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
-        ToggleButtonReader shootButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.RIGHT_BUMPER);
+        ToggleButtonReader parkButton = new ToggleButtonReader(new GamepadEx(gamepad1), GamepadKeys.Button.X);
+        ToggleButtonReader localizeButton = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.DPAD_UP);
+        ToggleButtonReader extremeFailsafe = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.START);
+        ToggleButtonReader failsafeButton = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.B);
+        ToggleButtonReader gateReader = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.X);
+        ToggleButtonReader shootButton = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.RIGHT_BUMPER);
+        ToggleButtonReader slowMoButton = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.A);
+        ToggleButtonReader stopIntakeButton = new ToggleButtonReader(new GamepadEx(gamepad2), GamepadKeys.Button.Y);
 
-//        double prevHeading = Double.parseDouble(ReadWriteFile.readFile(file));
-//        if (!blue) {
-//            newHeading = prevHeading + 180;
-//        }
-//        else {
-//            newHeading = prevHeading;
-//        }
+        double prevHeading = Double.parseDouble(ReadWriteFile.readFile(file));
+        if (!blue) {
+            newHeading = prevHeading + 180;
+        }
+        else {
+            newHeading = prevHeading;
+        }
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 
         for (LynxModule hub : allHubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
-        Walt.init(hardwareMap, blue, true);
 
         while (opModeInInit()) {
-            loadPose(file);
-            telemetry.addData("Heading: ", Walt.localizer.getHeading());
-            telemetry.addData("X: ", Walt.localizer.getPosX());
-            telemetry.addData("Y: ", Walt.localizer.getPosY());
-            Walt.localizer.update();
+            Walt.initCamera(hardwareMap, blue);
+            telemetry.addData("Heading: ", newHeading);
             telemetry.update();
+            Walt.limelight.start();
         }
-//        initialized = false;
-
-
-
+        initialized = false;
         waitForStart();
+        Walt.init(hardwareMap, blue, true);
         Walt.intake.closeGate();
         initializedTimer.reset();
 
         while (opModeIsActive()) {
-            Walt.lift.retract();
+            Walt.limelight.airTime = airTime;
+//            moving = gamepad2.left_bumper;
             Walt.localizer.update();
 
 
 
-//            if (!initialized) {
-//                if (initializedTimer.seconds() > 0.3) {
-//                    initialized = true;
-//                }
-//                Walt.localizer.setHeadingDegrees(newHeading);
-//            }
+            if (!initialized) {
+                if (initializedTimer.seconds() > 0.3) {
+                    initialized = true;
+                }
+                Walt.localizer.setHeadingDegrees(newHeading);
+            }
 
             loopRateTracker.updateLoopRate();
 //            Gus.shooter.setShooterThreshold(shooterThreshold);
 //            Walt.shooter.setHoodAdjustmentConstant(hoodK);
-//            Walt.limelight.setLimelightVelocityThreshold(limelightVelThreshold);
-//            Walt.limelight.setRelocalizeVelocityThreshold(relocalizeVelThreshold);
-//            Walt.limelight.setXYTranslation(xTranslation, yTranslation);
+            Walt.limelight.setLimelightVelocityThreshold(limelightVelThreshold);
+            Walt.limelight.setRelocalizeVelocityThreshold(relocalizeVelThreshold);
+            Walt.limelight.setXYTranslation(xTranslation, yTranslation);
 
+            if (failsafeButton.wasJustReleased()) {
+                Walt.limelight.turnOff();
+                Walt.localizer.setPose(failSafePose);
+            }
 
             if (extremeFailsafe.wasJustReleased()) {
                 failsafe = !failsafe;
@@ -141,16 +148,16 @@ public class OneGamepadTeleop extends LinearOpMode {
 
 
             // Testing tracking always
-            Walt.limelight.trackAprilTag(Walt.localizer.getHeading()-180, Walt.shooter.getTurretAngle(), moving);
-
+            if (Walt.intake.isOneBallIn() && visionTimer.milliseconds() > visionDelay) {
+                Walt.limelight.trackAprilTag(Walt.localizer.getHeading()-180, Walt.shooter.getTurretAngle(), moving);
+                visionTimer.reset();
+            }
             double distance = Walt.limelight.getDistance();
-            if (distance > 2.8) {
-                isFar = true;
-                Walt.limelight.setDistanceConstant(0);
+            if (distance > 2.0) {
+                adjustingHood = true;
             }
             else {
-                Walt.limelight.setDistanceConstant(distConstant);
-                isFar = false;
+                adjustingHood = false;
             }
 
             if (Walt.intake.isOneBallIn() && !readyToShoot) {
@@ -175,20 +182,17 @@ public class OneGamepadTeleop extends LinearOpMode {
                         Walt.shooter.setTargetVelocity(targetVelocity);
 
                     if (hoodPos == 0)
-                        Walt.shooter.setHood(Walt.shooterLUT.getHoodAngle(distance), isFar);
+                        Walt.shooter.setHood(Walt.shooterLUT.getHoodAngle(distance), adjustingHood);
                     else
-                        Walt.shooter.setHood(hoodPos, isFar);
+                        Walt.shooter.setHood(hoodPos, adjustingHood);
 
-                    Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(Walt.limelight.getTurretAngle()));
                 }
                 else {
-                    Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(0));
                     Walt.shooter.setTargetVelocity(failsafeTargetVelocity);
                     Walt.shooter.setHood(failsafeHoodPos);
                 }
             }
             else {
-                Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(Walt.limelight.getTurretAngle()));
                 Walt.shooter.setTargetVelocity(150);
             }
 
@@ -198,16 +202,29 @@ public class OneGamepadTeleop extends LinearOpMode {
             }
 
             if (gateReader.wasJustReleased()) {
-                gamepad1.rumble(200);
+                gamepad2.rumble(200);
                 full = false;
                 wasEmpty = true;
                 shooting = false;
                 readyToShoot = false;
                 Walt.intake.setBallIn(false);
                 Walt.intake.closeGate();
-                Walt.shooter.resetTurret();
                 Walt.ledLights.redColor();
             }
+
+
+            if (gamepad2.right_trigger > 0.2) {
+                turretAngle += turretAngleIncrement;
+            }
+            else if (gamepad2.left_trigger > 0.2) {
+                turretAngle -= turretAngleIncrement;
+            }
+
+            turretAngle = Range.clip(turretAngle, -130, 130);
+            Walt.shooter.setTurretTargetPos(Shooter.angleToPosition(turretAngle));
+
+
+
 
 
             Walt.intake.updateIntake();
@@ -244,10 +261,18 @@ public class OneGamepadTeleop extends LinearOpMode {
                 driveTurn = -gamepad1.right_stick_x;
             }
 
-            if (gamepad1.right_bumper) {
-                driveTurn = 0;
+            if (parkButton.wasJustPressed()) {
+                if (blue) {
+                    Walt.ledLights.redColor();
+                }
+                else {
+                    Walt.ledLights.blueColor();
+                }
+                parking = true;
             }
-
+            else if (Math.abs(gamepad1.right_stick_x) >= 0.5) {
+                parking = false;
+            }
 
             magnitude = Math.hypot(x, y);
             theta = Math.toDegrees(Math.atan2(y, x));
@@ -255,7 +280,6 @@ public class OneGamepadTeleop extends LinearOpMode {
             theta = normalizeDegrees(theta - heading);
 
             Walt.drivetrain.drive(magnitude, theta, driveTurn, 1);
-
 
 
 
@@ -269,11 +293,9 @@ public class OneGamepadTeleop extends LinearOpMode {
             else if (gamepad1.right_trigger > 0.2) {
                 Walt.intake.bruteRollerIn();
             }
-            else if (gamepad1.right_bumper) {
+            else if (gamepad2.right_bumper) {
                 if (shootButton.wasJustPressed()) {
-                    if (!initialized)
-                        Walt.limelight.setLocalizerUsingLimelight(Walt.localizer.getHeading()-180, Walt.shooter.getTurretAngle(), true);
-                    initialized = true;
+
                     shooting = true;
                     readyToShoot = true;
                     Walt.intake.rollerStop();
@@ -283,7 +305,7 @@ public class OneGamepadTeleop extends LinearOpMode {
                 }
                 else if (shootTimer.seconds() > delay) {
                     if (!slowMo) {
-                        Walt.shooter.shootAdaptive(isFar);
+                        Walt.shooter.shoot();
                     }
                     else {
                         Walt.shooter.shootSlowMotion();
@@ -302,7 +324,16 @@ public class OneGamepadTeleop extends LinearOpMode {
                 }
             }
 
+            if (shootButton.wasJustPressed()) {
+                Walt.limelight.setLocalizerUsingLimelight(Walt.localizer.getHeading()-180, Walt.shooter.getTurretAngle(), true);
+            }
 
+
+
+            if (stopIntakeButton.wasJustReleased()) {
+                Walt.intake.setFull();
+                full = true;
+            }
 
             if (localizeButton.wasJustPressed()) {
                 Walt.limelight.setLocalizerUsingLimelight(Walt.localizer.getHeading()-180, Walt.shooter.getTurretAngle(), true);
@@ -314,10 +345,12 @@ public class OneGamepadTeleop extends LinearOpMode {
             shootButton.readValue();
             imuReader.readValue();
             extremeFailsafe.readValue();
+            failsafeButton.readValue();
+            parkButton.readValue();
+            stopIntakeButton.readValue();
 
             if (imuReader.wasJustReleased()) {
                 Walt.limelight.resetInitialized();
-                initialized = false;
                 Walt.localizer.setHeadingDegrees(180);
             }
 
@@ -326,34 +359,23 @@ public class OneGamepadTeleop extends LinearOpMode {
             telemetry.addData("Shooter: ", Walt.shooter.getTelemetry());
 //            telemetry.addData("Shooter Timer: ", shootTimer.seconds());
             telemetry.addData("Limelight\n", Walt.limelight.getPositions());
+//            telemetry.addData("Localizer X: ", Gus.localizer.getPosX());
+//            telemetry.addData("Localizer Y: ", Gus.localizer.getPosY());
             telemetry.addData("X: ", Walt.localizer.getPosX());
             telemetry.addData("Y: ", Walt.localizer.getPosY());
-            telemetry.addData("Heading: ", heading);
 //            telemetry.addData("Is Limelight chilling: ", Gus.limelight.isAlive());
+//            telemetry.addData("Heading: ", Walt.localizer.getHeading());
+//            telemetry.addData("Initialized: ", initialized);
+//            telemetry.addData("Intake: ", Walt.intake.getTelemetry());
+//            telemetry.addData("Timer: ", shootTimer.seconds());
             telemetry.addData("Lim: ", Walt.limelight.getDistance());
             telemetry.addData("LoopRate: ", loopRateTracker.getLoopRateHz());
-            telemetry.addData("Moving: ", moving);
-            telemetry.addData("Distance: ", Walt.limelight.getDistance());
-            telemetry.addData("Dist constant: ", Walt.limelight.getDistConstant());
-            telemetry.addData("Airtime: ", Walt.limelight.getAirTime());
+//            telemetry.addData("ID: ", Gus.limelight.getFiducialID());
             telemetry.update();
 
         }
 
 
-
-    }
-
-    public void loadPose(File file) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String[] parts = reader.readLine().split(",");
-            double x = Double.parseDouble(parts[0]);
-            double y = Double.parseDouble(parts[1]);
-            double heading = Double.parseDouble(parts[2]);
-            Walt.limelight.initializeLocalizer(x, y, heading);
-        } catch (IOException e) {
-            return;
-        }
 
     }
 }

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Core;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Components.LedLights;
+import org.firstinspires.ftc.teamcode.Components.Lift;
 import org.firstinspires.ftc.teamcode.Components.Localizer.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Components.Camera;
 import org.firstinspires.ftc.teamcode.Components.Shooter;
@@ -21,6 +22,7 @@ public class Walt {
     public static Shooter shooter;
     public static SimpleIntake intake;
     public static LedLights ledLights;
+    public static Lift lift;
 
     public static void init(HardwareMap hardwareMap) {
         shooterLUT = new ShooterLUT();
@@ -72,11 +74,13 @@ public class Walt {
         movementPower = 0.8;
         intake = new SimpleIntake(hardwareMap);
         limelight = new Camera(hardwareMap, blueAlliance);
-        shooter.setHood(0);
-        ledLights = new LedLights(hardwareMap);
-        if (teleop) {
-            Walt.intake.openGate();
+        if (!teleop) {
+            shooter.setHood(0);
         }
+        ledLights = new LedLights(hardwareMap);
+        lift = new Lift();
+        lift.init(hardwareMap);
+
 
 
 

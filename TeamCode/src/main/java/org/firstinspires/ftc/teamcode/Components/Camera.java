@@ -8,6 +8,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
@@ -38,7 +39,7 @@ public class Camera {
     private double aprilX, aprilY, aprilXInches, aprilYInches, aprilHeading, netAngle;
     private double lastX, lastY, localizerX, localizerY, localizerHeading, estimatedX, estimatedY,
             newY, newX, currVX, currVY, lastVX, lastVY, accX, accY, distX, distY;
-    private double seconds, airTime;
+    public double seconds, airTime;
     private double distance, distanceInches;
     private double shootConstant = 1.7;
     private double velocityConstant = 100;
@@ -63,6 +64,7 @@ public class Camera {
     public double limelightVelocityThreshsold = 15;
     public double relocalizeVelocityThreshold = 15;
     int id;
+    double distConstant = 0.28;
 
     public Camera(HardwareMap hardwareMap, boolean blueAlliance) {
         forceStop = false;
@@ -133,12 +135,8 @@ public class Camera {
             newX = aprilXInches;
             newY = aprilYInches;
 
-            if (moving) {
-                getLeadPose();
-            }
-
             if (!initialized && Math.abs(velocity)< relocalizeThresh) {
-                setLocalizer(heading, turretHeading, false);
+                setLocalizerUsingLimelight(heading, turretHeading, false);
                 initialized = true;
             }
 
@@ -157,30 +155,25 @@ public class Camera {
             newX = estimatedX;
             newY = estimatedY;
 
-            if (moving) {
-                getLeadPose();
-            }
-
             distance = Math.hypot(newX/meterToInches, newY/meterToInches) * Math.cos(Math.toRadians(19));
         }
         else {
             aprilVisible = false;
         }
 
-        if (fullyInitialized) {
-            aprilVisible = false;
 
+        if (fullyInitialized) {
             estimatedX = localizerX;
             estimatedY = localizerY;
 
             newX = estimatedX;
             newY = estimatedY;
 
+            distance = Math.hypot(newX/meterToInches, newY/meterToInches) * Math.cos(Math.toRadians(19));
             if (moving) {
                 getLeadPose();
             }
 
-            distance = Math.hypot(newX/meterToInches, newY/meterToInches) * Math.cos(Math.toRadians(19));
         }
 
         targetHeading = normalizeDegrees(Math.toDegrees(Math.atan2(newY, newX))-180);
@@ -196,6 +189,21 @@ public class Camera {
             turretAngle = 0;
         }
 
+    }
+
+    public void setLocalizerUsingLimelight(double heading, double turretHeading, boolean settingI) {
+        if (isVisible() && !forceStop) {
+            if (settingI) {
+                fullyInitialized = true;
+            }
+            Walt.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
+        }
+    }
+
+    public void initializeLocalizer(double x, double y, double heading) {
+        fullyInitialized = true;
+        initialized = true;
+        Walt.localizer.setPose(new Pose2D(DistanceUnit.INCH, x, y, DEGREES, heading));
     }
 
     public String getTelemetry() {
@@ -251,21 +259,17 @@ public class Camera {
         velocity = Math.hypot(Walt.localizer.getXVelocity(), Walt.localizer.getYVelocity());
     }
 
+    public void setDistanceConstant(double k) {
+        distConstant = k;
+    }
     private void getLeadPose() {
         double velX = Walt.localizer.getXVelocity();
         double velY = Walt.localizer.getYVelocity();
-        airTime = Walt.shooterLUT.getAirTime(distance);
-        seconds = speedTimer.seconds();
+        airTime = distance * distConstant;
 
         if (airTime > 0 ) {
-            if (aprilVisible) {
-                newX = aprilXInches + (velX) * airTime;
-                newY = aprilYInches + (velY) * airTime;
-            }
-            else {
-                newX = localizerX + (velX) * airTime;
-                newY = localizerY + (velY) * airTime;
-            }
+            newX = localizerX + (velX) * airTime;
+            newY = localizerY + (velY) * airTime;
         }
         else {
             if (aprilVisible) {
@@ -337,6 +341,14 @@ public class Camera {
 
     public double getTurretAngle() {
         return turretAngle;
+    }
+
+    public double getAirTime() {
+        return airTime;
+    }
+
+    public double getDistConstant() {
+        return distConstant;
     }
 
 
@@ -417,36 +429,7 @@ public class Camera {
         aprilVisible = false;
 //        switchToGoalPipeline();
         initialized = false;
-    }
-
-    public void setLocalizer(double heading, double turretHeading, boolean settingI) {
-//        netAngle = heading + turretHeading;
-//        limelight3A.updateRobotOrientation(netAngle);
-//        LLResult llResult = limelight3A.getLatestResult();
-//        if (llResult != null && llResult.isValid() && !forceStop) {       // If April tag is visible
-//            aprilVisible = true;                    // Just for telemetry purposes
-//            Pose3D botPose = llResult.getBotpose_MT2();
-//            aprilHeading = botPose.getOrientation().getYaw(DEGREES);
-//
-//            // Get the x and y (Then apply translation to figure out where robot is relative to the goal)
-//            aprilX = botPose.getPosition().x + xTranslation;
-//            if (blueAlliance)
-//                aprilY = (botPose.getPosition().y + yTranslation);
-//            else
-//                aprilY = (botPose.getPosition().y - yTranslation);
-//
-//            aprilXInches = aprilX * meterToInches - 6 * Math.cos(Math.toRadians(heading));
-//            aprilYInches = aprilY * meterToInches - 6 * Math.sin(Math.toRadians(heading));
-//            Gus.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, heading));
-//            initialized = true;
-//        }
-        if (isVisible() && !forceStop) {
-            if (settingI) {
-                fullyInitialized = true;
-            }
-            Walt.localizer.setPositionOnly(new Pose2D(DistanceUnit.INCH, aprilXInches, aprilYInches, DEGREES, netAngle));
-        }
-
+        fullyInitialized = false;
     }
 
     public void turnOff() {

@@ -29,6 +29,7 @@ public class SimpleIntake {
     double secondLowerSensorDistance = 0;
     double midSensorDistance = 0;
 
+    double transferSpeed = 1;
     double currentLoader;
     double currentIntake;
     Servo gate;
@@ -69,7 +70,6 @@ public class SimpleIntake {
         midDistance = hardwareMap.digitalChannel.get("midDistanceDigital");
         gate = hardwareMap.get(Servo.class, "gate");
         full = false;
-        closeGate();
         loader.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         loader.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -129,7 +129,7 @@ public class SimpleIntake {
             full = false;
         }
 
-        if (twoBallIn && (lowOneState || (lowTwoState))) {
+        if (twoBallIn && (lowTwoState)) {
             if (intakeTimer.seconds() > intakeTimerThreshold) {
                 full = true;
                 power = 0;
@@ -215,9 +215,26 @@ public class SimpleIntake {
         loaderStop();
     }
 
+    public void setTransferSpeed(double speed) {
+        this.transferSpeed = speed;
+    }
+
+
+
     public void shoot() {
-        intake.setPower(1);
-        loader.setPower(1);
+        intake.setPower(transferSpeed);
+        loader.setPower(transferSpeed);
+    }
+
+    public void shootAdaptive(boolean isFar) {
+        if (isFar) {
+            intake.setPower(transferSpeed);
+            loader.setPower(transferSpeed);
+        }
+        else {
+            intake.setPower(1);
+            loader.setPower(1);
+        }
     }
     public void shootStop() {
         loader.setPower(0);

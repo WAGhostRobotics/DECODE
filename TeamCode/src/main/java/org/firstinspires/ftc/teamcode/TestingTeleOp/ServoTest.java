@@ -9,7 +9,7 @@ public class ServoTest extends OpMode {
     Servo s1;
     @Override
     public void init() {
-        s1 = hardwareMap.get(Servo.class, "gate");
+        s1 = hardwareMap.get(Servo.class, "zero");
     }
 
     @Override

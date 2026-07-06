@@ -10,7 +10,6 @@ import org.firstinspires.ftc.teamcode.TeleOp.MainTeleOp;
 public class RedTeleOp extends MainTeleOp {
     @Override
     public void runOpMode() throws InterruptedException {
-        multiplier = 1;
         blue = false;
         super.runOpMode();
     }

@@ -28,6 +28,8 @@ import org.firstinspires.ftc.teamcode.Core.Walt;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 @Autonomous
 public class FarBlue extends OpMode {
@@ -38,7 +40,9 @@ public class FarBlue extends OpMode {
     Pose shootingPose = new Pose(56.0, 11.0);
     Pose spike3 = new Pose(15.886, 35.629);
     Pose humanPlayer = new Pose(13.0, 8.6);
-    Pose tunnelPoint = new Pose(11.0, 37.771);
+    Pose tunnelPoint = new Pose(11.0, 32);
+    Pose newTunnelPoint = new Pose(15.5, 29.542);
+
 
     SequentialCommand scheduler;
     ElapsedTime timer;
@@ -49,13 +53,17 @@ public class FarBlue extends OpMode {
     public PathChain humanPlayerToShoot;
     public PathChain tunnel;
     public PathChain tunnelToShoot;
+    public PathChain newTunnelToShoot;
+    public PathChain newTunnel;
+
+
     public PathChain leave;
     public PathChain shoot;
 
 
 
-    int velocity = 186;
-    double defaultTurretAngle = 112.7, hoodPos = 0.38;
+    int velocity = 183;
+    double defaultTurretAngle = 115, hoodPos = 0.38;
 
 
     @Override
@@ -117,9 +125,23 @@ public class FarBlue extends OpMode {
                                 shootingPose
                         )
                 )
-                .setTangentHeadingInterpolation()
-                .setReversed()
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
+
+
+        newTunnel = follower.pathBuilder()
+                .addPath(
+                        new BezierCurve(
+                                shootingPose,
+                                new Pose(34.714, 36.771),
+                                new Pose(11.829, 41.143),
+                                newTunnelPoint
+
+                        )
+                )
+                .setTangentHeadingInterpolation()
+                .build();
+
 
         tunnel = follower.pathBuilder()
                 .addPath(
@@ -145,9 +167,19 @@ public class FarBlue extends OpMode {
                                 shootingPose
                         )
                 )
-                .setTangentHeadingInterpolation()
-                .setReversed()
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
+
+        newTunnelToShoot = follower.pathBuilder()
+                .addPath(
+                        new BezierLine(
+                                newTunnelPoint,
+                                shootingPose
+                        )
+                )
+                .setConstantHeadingInterpolation(Math.toRadians(180))
+                .build();
+
 
         follower.setStartingPose(startingPose);
         scheduler = getCommand();
@@ -208,14 +240,15 @@ public class FarBlue extends OpMode {
 
     @Override
     public void stop() {
+        double x = follower.getPose().getX();
+        double y = -(144 - follower.getPose().getY());
+        String pose = x + "," + y + "," + (Math.toDegrees(follower.getHeading()));
+
         ReadWriteFile.writeFile(
                 file,
-                Double.toString(
-                        Math.toDegrees(follower.getHeading())
-                )
+                pose
         );
         Walt.limelight.stop();
-
     }
 
     private SequentialCommand getCommand() {
@@ -275,6 +308,17 @@ public class FarBlue extends OpMode {
                         new BangBangBang(follower, 0.7, velocity)
                 ),
 
+//                new ParallelCommand(
+//                        new FollowPedro(follower, newTunnel),
+//                        new CollectSpikesPedro(follower)
+//                ),
+//
+//
+//                new ParallelCommand(
+//                        new FollowPedro(follower, newTunnelToShoot),
+//                        new BangBangBang(follower, 0.7, velocity)
+//                ),
+
                 new ParallelCommand(
                         new FollowPedro(follower, tunnel),
                         new CollectSpikesPedro(follower)
@@ -288,7 +332,12 @@ public class FarBlue extends OpMode {
                 new ParallelCommand(
                         new FollowPedro(follower, humanPlayerPath),
                         new CollectSpikesPedro(follower)
+                ),
+                new ParallelCommand(
+                        new FollowPedro(follower, humanPlayerToShoot),
+                        new BangBangBang(follower, 0.7, velocity)
                 )
+
 
 
         );

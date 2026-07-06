@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.util.ReadWriteFile;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.AutoUtil.LoopRateTracker;
 import org.firstinspires.ftc.teamcode.CommandBase.BangBangBang;
+import org.firstinspires.ftc.teamcode.CommandBase.BangBangBangQuick;
 import org.firstinspires.ftc.teamcode.CommandBase.CollectSpikesPedro;
 import org.firstinspires.ftc.teamcode.CommandBase.FollowPedro;
 import org.firstinspires.ftc.teamcode.CommandBase.GateCollectPedro;
@@ -27,13 +28,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-@Autonomous
-public class Red21 extends OpMode {
+//@Autonomous
+public class Red27 extends OpMode {
     File file;
     LoopRateTracker loopRateTracker = new LoopRateTracker();
     public Follower follower;
     Pose startingPose = new Pose(126.5, 113,0);
-    Pose shootingPose = new Pose(85.314, 84.857);
+    Pose shootingPose = new Pose(85.314, 74.857);
     Pose spike2 = new Pose(131.314, 60.0);
     Pose gateIntake = new Pose(131.5, 58.3);
     Pose spike1 = new Pose(127.0, 83.514);
@@ -55,8 +56,8 @@ public class Red21 extends OpMode {
 
 
 
-    int velocity = 139;
-    double turretAngle = -137.5, hoodPos = 0.48;
+    int velocity = 141;
+    double turretAngle = -136, hoodPos = 0.48;
 
 
 
@@ -100,11 +101,11 @@ public class Red21 extends OpMode {
                 .build();
 
         gateIntakePath = new Path(
-                    new BezierCurve(
-                            shootingPose,
-                            new Pose(95, 65),
-                            gateIntake
-                    ));
+                new BezierCurve(
+                        shootingPose,
+                        new Pose(95, 65),
+                        gateIntake
+                ));
         gateIntakePath.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(30));
 
         gateIntakePush = new Path(
@@ -254,7 +255,7 @@ public class Red21 extends OpMode {
         return new SequentialCommand(
                 new ParallelCommand(
                         new FollowPedro(follower, preloadScore),
-                        new BangBangBang(follower, 0.6, velocity)
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.85)
                 ),
 
                 new ParallelCommand(
@@ -263,35 +264,42 @@ public class Red21 extends OpMode {
                 ),
 
                 new ParallelCommand(
-                    new FollowPedro(follower, spike2ToShoot),
-                    new BangBangBang(follower, 0.6, velocity)
+                        new FollowPedro(follower, spike2ToShoot),
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.94)
                 ),
 
-                new GateCollectPedro(1.2, follower, gateIntakePath),
+                new GateCollectPedro(0.8, follower, gateIntakePath),
 
                 new ParallelCommand(
                         new FollowPedro(follower, gateToShoot),
-                        new BangBangBang(follower, 0.6, velocity)
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.94)
                 ),
 
-                new GateCollectPedro(1.7, follower, gateIntakePath),
+                new GateCollectPedro(0.8, follower, gateIntakePath),
 
                 new ParallelCommand(
                         new FollowPedro(follower, gateToShoot),
-                        new BangBangBang(follower, 0.6, velocity)
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.94)
                 ),
 
-                new GateCollectPedro(1.7, follower, gateIntakePath),
+                new GateCollectPedro(0.8, follower, gateIntakePath),
 
                 new ParallelCommand(
                         new FollowPedro(follower, gateToShoot),
-                        new BangBangBang(follower, 0.6, velocity)
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.94)
                 ),
-                new GateCollectPedro(1.7, follower, gateIntakePath),
+                new GateCollectPedro(0.8, follower, gateIntakePath),
 
                 new ParallelCommand(
                         new FollowPedro(follower, gateToShoot),
-                        new BangBangBang(follower, 0.6, velocity)
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.94)
+                ),
+
+                new GateCollectPedro(0.8, follower, gateIntakePath),
+
+                new ParallelCommand(
+                        new FollowPedro(follower, gateToShoot),
+                        new BangBangBangQuick(follower, 0.6, velocity, 0.94)
                 ),
 
 
@@ -314,7 +322,7 @@ public class Red21 extends OpMode {
 
                 new ParallelCommand(
                         new FollowPedro(follower, spike1ToShoot),
-                        new BangBangBang(follower, 0.7, velocity)
+                        new BangBangBangQuick(follower, 0.7, velocity, 0.9)
                 ),
 
 

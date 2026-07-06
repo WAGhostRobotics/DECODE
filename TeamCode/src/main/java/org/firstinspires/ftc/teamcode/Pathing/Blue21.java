@@ -26,6 +26,8 @@ import org.firstinspires.ftc.teamcode.Core.Walt;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 @Autonomous
 public class Blue21 extends OpMode {
@@ -240,11 +242,13 @@ public class Blue21 extends OpMode {
 
     @Override
     public void stop() {
+        double x = follower.getPose().getX();
+        double y = -(144 - follower.getPose().getY());
+        String pose = x + "," + y + "," + (Math.toDegrees(follower.getHeading()));
+
         ReadWriteFile.writeFile(
                 file,
-                Double.toString(
-                        Math.toDegrees(follower.getHeading())
-                )
+                pose
         );
         Walt.limelight.stop();
     }
